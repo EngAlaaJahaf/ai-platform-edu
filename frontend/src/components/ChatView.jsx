@@ -62,6 +62,28 @@ import { sendChatMessage, sendChatMessageStream, getApiKey, getSelectedModel, se
 import ExportModal from './ExportModal';
 import ChatSidebar from './ChatSidebar';
 
+// Arabic Typography & Word Spacing Formatter
+function formatArabicText(text) {
+  if (!text || typeof text !== 'string') return text;
+  // 1. Punctuation spacing (colon, comma, semicolon, exclamation, question mark)
+  let cleaned = text.replace(/([\u0600-\u06FF]):([\u0600-\u06FFa-zA-Z$])/g, '$1: $2');
+  cleaned = cleaned.replace(/([\u0600-\u06FF])([،؛!؟])([\u0600-\u06FFa-zA-Z$])/g, '$1$2 $3');
+
+  // 2. Spacing between Arabic and Latin/Math tokens ($ or English words)
+  cleaned = cleaned.replace(/([\u0600-\u06FF])([a-zA-Z$])/g, '$1 $2');
+  cleaned = cleaned.replace(/([a-zA-Z$])([\u0600-\u06FF])/g, '$1 $2');
+
+  // 3. Fix Arabic prepositions concatenated with definite nouns (e.g. منالجيران -> من الجيران)
+  const prepositions = '(من|في|عن|مع|بين|عند|لدى|نحو|ضد|حول|دون|غير|مثل|كافة|جميع|معظم|أغلب|سائر|حيث|حين|بأن|فإن|ولكن|حتى|إلى|على)';
+  cleaned = cleaned.replace(new RegExp(`\\b${prepositions}(ال[\\u0600-\\u06FF]{2,})\\b`, 'g'), '$1 $2');
+
+  // 4. Fix common Arabic prefix nouns / superlatives + definite nouns (e.g. خطواتالتنبؤ -> خطوات التنبؤ)
+  const prefixes = '(خطوات|مراحل|عناصر|خصائص|مميزات|عيوب|أهداف|نتائج|طرق|أنواع|أشكال|أمثلة|أسباب|حلول|بيانات|تحديد|حساب|استخراج|استخدام|تطبيق|دراسة|تحليل|تقييم|توضيح|شرح|إيجاد|معرفة|فهم|مفهوم|نموذج|خوارزمية|نظام|طريقة|عملية|قيمة|نسبة|معدل|دالة|مصفوفة|متجه|معادلة|فرضية|نظرية|قاعدة|فكرة|مشكلة|نوع|عنصر|خاصية|ميزة|هدف|نتيجة|سبب|حل|بيان|نقطة|نقاط|درجة|مستوى|مجال|قسم|فصل|باب|صفحة|سؤال|إجابة|جواب|أقرب|أبعد|أكبر|أصغر|أفضل|أحسن|أسوأ|أهم|أكثر|أقل|أعلى|أدنى|أول|آخر|أحد|إحدى)';
+  cleaned = cleaned.replace(new RegExp(`\\b${prefixes}(ال[\\u0600-\\u06FF]{2,})\\b`, 'g'), '$1 $2');
+
+  return cleaned;
+}
+
 // Smart Language Detection Function
 function detectLanguage(rawLang, codeContent) {
   const normalized = (rawLang || '').trim().toLowerCase();
@@ -1133,7 +1155,7 @@ export default function ChatView({
                           )
                         }}
                       >
-                        {msg.text}
+                        {formatArabicText(msg.text)}
                       </ReactMarkdown>
                     </div>
 

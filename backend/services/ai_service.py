@@ -24,10 +24,22 @@ class AIService:
         return name
 
     @classmethod
+    def sanitize_chunk(cls, chunk: str) -> str:
+        """
+        Cleans a streaming token chunk without stripping leading/trailing whitespace.
+        Preserves token boundaries so words do not concatenate during live streaming.
+        """
+        if not chunk or not isinstance(chunk, str):
+            return ""
+        # Remove CJK (Chinese, Japanese, Korean) characters and Asian ideographs
+        cleaned = re.sub(r'[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]+', '', chunk)
+        return cleaned
+
+    @classmethod
     def sanitize_text(cls, text: str) -> str:
         """
         Cleans AI generation output from multilingual token leaks (CJK / Chinese / Japanese / Cyrillic),
-        corrupted concatenations (e.g. searchي, defacesي, akeship_via), and artifacts.
+        corrupted concatenations (e.g. searchي, defacesي, akeship_via), and normalizes Arabic word & punctuation spacing.
         """
         if not text or not isinstance(text, str):
             return text
@@ -50,7 +62,25 @@ class AIService:
         for pattern, repl in corruptions:
             cleaned = re.sub(pattern, repl, cleaned, flags=re.IGNORECASE)
 
-        # 3. Clean up double spaces or dangling slashes left after removal
+        # 3. Punctuation spacing (colon, comma, semicolon, exclamation, question mark)
+        # E.g. "التنبؤ:حساب" -> "التنبؤ: حساب"
+        cleaned = re.sub(r'([\u0600-\u06FF]):([\u0600-\u06FFa-zA-Z$])', r'\1: \2', cleaned)
+        cleaned = re.sub(r'([\u0600-\u06FF])([،؛!؟])([\u0600-\u06FFa-zA-Z$])', r'\1\2 \3', cleaned)
+
+        # 4. Spacing between Arabic and Latin/Math tokens ($ or English words)
+        # E.g. "$k$منالجيران" or "Euclideanبين"
+        cleaned = re.sub(r'([\u0600-\u06FF])([a-zA-Z$])', r'\1 \2', cleaned)
+        cleaned = re.sub(r'([a-zA-Z$])([\u0600-\u06FF])', r'\1 \2', cleaned)
+
+        # 5. Fix Arabic preposition + definite noun gluing (e.g. "منالجيران" -> "من الجيران")
+        prep_pattern = r'\b(من|في|عن|مع|بين|عند|لدى|نحو|ضد|حول|دون|غير|مثل|كافة|جميع|معظم|أغلب|سائر|حيث|حين|بأن|فإن|ولكن|حتى|إلى|على)(ال[\u0600-\u06FF]{2,})\b'
+        cleaned = re.sub(prep_pattern, r'\1 \2', cleaned)
+
+        # 6. Fix common Arabic prefix nouns / superlatives + definite noun gluing (e.g. "خطواتالتنبؤ" -> "خطوات التنبؤ")
+        noun_pattern = r'\b(خطوات|مراحل|عناصر|خصائص|مميزات|عيوب|أهداف|نتائج|طرق|أنواع|أشكال|أمثلة|أسباب|حلول|بيانات|تحديد|حساب|استخراج|استخدام|تطبيق|دراسة|تحليل|تقييم|توضيح|شرح|إيجاد|معرفة|فهم|مفهوم|نموذج|خوارزمية|نظام|طريقة|عملية|قيمة|نسبة|معدل|دالة|مصفوفة|متجه|معادلة|فرضية|نظرية|قاعدة|فكرة|مشكلة|نوع|عنصر|خاصية|ميزة|هدف|نتيجة|سبب|حل|بيان|نقطة|نقاط|درجة|مستوى|مجال|قسم|فصل|باب|صفحة|سؤال|إجابة|جواب|أقرب|أبعد|أكبر|أصغر|أفضل|أحسن|أسوأ|أهم|أكثر|أقل|أعلى|أدنى|أول|آخر|أحد|إحدى)(ال[\u0600-\u06FF]{2,})\b'
+        cleaned = re.sub(noun_pattern, r'\1 \2', cleaned)
+
+        # 7. Clean up double spaces or dangling slashes left after removal
         cleaned = re.sub(r'[ \t]{2,}', ' ', cleaned)
         cleaned = re.sub(r'/\s*/', '/', cleaned)
         cleaned = re.sub(r'^\s*[/\\-]\s*', '', cleaned)
@@ -216,6 +246,7 @@ class AIService:
             "- استخدم جملًا قصيرة وقوية الأثر.\n"
             "- اعتمد صيغة المبني للمعلوم دائما.\n"
             "- ركز على الرؤى العملية والقابلة للتنفيذ.\n"
+            "- التزم بوضع مسافة واضحة وفاصلة بين كل كلمة وأخرى، وبعد الفواصل والنقاط والنقطتين الرأسيتين، وقبل وبعد الأرقام والرموز الإنجليزية والرياضية.\n"
             "- استخدم القوائم النقطية في منشورات التواصل الاجتماعي.\n"
             "- ادعم الادعاءات بالبيانات والأمثلة كلما أمكن ذلك.\n"
             "- خاطب القارئ مباشرة باستخدام ضمير المخاطب.\n"
@@ -376,6 +407,7 @@ class AIService:
             "- اكتب بأسلوب مقتضب ومعلوماتي.\n"
             "- استخدم جملًا قصيرة وقوية الأثر.\n"
             "- اعتمد صيغة المبني للمعلوم دائما.\n"
+            "- التزم بوضع مسافة واضحة وفاصلة بين كل كلمة وأخرى، وبعد الفواصل والنقاط والنقطتين الرأسيتين، وقبل وبعد الأرقام والرموز الإنجليزية والرياضية.\n"
         )
         try:
             from backend.database import get_system_settings as _get_settings_stream
@@ -437,7 +469,7 @@ class AIService:
         )
         user_prompt = f"محتوى المستند المرفق الكامل:\n{context_text}\n\nسؤال الطالب: {query}"
         for chunk in cls.execute_chat_completion_stream(system_prompt=system_prompt, user_prompt=user_prompt, provider=provider, api_key=api_key, base_url=base_url, model=model):
-            yield cls.sanitize_text(chunk) if chunk else ""
+            yield cls.sanitize_chunk(chunk) if chunk else ""
 
     @classmethod
     def validate_connection(
