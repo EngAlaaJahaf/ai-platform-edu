@@ -81,11 +81,17 @@ class AIService:
 
         if base_url:
             clean_base = base_url.strip().rstrip("/")
-            headers = {"Authorization": f"Bearer {key}"} if key else {}
-            
+            # Some OpenAI-compatible gateways accept only x-api-key, others only
+            # Authorization: Bearer. Send both when a key is available so gateways
+            # like OmniRoute / vLLM / LiteLLM all authenticate correctly.
+            headers = {}
+            if key:
+                headers["Authorization"] = f"Bearer {key}"
+                headers["x-api-key"] = key
+
             # Smart URL normalization
             root_url = clean_base[:-3] if clean_base.endswith("/v1") else clean_base
-            
+
             endpoints_to_try = [
                 f"{clean_base}/models" if not clean_base.endswith("/models") else clean_base,
                 f"{root_url}/v1/models",
@@ -94,32 +100,47 @@ class AIService:
                 f"{root_url}/models"
             ]
 
-            # Remove duplicate endpoints
+            # Remove duplicate endpoints and merge results across ALL successful
+            # endpoints (some servers return partial/limited lists, so trying every
+            # path and union-ing the ids gets the complete set of models).
             unique_endpoints = list(dict.fromkeys(endpoints_to_try))
+            seen_ids = set()
 
             for ep in unique_endpoints:
                 try:
-                    with httpx.Client(timeout=2.0) as http_client:
+                    with httpx.Client(timeout=4.0) as http_client:
                         r = http_client.get(ep, headers=headers)
-                        if r.status_code == 200:
-                            data = r.json()
-                            if isinstance(data, list):
-                                models_list = data
-                            elif isinstance(data, dict):
-                                models_list = data.get("data", []) or data.get("models", [])
-                            else:
+                        if r.status_code != 200:
+                            continue
+                        data = r.json()
+                        if isinstance(data, list):
+                            models_list = data
+                        elif isinstance(data, dict):
+                            models_list = (
+                                data.get("data", [])
+                                or data.get("models", [])
+                                or data.get("model", [])
+                                or []
+                            )
+                            if not isinstance(models_list, list):
                                 models_list = []
-                                
-                            for m in models_list:
-                                if isinstance(m, str) and m.strip():
-                                    discovered_models.append({"id": m.strip(), "name": m.strip()})
-                                elif isinstance(m, dict):
-                                    m_id = m.get("id") or m.get("name") or m.get("model")
-                                    if m_id:
-                                        m_str = str(m_id).strip()
-                                        discovered_models.append({"id": m_str, "name": str(m.get("name") or m_str)})
-                            if discovered_models:
-                                break
+                        else:
+                            models_list = []
+
+                        for m in models_list:
+                            mid = None
+                            mname = None
+                            if isinstance(m, str):
+                                mid = m.strip()
+                                mname = mid
+                            elif isinstance(m, dict):
+                                m_meta = m.get("metadata") or {}
+                                mid = str(m.get("id") or m.get("name") or m.get("model") or m_meta.get("id") or "").strip()
+                                mname = str(m.get("name") or m_meta.get("name") or mid).strip()
+                            if not mid or mid in seen_ids:
+                                continue
+                            seen_ids.add(mid)
+                            discovered_models.append({"id": mid, "name": mname or mid})
                 except Exception:
                     continue
 
