@@ -345,14 +345,28 @@ async def upload_document(
     x_user_id: Optional[str] = Header(None)
 ):
     effective_user_id = user_id or x_user_id
-    allowed_exts = [".pdf", ".docx", ".doc", ".pptx", ".ppt", ".txt", ".md", ".csv", ".xlsx", ".xls", ".rtf"]
+    # Dynamic allowed formats & size from system_settings
+    sys_settings = get_system_settings()
+    allowed_exts = [str(f).lower() for f in sys_settings.get("allowed_formats", [".pdf", ".docx", ".doc", ".pptx", ".ppt", ".txt", ".md", ".csv", ".xlsx", ".xls", ".rtf"])]
+    max_size_mb = int(sys_settings.get("max_upload_size_mb", 50))
     file_ext = os.path.splitext(file.filename)[1].lower()
     
     if file_ext not in allowed_exts:
         raise HTTPException(
             status_code=400, 
-            detail=f"نوع الملف غير مدعوم ({file_ext}). الصيغ المدعومة: PDF, Word (DOCX), PowerPoint (PPTX), Text (TXT/MD), Excel (XLSX/CSV)"
+            detail=f"نوع الملف غير مدعوم ({file_ext}). الصيغ المسموحة حالياً: {', '.join(allowed_exts)} (يمكن للمدير تعديلها من لوحة التحكم > إعدادات متقدمة)"
         )
+    # Validate file size if available
+    try:
+        file.file.seek(0, 2)
+        size_bytes = file.file.tell()
+        file.file.seek(0)
+        if size_bytes > max_size_mb * 1024 * 1024:
+            raise HTTPException(status_code=400, detail=f"حجم الملف يتجاوز الحد المسموح ({max_size_mb} MB) — عدّل الحد من لوحة التحكم")
+    except HTTPException:
+        raise
+    except Exception:
+        pass
         
     doc_id = str(uuid.uuid4())[:8]
     save_path = os.path.join(UPLOAD_DIR, f"{doc_id}_{file.filename}")
@@ -415,8 +429,12 @@ def chat_with_doc(
 ):
     doc = get_document(req.doc_id, user_id=x_user_id) if req.doc_id else get_latest_document(user_id=x_user_id)
     chunks = doc.get("chunks", []) if doc else []
-    
-    relevant_chunks = RAGService.search_relevant_chunks(req.query, chunks, top_k=50)
+    # Dynamic RAG top_k from system_settings
+    rag_k = int(get_system_settings().get("auto_rag_chunks", 4))
+    # Ensure reasonable bounds 2-12, but keep user's expected 50 as fallback for legacy if chunks many
+    # If chunks small, use all; if large, use setting*2
+    top_k = max(4, min(50, rag_k * 3)) if rag_k else 50
+    relevant_chunks = RAGService.search_relevant_chunks(req.query, chunks, top_k=top_k)
     
     result = AIService.answer_with_rag(
         query=req.query,

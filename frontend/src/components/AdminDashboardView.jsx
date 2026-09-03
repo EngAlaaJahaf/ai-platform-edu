@@ -8,6 +8,7 @@ import AISettings from './admin/settings/AISettings';
 import SystemPolicies from './admin/settings/SystemPolicies';
 import PromptsSettings from './admin/settings/PromptsSettings';
 import ActivityLogs from './admin/settings/ActivityLogs';
+import AdvancedSettings from './admin/settings/AdvancedSettings';
 
 import { 
   fetchAdminStats, 
@@ -299,6 +300,7 @@ export default function AdminDashboardView({
               />
             )}
             {activeSection === 'policies' && <SystemPolicies settings={settings} setSettings={setSettings} />}
+            {activeSection === 'advanced' && <AdvancedSettings settings={settings} setSettings={setSettings} />}
             {activeSection === 'prompts' && (
               <PromptsSettings 
                 prompts={prompts} 
