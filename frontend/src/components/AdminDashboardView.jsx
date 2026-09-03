@@ -31,10 +31,12 @@ import {
   getApiKey,
   getBaseUrl,
   getSelectedModel,
+  getGoogleClientId,
   setAIProvider,
   setApiKey,
   setBaseUrl,
-  setSelectedModel
+  setSelectedModel,
+  setGoogleClientId
 } from '../services/api';
 
 export default function AdminDashboardView({ 
@@ -64,6 +66,7 @@ export default function AdminDashboardView({
   const [apiKey, setApiKey] = useState(getApiKey());
   const [baseUrl, setBaseUrl] = useState(getBaseUrl());
   const [selectedModel, setSelectedModel] = useState(getSelectedModel());
+  const [googleClientId, setGoogleClientIdState] = useState(getGoogleClientId());
   const [dynamicModels, setDynamicModels] = useState([]);
   const [fetchingModels, setFetchingModels] = useState(false);
   const [searchModelQuery, setSearchModelQuery] = useState('');
@@ -90,6 +93,12 @@ export default function AdminDashboardView({
         if (settingsData.default_model) setSelectedModel(settingsData.default_model);
         if (settingsData.default_base_url) setBaseUrl(settingsData.default_base_url);
         if (settingsData.default_api_key) setApiKey(settingsData.default_api_key);
+        if (settingsData.google_client_id !== undefined) {
+          setGoogleClientIdState(settingsData.google_client_id || '');
+          setGoogleClientId(settingsData.google_client_id || '');
+        } else if (settingsData.google_client_id === '') {
+          setGoogleClientIdState('');
+        }
       }
       if (usersData) setUsersList(usersData);
       if (logsData) setLogs(logsData);
@@ -113,13 +122,15 @@ export default function AdminDashboardView({
         default_provider: provider,
         default_model: selectedModel,
         default_base_url: baseUrl,
-        default_api_key: apiKey
+        default_api_key: apiKey,
+        google_client_id: googleClientId
       };
       
       setApiKey(apiKey);
       setBaseUrl(baseUrl);
       setAIProvider(provider);
       setSelectedModel(selectedModel);
+      setGoogleClientId(googleClientId);
 
       await saveAdminSettings(updated);
       setSettings(updated);
@@ -290,6 +301,7 @@ export default function AdminDashboardView({
                 apiKey={apiKey} setApiKey={setApiKey}
                 baseUrl={baseUrl} setBaseUrl={setBaseUrl}
                 selectedModel={selectedModel} setSelectedModel={setSelectedModel}
+                googleClientId={googleClientId} setGoogleClientId={setGoogleClientIdState}
                 validating={validating} validationResult={validationResult}
                 handleValidateConnection={handleValidateConnection}
                 dynamicModels={dynamicModels} fetchingModels={fetchingModels}

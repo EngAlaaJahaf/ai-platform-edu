@@ -47,7 +47,7 @@ export function setSelectedModel(model) {
 }
 
 export function getGoogleClientId() {
-  return localStorage.getItem('eduai_google_client_id') || '789123456789-samplegoogleclientid.apps.googleusercontent.com';
+  return localStorage.getItem('eduai_google_client_id') || '';
 }
 
 export function setGoogleClientId(clientId) {

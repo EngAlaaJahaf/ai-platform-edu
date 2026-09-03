@@ -728,7 +728,8 @@ def get_system_settings() -> Dict[str, Any]:
         "default_student_token_limit": 500000,
         "default_subscription_tier": "Pro Academic 🌟",
         "auto_rag_chunks": 4,
-        "system_notice": "المنصة تعمل بأعلى كفاءة لخدمة الطلاب والباحثين والأكاديميين."
+        "system_notice": "المنصة تعمل بأعلى كفاءة لخدمة الطلاب والباحثين والأكاديميين.",
+        "google_client_id": ""
     }
     
     for r in rows:
