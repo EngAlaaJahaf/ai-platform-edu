@@ -322,3 +322,24 @@ html.light select:focus {
   letter-spacing: normal;
 }
 
+/* KaTeX Mathematical Formulas Styling in RTL Context */
+.katex {
+  direction: ltr !important;
+  display: inline-block;
+  unicode-bidi: isolate;
+  font-size: 1.05em;
+  padding: 0 2px;
+}
+.katex-display {
+  direction: ltr !important;
+  text-align: center;
+  margin: 1em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5em 0;
+}
+.dark .katex,
+:root:not(.light) .katex {
+  color: #E0E7FF;
+}
+

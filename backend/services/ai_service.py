@@ -39,15 +39,23 @@ class AIService:
     def sanitize_text(cls, text: str) -> str:
         """
         Cleans AI generation output from multilingual token leaks (CJK / Chinese / Japanese / Cyrillic),
-        corrupted concatenations (e.g. searchي, defacesي, akeship_via), and normalizes Arabic word & punctuation spacing.
+        corrupted concatenations (e.g. searchي, defacesي, akeship_via), and normalizes Arabic word, citation & punctuation spacing.
         """
         if not text or not isinstance(text, str):
             return text
 
-        # 1. Remove CJK (Chinese, Japanese, Korean) characters and Asian ideographs
-        cleaned = re.sub(r'[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]+', '', text)
+        # 1. Mask code blocks and LaTeX math ($...$ / $$...$$) to avoid altering math syntax
+        placeholders = []
+        def mask_match(m):
+            placeholders.append(m.group(0))
+            return f"___MATH_BLOCK_{len(placeholders)-1}___"
+
+        cleaned = re.sub(r'```[\s\S]*?```|`[^`\n]+`|\$\$[\s\S]*?\$\$|\$[^\$\n]+?\$', mask_match, text)
+
+        # 2. Remove CJK (Chinese, Japanese, Korean) characters and Asian ideographs
+        cleaned = re.sub(r'[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]+', '', cleaned)
         
-        # 2. Fix specific corrupted fragments from multilingual model hallucinations
+        # 3. Fix specific corrupted fragments from multilingual model hallucinations
         corruptions = [
             (r'akeship_via', 'البريد الإلكتروني'),
             (r'akeship', 'الاحتيال'),
@@ -62,29 +70,45 @@ class AIService:
         for pattern, repl in corruptions:
             cleaned = re.sub(pattern, repl, cleaned, flags=re.IGNORECASE)
 
-        # 3. Punctuation spacing (colon, comma, semicolon, exclamation, question mark)
+        # 4. Add line breaks after citation blocks when touching new sections/text
+        # E.g. "[المصدر: صفحة 2]حالة تطبيقية" -> "[المصدر: صفحة 2]\n\nحالة تطبيقية"
+        cleaned = re.sub(r'(\[المصدر:[^\]\n]+\])\s*([^\s\n\]\)])', r'\1\n\n\2', cleaned)
+
+        # 5. Add proper line break before sub-questions (e.g. "أ) ", "ب) ", "ج) ", "د) ")
+        cleaned = re.sub(r'([^\n])\s*([أ-ي]\))\s*', r'\1\n\2 ', cleaned)
+
+        # 6. Bracket spacing: Spacing after closing ] and ) when touching Arabic letters
+        cleaned = re.sub(r'([\]\)])([\u0600-\u06FF])', r'\1 \2', cleaned)
+        # Spacing before opening [ and ( when touching Arabic letters
+        cleaned = re.sub(r'([\u0600-\u06FF])([\[\(])', r'\1 \2', cleaned)
+
+        # 7. Punctuation spacing (colon, comma, semicolon, exclamation, question mark)
         # E.g. "التنبؤ:حساب" -> "التنبؤ: حساب"
         cleaned = re.sub(r'([\u0600-\u06FF]):([\u0600-\u06FFa-zA-Z$])', r'\1: \2', cleaned)
         cleaned = re.sub(r'([\u0600-\u06FF])([،؛!؟])([\u0600-\u06FFa-zA-Z$])', r'\1\2 \3', cleaned)
 
-        # 4. Spacing between Arabic and Latin/Math tokens ($ or English words)
-        # E.g. "$k$منالجيران" or "Euclideanبين"
-        cleaned = re.sub(r'([\u0600-\u06FF])([a-zA-Z$])', r'\1 \2', cleaned)
-        cleaned = re.sub(r'([a-zA-Z$])([\u0600-\u06FF])', r'\1 \2', cleaned)
+        # 8. Spacing between Arabic and Latin tokens
+        cleaned = re.sub(r'([\u0600-\u06FF])([a-zA-Z])', r'\1 \2', cleaned)
+        cleaned = re.sub(r'([a-zA-Z])([\u0600-\u06FF])', r'\1 \2', cleaned)
 
-        # 5. Fix Arabic preposition + definite noun gluing (e.g. "منالجيران" -> "من الجيران")
+        # 9. Fix Arabic preposition + definite noun gluing (e.g. "منالجيران" -> "من الجيران")
         prep_pattern = r'\b(من|في|عن|مع|بين|عند|لدى|نحو|ضد|حول|دون|غير|مثل|كافة|جميع|معظم|أغلب|سائر|حيث|حين|بأن|فإن|ولكن|حتى|إلى|على)(ال[\u0600-\u06FF]{2,})\b'
         cleaned = re.sub(prep_pattern, r'\1 \2', cleaned)
 
-        # 6. Fix common Arabic prefix nouns / superlatives + definite noun gluing (e.g. "خطواتالتنبؤ" -> "خطوات التنبؤ")
+        # 10. Fix common Arabic prefix nouns / superlatives + definite noun gluing (e.g. "خطواتالتنبؤ" -> "خطوات التنبؤ")
         noun_pattern = r'\b(خطوات|مراحل|عناصر|خصائص|مميزات|عيوب|أهداف|نتائج|طرق|أنواع|أشكال|أمثلة|أسباب|حلول|بيانات|تحديد|حساب|استخراج|استخدام|تطبيق|دراسة|تحليل|تقييم|توضيح|شرح|إيجاد|معرفة|فهم|مفهوم|نموذج|خوارزمية|نظام|طريقة|عملية|قيمة|نسبة|معدل|دالة|مصفوفة|متجه|معادلة|فرضية|نظرية|قاعدة|فكرة|مشكلة|نوع|عنصر|خاصية|ميزة|هدف|نتيجة|سبب|حل|بيان|نقطة|نقاط|درجة|مستوى|مجال|قسم|فصل|باب|صفحة|سؤال|إجابة|جواب|أقرب|أبعد|أكبر|أصغر|أفضل|أحسن|أسوأ|أهم|أكثر|أقل|أعلى|أدنى|أول|آخر|أحد|إحدى)(ال[\u0600-\u06FF]{2,})\b'
         cleaned = re.sub(noun_pattern, r'\1 \2', cleaned)
 
-        # 7. Clean up double spaces or dangling slashes left after removal
+        # 11. Clean up double spaces or dangling slashes left after removal
         cleaned = re.sub(r'[ \t]{2,}', ' ', cleaned)
         cleaned = re.sub(r'/\s*/', '/', cleaned)
         cleaned = re.sub(r'^\s*[/\\-]\s*', '', cleaned)
         cleaned = re.sub(r'\s*[/\\-]\s*$', '', cleaned)
+
+        # 12. Restore code and math placeholders
+        for i, orig in enumerate(placeholders):
+            cleaned = cleaned.replace(f"___MATH_BLOCK_{i}___", orig)
+
         return cleaned.strip()
 
     @classmethod

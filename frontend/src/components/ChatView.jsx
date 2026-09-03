@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
 import 'prismjs/components/prism-python';
@@ -62,24 +64,49 @@ import { sendChatMessage, sendChatMessageStream, getApiKey, getSelectedModel, se
 import ExportModal from './ExportModal';
 import ChatSidebar from './ChatSidebar';
 
-// Arabic Typography & Word Spacing Formatter
+// Arabic Typography, Word Spacing & LaTeX Masking Formatter
 function formatArabicText(text) {
   if (!text || typeof text !== 'string') return text;
-  // 1. Punctuation spacing (colon, comma, semicolon, exclamation, question mark)
-  let cleaned = text.replace(/([\u0600-\u06FF]):([\u0600-\u06FFa-zA-Z$])/g, '$1: $2');
+
+  // 1. Temporarily mask code blocks and LaTeX math ($...$ / $$...$$) to avoid altering math syntax
+  const placeholders = [];
+  const masked = text.replace(/(```[\s\S]*?```|`[^`\n]+`|\$\$[\s\S]*?\$\$|\$[^\$\n]+?\$)/g, (match) => {
+    placeholders.push(match);
+    return `___MATH_BLOCK_${placeholders.length - 1}___`;
+  });
+
+  // 2. Add line breaks after citation blocks when touching new sections/text
+  // E.g. "[المصدر: صفحة 2]حالة تطبيقية" -> "[المصدر: صفحة 2]\n\nحالة تطبيقية"
+  let cleaned = masked.replace(/(\[المصدر:[^\]\n]+\])\s*([^\s\n\]\)])/g, '$1\n\n$2');
+
+  // 3. Add proper line break before sub-questions (e.g. "أ) ", "ب) ", "ج) ", "د) ")
+  cleaned = cleaned.replace(/([^\n])\s*([أ-ي]\))\s*/g, '$1\n$2 ');
+
+  // 4. Bracket spacing: Spacing after closing ] and ) when touching Arabic letters
+  cleaned = cleaned.replace(/([\]\)])([\u0600-\u06FF])/g, '$1 $2');
+  // Spacing before opening [ and ( when touching Arabic letters
+  cleaned = cleaned.replace(/([\u0600-\u06FF])([\[\(])/g, '$1 $2');
+
+  // 5. Punctuation spacing (colon, comma, semicolon, exclamation, question mark)
+  cleaned = cleaned.replace(/([\u0600-\u06FF]):([\u0600-\u06FFa-zA-Z$])/g, '$1: $2');
   cleaned = cleaned.replace(/([\u0600-\u06FF])([،؛!؟])([\u0600-\u06FFa-zA-Z$])/g, '$1$2 $3');
 
-  // 2. Spacing between Arabic and Latin/Math tokens ($ or English words)
-  cleaned = cleaned.replace(/([\u0600-\u06FF])([a-zA-Z$])/g, '$1 $2');
-  cleaned = cleaned.replace(/([a-zA-Z$])([\u0600-\u06FF])/g, '$1 $2');
+  // 6. Spacing between Arabic and Latin tokens
+  cleaned = cleaned.replace(/([\u0600-\u06FF])([a-zA-Z])/g, '$1 $2');
+  cleaned = cleaned.replace(/([a-zA-Z])([\u0600-\u06FF])/g, '$1 $2');
 
-  // 3. Fix Arabic prepositions concatenated with definite nouns (e.g. منالجيران -> من الجيران)
+  // 7. Fix Arabic prepositions concatenated with definite nouns (e.g. منالجيران -> من الجيران)
   const prepositions = '(من|في|عن|مع|بين|عند|لدى|نحو|ضد|حول|دون|غير|مثل|كافة|جميع|معظم|أغلب|سائر|حيث|حين|بأن|فإن|ولكن|حتى|إلى|على)';
   cleaned = cleaned.replace(new RegExp(`\\b${prepositions}(ال[\\u0600-\\u06FF]{2,})\\b`, 'g'), '$1 $2');
 
-  // 4. Fix common Arabic prefix nouns / superlatives + definite nouns (e.g. خطواتالتنبؤ -> خطوات التنبؤ)
+  // 8. Fix common Arabic prefix nouns / superlatives + definite nouns (e.g. خطواتالتنبؤ -> خطوات التنبؤ)
   const prefixes = '(خطوات|مراحل|عناصر|خصائص|مميزات|عيوب|أهداف|نتائج|طرق|أنواع|أشكال|أمثلة|أسباب|حلول|بيانات|تحديد|حساب|استخراج|استخدام|تطبيق|دراسة|تحليل|تقييم|توضيح|شرح|إيجاد|معرفة|فهم|مفهوم|نموذج|خوارزمية|نظام|طريقة|عملية|قيمة|نسبة|معدل|دالة|مصفوفة|متجه|معادلة|فرضية|نظرية|قاعدة|فكرة|مشكلة|نوع|عنصر|خاصية|ميزة|هدف|نتيجة|سبب|حل|بيان|نقطة|نقاط|درجة|مستوى|مجال|قسم|فصل|باب|صفحة|سؤال|إجابة|جواب|أقرب|أبعد|أكبر|أصغر|أفضل|أحسن|أسوأ|أهم|أكثر|أقل|أعلى|أدنى|أول|آخر|أحد|إحدى)';
   cleaned = cleaned.replace(new RegExp(`\\b${prefixes}(ال[\\u0600-\\u06FF]{2,})\\b`, 'g'), '$1 $2');
+
+  // 9. Restore code and math placeholders
+  placeholders.forEach((orig, i) => {
+    cleaned = cleaned.replace(`___MATH_BLOCK_${i}___`, orig);
+  });
 
   return cleaned;
 }
@@ -1115,7 +1142,8 @@ export default function ChatView({
                     {/* Rich Markdown Renderer */}
                     <div className="prose prose-indigo dark:prose-invert max-w-none font-['Tajawal'] text-[13.5px] leading-[1.7] break-words space-y-1.5">
                       <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
+                        remarkPlugins={[remarkGfm, remarkMath]}
+                        rehypePlugins={[rehypeKatex]}
                         components={{
                           code: CodeBlock,
                           table: ({ node, ...props }) => (
