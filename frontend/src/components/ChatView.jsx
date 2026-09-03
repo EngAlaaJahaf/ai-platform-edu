@@ -810,10 +810,47 @@ export default function ChatView({
   };
 
   return (
-    <div className="grid gap-6 max-w-3xl mx-auto w-full">
+    <div className="grid gap-4 w-full px-4 lg:grid-cols-12 max-w-[1600px] mx-auto">
       
+      {/* Right Sidebar - Conversations list (visible on desktop, RTL right side) */}
+      <div className="hidden lg:flex lg:col-span-4 xl:col-span-3 flex-col gap-4 h-[calc(100vh-90px)] min-h-[500px]">
+        <div className="glass-panel rounded-2xl border p-4 flex flex-col h-full overflow-hidden">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-black theme-text-primary flex items-center gap-2"><MessageSquare className="w-4 h-4 text-cyan-500" /> المحادثات</h3>
+            <button onClick={() => handleCreateNewSession()} className="p-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition" title="محادثة جديدة"><Plus className="w-3.5 h-3.5" /></button>
+          </div>
+          <div className="relative mb-3">
+            <Search className="w-3.5 h-3.5 absolute right-3 top-2.5 text-slate-400" />
+            <input type="text" placeholder="بحث في المحادثات..." value={searchQuery} onChange={(e)=>setSearchQuery(e.target.value)} className="w-full pr-8 pl-3 py-1.5 rounded-xl theme-card-inner border text-xs theme-text-primary focus:border-indigo-500" />
+          </div>
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+            {(searchQuery.trim() ? searchResults.map(r => {
+              const sess = sessions.find(s=>s.id===r.sessionId);
+              return sess ? (
+                <div key={r.sessionId + r.messageId} onClick={()=>handleSelectSession(r.sessionId)} className="p-2.5 rounded-xl border theme-card-inner hover:border-indigo-500/30 cursor-pointer">
+                  <div className="text-xs font-bold theme-text-primary truncate">{r.sessionTitle}</div>
+                  <div className="text-[11px] theme-text-muted line-clamp-2" dir="auto">{r.snippet}</div>
+                </div>
+              ) : null;
+            }) : sessions.map(sess => {
+              const isActive = sess.id === activeSessionId;
+              return (
+                <div key={sess.id} onClick={()=>handleSelectSession(sess.id)} className={`p-3 rounded-xl border cursor-pointer transition flex items-center justify-between gap-2 ${isActive ? 'bg-indigo-500/10 border-indigo-500/30' : 'theme-card-inner hover:border-indigo-500/30'}`}>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-bold theme-text-primary truncate">{sess.title}</div>
+                    <div className="text-[10px] theme-text-muted truncate">{sess.messages?.length||0} رسائل • {sess.updatedAt||sess.createdAt}</div>
+                    {sess.docName && <div className="text-[10px] text-cyan-500 truncate">{sess.docName}</div>}
+                  </div>
+                  <button onClick={(e)=>handleDeleteSession(sess.id, e)} className="p-1 rounded-lg hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition shrink-0"><Trash2 className="w-3 h-3" /></button>
+                </div>
+              );
+            }))}
+          </div>
+        </div>
+      </div>
+
       {/* Main Chat - ChatGPT style, airy and spacious */}
-      <div className="col-span-1 flex flex-col glass-panel rounded-2xl overflow-hidden shadow-xl h-[calc(100vh-90px)] min-h-[500px]">
+      <div className="lg:col-span-8 xl:col-span-9 col-span-1 flex flex-col glass-panel rounded-2xl overflow-hidden shadow-xl h-[calc(100vh-90px)] min-h-[500px]">
         
         {/* Minimal Header */}
         <div className="px-4 py-2.5 border-b border-white/10 theme-nav flex items-center justify-between shrink-0 font-['Tajawal']">
@@ -1305,7 +1342,7 @@ export default function ChatView({
 
       </div>
 
-      {/* Master Chat Sessions & Fast Full-Text Search Modal */}
+      {/* Master Chat Sessions & Fast Full-Text Search Modal (mobile) */}
       {isSessionsModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in text-right font-['Tajawal']" dir="rtl">
           <div className="relative w-full max-w-2xl glass-panel rounded-3xl p-6 border shadow-2xl space-y-5 max-h-[90vh] flex flex-col">
