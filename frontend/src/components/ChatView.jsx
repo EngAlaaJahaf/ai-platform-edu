@@ -259,7 +259,9 @@ export default function ChatView({
       const saved = localStorage.getItem('eduai_chat_sessions_master');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map(s => ({ projectId: null, exported: [], ...s }));
+        }
       }
     } catch (_) {}
     return [
@@ -415,6 +417,7 @@ export default function ChatView({
     const newSession = {
       id: newId,
       title,
+      projectId: null,
       docId: activeDoc?.doc_id || null,
       docName: activeDoc?.filename || null,
       createdAt: new Date().toLocaleDateString('ar-EG'),
@@ -783,7 +786,6 @@ export default function ChatView({
     let content = msg.text;
     let mimeType = 'text/plain;charset=utf-8';
     let ext = 'txt';
-
     if (format === 'md') {
       mimeType = 'text/markdown;charset=utf-8';
       ext = 'md';
@@ -805,12 +807,24 @@ export default function ChatView({
 
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
+    const fileName = `${filename}.${ext}`;
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${filename}.${ext}`;
+    a.download = fileName;
     a.click();
     URL.revokeObjectURL(url);
     setActiveExportId(null);
+    try {
+      const exportsKey = 'eduai_exported_files';
+      const existing = JSON.parse(localStorage.getItem(exportsKey)) || [];
+      const newEntry = {
+        name: fileName,
+        date: new Date().toLocaleString('ar-EG'),
+        url,
+        fromSession: activeSessionId
+      };
+      localStorage.setItem(exportsKey, JSON.stringify([newEntry, ...existing].slice(0, 50)));
+    } catch (_) {}
   };
 
   const handleClearHistory = () => {
