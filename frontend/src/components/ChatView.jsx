@@ -57,7 +57,7 @@ import {
   X,
   Layers
 } from 'lucide-react';
-import { sendChatMessage, sendChatMessageStream, getApiKey, getSelectedModel } from '../services/api';
+import { sendChatMessage, sendChatMessageStream, getApiKey, getSelectedModel, fetchCurrentUser } from '../services/api';
 import ExportModal from './ExportModal';
 
 // Smart Language Detection Function
@@ -674,6 +674,7 @@ export default function ChatView({
           } catch (_) {}
           return next;
         });
+        fetchCurrentUser().catch(()=>{});
         return;
       } catch (streamErr) {
         setMessages((prev) => prev.filter(m => m.id !== aiId));
@@ -700,6 +701,7 @@ export default function ChatView({
           } catch (_) {}
           return next;
         });
+        fetchCurrentUser().catch(()=>{});
       }
     } catch (err) {
       console.error(err);
