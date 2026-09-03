@@ -31,6 +31,8 @@ from backend.database import (
     login_user,
     list_all_users,
     get_user_by_id,
+    increment_user_tokens,
+    estimate_tokens,
     admin_create_user,
     admin_update_user,
     admin_reset_user_password,
@@ -271,6 +273,17 @@ def student_login_endpoint(req: StudentLoginRequest):
     )
     return {"success": True, "user": user}
 
+@router.get("/user/me")
+def get_current_user_profile(x_user_id: Optional[str] = Header(None)):
+    if not x_user_id:
+        raise HTTPException(status_code=401, detail="غير مصرح")
+    user = get_user_by_id(x_user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="المستخدم غير موجود")
+    # Hide password_hash
+    user.pop("password_hash", None)
+    return {"user": user}
+
 # --- Prompts Management Endpoints ---
 @router.get("/prompts")
 def get_prompts(category: Optional[str] = None):
@@ -468,6 +481,11 @@ def chat_with_doc(
         model=x_gemini_model,
         custom_system_prompt=req.custom_system_prompt
     )
+    # Token tracking
+    try:
+        delta = estimate_tokens(req.query) + estimate_tokens(result.get("answer",""))
+        increment_user_tokens(x_user_id, delta)
+    except Exception: pass
     return {
         "query": req.query,
         "answer": result["answer"],
@@ -495,6 +513,7 @@ def chat_stream(
     relevant_chunks = RAGService.search_relevant_chunks(req.query, chunks, top_k=top_k)
 
     def gen():
+        full = ""
         try:
             for token in AIService.answer_with_rag_stream(
                 query=req.query,
@@ -506,7 +525,13 @@ def chat_stream(
                 model=x_gemini_model,
                 custom_system_prompt=req.custom_system_prompt
             ):
+                full += token
                 yield token
+            # Track tokens after stream completes
+            try:
+                delta = estimate_tokens(req.query) + estimate_tokens(full)
+                increment_user_tokens(x_user_id, delta)
+            except Exception: pass
         except Exception as e:
             yield f"\n\n⚠️ خطأ في البث: {e}"
 
@@ -543,6 +568,11 @@ def summarize_doc(
     )
     if doc and doc.get("id"):
         save_document_summary(doc["id"], summary_data)
+    try:
+        import json as _json
+        delta = estimate_tokens(full_text[:3000]) + estimate_tokens(_json.dumps(summary_data, ensure_ascii=False))
+        increment_user_tokens(x_user_id, delta)
+    except Exception: pass
         
     return summary_data
 
@@ -579,6 +609,11 @@ def generate_quiz_endpoint(
     )
     if doc and doc.get("id"):
         save_document_quiz(doc["id"], quiz_data)
+    try:
+        import json as _json2
+        delta = estimate_tokens(full_text[:3000]) + estimate_tokens(_json2.dumps(quiz_data, ensure_ascii=False))
+        increment_user_tokens(x_user_id, delta)
+    except Exception: pass
         
     return quiz_data
 
@@ -588,7 +623,8 @@ def proofread_endpoint(
     x_ai_provider: Optional[str] = Header("gemini"),
     x_gemini_api_key: Optional[str] = Header(None),
     x_ai_base_url: Optional[str] = Header(None),
-    x_gemini_model: Optional[str] = Header(None)
+    x_gemini_model: Optional[str] = Header(None),
+    x_user_id: Optional[str] = Header(None)
 ):
     if not req.text.strip():
         raise HTTPException(status_code=400, detail="النص المدخل فارغ.")
@@ -601,6 +637,11 @@ def proofread_endpoint(
         model=x_gemini_model,
         custom_system_prompt=req.custom_system_prompt
     )
+    try:
+        import json as _json3
+        delta = estimate_tokens(req.text) + estimate_tokens(_json3.dumps(result, ensure_ascii=False))
+        increment_user_tokens(x_user_id, delta)
+    except Exception: pass
     return result
 
 @router.post("/translate")
@@ -640,6 +681,11 @@ def translate_endpoint(
         model=x_gemini_model,
         custom_system_prompt=req.custom_system_prompt
     )
+    try:
+        import json as _json4
+        delta = estimate_tokens(full_text[:3000]) + estimate_tokens(_json4.dumps(result, ensure_ascii=False))
+        increment_user_tokens(x_user_id, delta)
+    except Exception: pass
     return result
 
 @router.post("/export/docx")

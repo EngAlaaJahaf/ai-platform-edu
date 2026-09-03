@@ -87,6 +87,17 @@ export function setUserProfile(profile) {
   }
 }
 
+export async function fetchCurrentUser() {
+  const res = await fetch(`${API_BASE}/user/me`, { headers: getHeaders() });
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (data.user) {
+    setUserProfile(data.user);
+    return data.user;
+  }
+  return null;
+}
+
 function getHeaders(extraHeaders = {}) {
   const headers = {
     'Content-Type': 'application/json',

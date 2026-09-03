@@ -14,6 +14,7 @@ import {
   ExternalLink,
   ArrowLeft
 } from 'lucide-react';
+import StudentAnalytics from './StudentAnalytics';
 
 export default function DashboardView({ 
   onSelectTab, 
@@ -250,6 +251,9 @@ export default function DashboardView({
         </div>
 
       </div>
+
+      {/* Student Analytics - Real progress_json */}
+      <StudentAnalytics />
 
     </div>
   );

@@ -355,6 +355,24 @@ def get_user_by_id(user_id: str) -> Optional[Dict[str, Any]]:
     conn.close()
     return dict(row) if row else None
 
+def increment_user_tokens(user_id: Optional[str], delta: int):
+    if not user_id or not delta or delta <= 0:
+        return
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("UPDATE users SET tokens_used = COALESCE(tokens_used,0) + ? WHERE id = ?", (int(delta), user_id))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+def estimate_tokens(text: str) -> int:
+    if not text:
+        return 0
+    # تقريب: كل 4 أحرف ≈ توكن واحد (عربي/إنجليزي)
+    return max(1, len(text) // 4)
+
 def admin_create_user(name: str, email: str, password: str, role: str = 'student', tier: str = 'Pro Academic 🌟', token_limit: int = 500000, permissions: Dict[str, Any] = None) -> Dict[str, Any]:
     clean_email = email.strip().lower()
     clean_name = name.strip()

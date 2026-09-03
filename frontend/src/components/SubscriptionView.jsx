@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Crown, 
   Check, 
@@ -7,10 +7,20 @@ import {
   ShieldCheck, 
   KeyRound, 
   Infinity as InfinityIcon, 
-  Layers
+  Layers,
+  BarChart3
 } from 'lucide-react';
+import { fetchCurrentUser } from '../services/api';
 
 export default function SubscriptionView({ user, onOpenApiKeyModal, onOpenAuthModal }) {
+  const [liveUser, setLiveUser] = useState(user);
+  useEffect(() => {
+    fetchCurrentUser().then(u => { if (u) setLiveUser(u); }).catch(()=>{});
+  }, []);
+  const displayUser = liveUser || user;
+  const tokensUsed = displayUser?.tokens_used || 0;
+  const tokensLimit = displayUser?.tokens_limit || 500000;
+  const pct = Math.min(100, (tokensUsed / tokensLimit) * 100);
   const plans = [
     {
       id: 'free',
@@ -63,6 +73,22 @@ export default function SubscriptionView({ user, onOpenApiKeyModal, onOpenAuthMo
         <p className="text-xs md:text-sm theme-text-secondary max-w-xl mx-auto leading-relaxed font-medium">
           أو استخدم ميزة **BYOK** (مفتاحك الخاص) للوصول اللامحدود مجاناً 100% بدون أي رسوم!
         </p>
+      </div>
+
+      {/* Live Token Usage */}
+      <div className="theme-bg-card border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-black theme-text-primary flex items-center gap-2"><BarChart3 className="w-4 h-4 text-indigo-500" /> استهلاكك الحقيقي</h3>
+          <span className="text-xs font-mono theme-text-muted">{tokensUsed.toLocaleString()} / {tokensLimit.toLocaleString()} توكن</span>
+        </div>
+        <div className="w-full h-3 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div className={`h-full transition-all ${pct>90?'bg-rose-500': pct>70?'bg-amber-500':'bg-indigo-500'}`} style={{width: `${pct}%`}}></div>
+        </div>
+        <div className="flex justify-between mt-2 text-[11px] theme-text-muted font-bold">
+          <span>{pct.toFixed(1)}% مستخدم</span>
+          <span>الباقة: {displayUser?.subscription_tier || 'Pro Academic'}</span>
+        </div>
+        <p className="text-[11px] theme-text-muted mt-2">يُحدّث تلقائياً بعد كل استدعاء ذكاء (محادثة، تلخيص، اختبار، ترجمة).</p>
       </div>
 
       {/* Pricing Cards */}
