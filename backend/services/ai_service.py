@@ -1096,6 +1096,17 @@ class AIService:
             )
             raw = re.sub(r'^```json\s*', '', raw.strip())
             raw = re.sub(r'\s*```$', '', raw)
+            try:
+                data = json.loads(raw)
+            except json.JSONDecodeError:
+                # Try locating the outermost JSON object if model included extraneous text
+                match = re.search(r'\{[\s\S]*\}', raw)
+                if match:
+                    data = json.loads(match.group(0))
+                else:
+                    raise
+            if not isinstance(data, dict):
+                data = {"full_translated_text": str(data)}
             data["source_lang"] = source_lang
             data["target_lang"] = target_lang
             data["mode"] = mode

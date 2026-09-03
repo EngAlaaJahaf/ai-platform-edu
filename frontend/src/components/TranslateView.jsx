@@ -28,6 +28,8 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import { translateDocument, exportToDocx } from '../services/api';
 import ExportModal from './ExportModal';
 
@@ -529,7 +531,7 @@ export default function TranslateView({
 
                   {/* Clean Markdown Text Content (Zero Noise / No Distractions) */}
                   <div className="prose prose-slate max-w-none text-justify font-medium leading-loose space-y-4">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
                       {result.full_translated_text}
                     </ReactMarkdown>
                   </div>
@@ -674,7 +676,7 @@ export default function TranslateView({
                       </div>
                       
                       <div className="prose prose-slate max-w-none text-slate-800 font-sans text-[14.5px] leading-relaxed space-y-3">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
                           {origFormatted}
                         </ReactMarkdown>
                       </div>
@@ -694,7 +696,7 @@ export default function TranslateView({
                     {/* 2. LOWER SECTION: Certified Arabic Content (Bottom) */}
                     <div className="space-y-3 dir-rtl text-right">
                       <div className="prose prose-slate max-w-none text-slate-900 font-['Tajawal'] text-[15px] font-medium leading-loose space-y-3">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
                           {transFormatted}
                         </ReactMarkdown>
                       </div>
