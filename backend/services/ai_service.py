@@ -212,7 +212,13 @@ class AIService:
             "- تجنب المبالغة في الكلمات التالية في النص: يمكن، قد، مجرد، جدا، حقا، حرفيا، فعليا، بالتأكيد، ربما، أساسا، استكشاف، انطلاق، تنوير، تسليط الضوء، صياغة، تخيل، عالم، مغيّر لقواعد اللعبة، فتح، اكتشاف، صاروخي، ليس وحدك، في عالم حيث، إحداث ثورة، مدمر، استخدام، غوص عميق، نسيج، إضاءة، كشف، محوري، معقد، توضيح، بناء عليه، علاوة على ذلك، ومع ذلك، تسخير، مثير، رائد، مذهل، يبقى أن نرى، لمحة عن، تنقل، مشهد، صارخ، شهادة، باختصار، بالإضافة إلى ذلك، تعزيز، فتحت، قوي، استفسارات، متطور باستمرار."
         )
 
-        if system_prompt and "You are an AI assistant. Reply with 'OK'." not in system_prompt and use_base_rules_var.get():
+        # Respect global enable_base_rules setting + per-request header
+        try:
+            from backend.database import get_system_settings
+            _enable_base = get_system_settings().get("enable_base_rules", True)
+        except Exception:
+            _enable_base = True
+        if system_prompt and "You are an AI assistant. Reply with 'OK'." not in system_prompt and use_base_rules_var.get() and _enable_base:
             system_prompt = f"{system_prompt}\n{base_rules}"
 
 
@@ -350,7 +356,12 @@ class AIService:
             "- استخدم جملًا قصيرة وقوية الأثر.\n"
             "- اعتمد صيغة المبني للمعلوم دائما.\n"
         )
-        if system_prompt and "You are an AI assistant. Reply with 'OK'." not in system_prompt and use_base_rules_var.get():
+        try:
+            from backend.database import get_system_settings as _get_settings_stream
+            _enable_base_stream = _get_settings_stream().get("enable_base_rules", True)
+        except Exception:
+            _enable_base_stream = True
+        if system_prompt and "You are an AI assistant. Reply with 'OK'." not in system_prompt and use_base_rules_var.get() and _enable_base_stream:
             system_prompt = f"{system_prompt}\n{base_rules}"
 
         # OpenAI-compatible streaming

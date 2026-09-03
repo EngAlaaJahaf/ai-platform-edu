@@ -1,8 +1,10 @@
 import os
 import shutil
 import uuid
+import time
+from collections import defaultdict
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Header, Response, Depends
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Header, Response, Depends, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -17,6 +19,7 @@ from backend.database import (
     get_document, 
     get_latest_document, 
     list_all_documents,
+    count_documents,
     update_document_title,
     delete_document,
     save_document_summary,
@@ -58,6 +61,19 @@ def _require_admin(current_user: dict = Depends(_get_current_user)):
     if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="صلاحيات المدير مطلوبة (Admin only)")
     return current_user
+
+# --- Simple in-memory rate limiter ---
+RATE_LIMIT_STORE: Dict[str, List[float]] = defaultdict(list)
+
+def _check_rate_limit(key: str, limit: int, window_sec: int = 60):
+    now = time.time()
+    lst = RATE_LIMIT_STORE[key]
+    cutoff = now - window_sec
+    # prune
+    RATE_LIMIT_STORE[key] = [t for t in lst if t > cutoff]
+    if len(RATE_LIMIT_STORE[key]) >= limit:
+        raise HTTPException(status_code=429, detail="تم تجاوز الحد المسموح، حاول مرة أخرى بعد قليل (Rate limit)")
+    RATE_LIMIT_STORE[key].append(now)
 
 class AdminLoginRequest(BaseModel):
     admin_key: str
@@ -341,11 +357,14 @@ def import_quiz_text_endpoint(req: QuizImportTextRequest):
 # --- Document & AI Endpoints (Multi-Format Support with Multi-Tenant User Isolation) ---
 @router.post("/upload")
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...), 
     user_id: Optional[str] = Form(None),
     x_user_id: Optional[str] = Header(None)
 ):
     effective_user_id = user_id or x_user_id
+    # Rate limit: 10 uploads / minute per user/ip
+    _check_rate_limit(f"upload:{effective_user_id or request.client.host}", limit=10, window_sec=60)
     # Dynamic allowed formats & size from system_settings
     sys_settings = get_system_settings()
     allowed_exts = [str(f).lower() for f in sys_settings.get("allowed_formats", [".pdf", ".docx", ".doc", ".pptx", ".ppt", ".txt", ".md", ".csv", ".xlsx", ".xls", ".rtf"])]
@@ -422,12 +441,14 @@ def get_latest_doc_endpoint(x_user_id: Optional[str] = Header(None)):
 @router.post("/chat")
 def chat_with_doc(
     req: ChatRequest,
+    request: Request,
     x_ai_provider: Optional[str] = Header("gemini"),
     x_gemini_api_key: Optional[str] = Header(None),
     x_ai_base_url: Optional[str] = Header(None),
     x_gemini_model: Optional[str] = Header(None),
     x_user_id: Optional[str] = Header(None)
 ):
+    _check_rate_limit(f"chat:{x_user_id or request.client.host}", limit=20, window_sec=60)
     doc = get_document(req.doc_id, user_id=x_user_id) if req.doc_id else get_latest_document(user_id=x_user_id)
     chunks = doc.get("chunks", []) if doc else []
     # Dynamic RAG top_k from system_settings
@@ -458,12 +479,14 @@ def chat_with_doc(
 @router.post("/chat/stream")
 def chat_stream(
     req: ChatRequest,
+    request: Request,
     x_ai_provider: Optional[str] = Header("gemini"),
     x_gemini_api_key: Optional[str] = Header(None),
     x_ai_base_url: Optional[str] = Header(None),
     x_gemini_model: Optional[str] = Header(None),
     x_user_id: Optional[str] = Header(None)
 ):
+    _check_rate_limit(f"chat_stream:{x_user_id or request.client.host}", limit=20, window_sec=60)
     """Streaming RAG chat - yields text chunks as they arrive (vector-ranked)."""
     doc = get_document(req.doc_id, user_id=x_user_id) if req.doc_id else get_latest_document(user_id=x_user_id)
     chunks = doc.get("chunks", []) if doc else []
@@ -731,10 +754,11 @@ def export_docx_endpoint(req: DocxExportRequest):
 # -------------------------------------------------------------
 
 @router.get("/documents")
-def list_documents_endpoint(x_user_id: Optional[str] = Header(None)):
-    """Retrieve all uploaded documents belonging exclusively to the authenticated user."""
-    docs = list_all_documents(user_id=x_user_id)
-    return {"documents": docs, "total": len(docs)}
+def list_documents_endpoint(x_user_id: Optional[str] = Header(None), limit: int = 20, offset: int = 0, search: Optional[str] = None):
+    """Retrieve paginated documents belonging to the authenticated user."""
+    docs = list_all_documents(user_id=x_user_id, limit=limit, offset=offset, search=search)
+    total = count_documents(user_id=x_user_id, search=search)
+    return {"documents": docs, "total": total, "limit": limit, "offset": offset}
 
 @router.get("/documents/{doc_id}")
 def get_document_endpoint(doc_id: str, x_user_id: Optional[str] = Header(None)):

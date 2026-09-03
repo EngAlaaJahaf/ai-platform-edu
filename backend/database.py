@@ -5,6 +5,7 @@ import os
 import hashlib
 import secrets
 import hmac
+import re
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
@@ -497,28 +498,36 @@ def get_document(doc_id: str, user_id: Optional[str] = None) -> Optional[Dict[st
         d["quiz_data"] = None
     return d
 
-def list_all_documents(user_id: Optional[str] = None) -> List[Dict[str, Any]]:
+def list_all_documents(user_id: Optional[str] = None, limit: int = 50, offset: int = 0, search: Optional[str] = None) -> List[Dict[str, Any]]:
+    # Clamp pagination
+    limit = max(1, min(100, int(limit) if limit else 50))
+    offset = max(0, int(offset) if offset else 0)
     conn = get_db_connection()
     cursor = conn.cursor()
+    # Build dynamic WHERE
+    where_clauses = []
+    params: List[Any] = []
     if user_id:
-        cursor.execute("""
+        where_clauses.append("user_id = ?")
+        params.append(user_id)
+    if search:
+        where_clauses.append("(filename LIKE ? OR substr(full_text,1,1000) LIKE ?)")
+        like = f"%{search}%"
+        params.extend([like, like])
+    where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+    # Add pagination params at end
+    params.extend([limit, offset])
+    query = f"""
             SELECT id, user_id, filename, file_path, pages_count, words_count, 
                    substr(full_text, 1, 300) as preview_text,
                    created_at, length(chunks_json) as chunks_size,
                    summary_json, quiz_json
             FROM documents 
-            WHERE user_id = ?
+            {where_sql}
             ORDER BY created_at DESC
-        """, (user_id,))
-    else:
-        cursor.execute("""
-            SELECT id, user_id, filename, file_path, pages_count, words_count, 
-                   substr(full_text, 1, 300) as preview_text,
-                   created_at, length(chunks_json) as chunks_size,
-                   summary_json, quiz_json
-            FROM documents 
-            ORDER BY created_at DESC
-        """)
+            LIMIT ? OFFSET ?
+        """
+    cursor.execute(query, tuple(params))
     rows = cursor.fetchall()
     conn.close()
     docs = []
@@ -535,6 +544,24 @@ def list_all_documents(user_id: Optional[str] = None) -> List[Dict[str, Any]]:
             d["quiz_data"] = None
         docs.append(d)
     return docs
+
+def count_documents(user_id: Optional[str] = None, search: Optional[str] = None) -> int:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    where_clauses = []
+    params: List[Any] = []
+    if user_id:
+        where_clauses.append("user_id = ?")
+        params.append(user_id)
+    if search:
+        where_clauses.append("(filename LIKE ? OR substr(full_text,1,1000) LIKE ?)")
+        like = f"%{search}%"
+        params.extend([like, like])
+    where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+    cursor.execute(f"SELECT COUNT(*) FROM documents {where_sql}", tuple(params))
+    total = cursor.fetchone()[0] or 0
+    conn.close()
+    return total
 
 def get_latest_document(user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
     conn = get_db_connection()
@@ -666,8 +693,25 @@ def delete_prompt(prompt_id: str):
 # System Settings & Activity Logs
 # -------------------------------------------------------------
 
+def _sanitize_log(details: str) -> str:
+    if not details:
+        return details
+    try:
+        # Redact common secrets
+        details = re.sub(r'sk-[a-zA-Z0-9_\-]{8,}', 'sk-***', details)
+        details = re.sub(r'AIza[0-9A-Za-z_\-]{20,}', 'AIza***', details)
+        details = re.sub(r'Bearer\s+[a-zA-Z0-9_\-\.]+', 'Bearer ***', details, flags=re.I)
+        details = re.sub(r'(api_key|apikey|password|passwd|secret|token)["\']?\s*[:=]\s*["\']?[^"\'\s,;]+', r'\1=***', details, flags=re.I)
+        # Truncate very long details
+        if len(details) > 800:
+            details = details[:800] + " ...[truncated]"
+        return details
+    except Exception:
+        return details
+
 def log_activity(action: str, details: str, level: str = "info", doc_id: Optional[str] = None):
     try:
+        details = _sanitize_log(details)
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
@@ -729,7 +773,8 @@ def get_system_settings() -> Dict[str, Any]:
         "default_subscription_tier": "Pro Academic 🌟",
         "auto_rag_chunks": 4,
         "system_notice": "المنصة تعمل بأعلى كفاءة لخدمة الطلاب والباحثين والأكاديميين.",
-        "google_client_id": ""
+        "google_client_id": "",
+        "enable_base_rules": True
     }
     
     for r in rows:
