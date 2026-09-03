@@ -17,9 +17,28 @@ function saveExports(exports) {
   try { localStorage.setItem(EXPORTS_KEY, JSON.stringify(exports)); } catch {}
 }
 
+// Render text with the search term highlighted using theme-appropriate styling
+function highlightText(text, query) {
+  if (!text || !query || !query.trim()) return text;
+  const q = query.trim();
+  const lower = text.toLowerCase();
+  const idx = lower.indexOf(q.toLowerCase());
+  if (idx === -1) return text;
+  const before = text.substring(0, idx);
+  const match = text.substring(idx, idx + q.length);
+  const after = text.substring(idx + q.length);
+  return (
+    <>
+      {before}
+      <mark className="rounded-[3px] px-0.5 bg-amber-200/70 dark:bg-amber-500/40 text-inherit">{match}</mark>
+      {after}
+    </>
+  );
+}
+
 export default function ChatSidebar({
   sessions, activeSessionId, onSelectSession, onDeleteSession, onRenameSession,
-  onCreateNew, searchQuery, setSearchQuery, searchResults,
+  onCreateNew, onMoveSession, searchQuery, setSearchQuery, searchResults,
   onExportTracked
 }) {
   const [projects, setProjects] = useState(loadProjects);
@@ -79,13 +98,18 @@ export default function ChatSidebar({
     const updated = projects.filter(p => p.id !== projId);
     setProjects(updated);
     saveProjects(updated);
-    const updatedSessions = sessions.map(s => s.projectId === projId ? { ...s, projectId: null } : s);
-    try { localStorage.setItem('eduai_chat_sessions_master', JSON.stringify(updatedSessions)); } catch {}
+    if (onMoveSession) {
+      sessions.filter(s => s.projectId === projId).forEach(s => onMoveSession(s.id, null));
+    }
   };
 
   const handleMoveSession = (sessionId, targetProjectId) => {
-    const updated = sessions.map(s => s.id === sessionId ? { ...s, projectId: targetProjectId } : s);
-    try { localStorage.setItem('eduai_chat_sessions_master', JSON.stringify(updated)); } catch {}
+    if (onMoveSession) {
+      onMoveSession(sessionId, targetProjectId);
+    } else {
+      const updated = sessions.map(s => s.id === sessionId ? { ...s, projectId: targetProjectId } : s);
+      try { localStorage.setItem('eduai_chat_sessions_master', JSON.stringify(updated)); } catch {}
+    }
     setMoveSessionId(null);
     setOpenMenuId(null);
   };
@@ -172,8 +196,8 @@ export default function ChatSidebar({
             const sess = sessions.find(s => s.id === r.sessionId);
             return sess ? (
               <div key={r.sessionId + r.messageId} onClick={() => onSelectSession(r.sessionId)} className="p-2.5 rounded-xl border theme-card-inner hover:border-indigo-500/30 cursor-pointer">
-                <div className="text-xs font-bold theme-text-primary truncate">{r.sessionTitle}</div>
-                <div className="text-[11px] theme-text-muted line-clamp-2" dir="auto">{r.snippet}</div>
+                <div className="text-xs font-bold theme-text-primary truncate">{highlightText(r.sessionTitle, searchQuery)}</div>
+                <div className="text-[11px] theme-text-muted line-clamp-2" dir="auto">{highlightText(r.snippet, searchQuery)}</div>
               </div>
             ) : null;
           })}

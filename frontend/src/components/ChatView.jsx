@@ -833,6 +833,15 @@ export default function ChatView({
     }
   };
 
+  // Move a session into/out of a project (persisted via the messages sync effect)
+  const handleMoveSessionToProject = (sessionId, targetProjectId) => {
+    setSessions(prev => {
+      const updated = prev.map(s => s.id === sessionId ? { ...s, projectId: targetProjectId } : s);
+      try { localStorage.setItem('eduai_chat_sessions_master', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+  };
+
   return (
     <div className="grid gap-4 w-full px-4 lg:grid-cols-12 max-w-[1600px] mx-auto">
       
@@ -845,6 +854,7 @@ export default function ChatView({
             onSelectSession={handleSelectSession}
             onDeleteSession={handleDeleteSession}
             onRenameSession={handleRenameFromSidebar}
+            onMoveSession={handleMoveSessionToProject}
             onCreateNew={handleCreateNewSession}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
