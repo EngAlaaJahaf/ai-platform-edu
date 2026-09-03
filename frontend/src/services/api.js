@@ -591,8 +591,10 @@ export const generateCustomPrompt = generatePromptWithAI;
 // Document Management API (مكتبة وإدارة المستندات)
 // -------------------------------------------------------------
 
-export async function fetchDocuments() {
-  const res = await fetch(`${API_BASE}/documents`, {
+export async function fetchDocuments({ limit = 20, offset = 0, search = '' } = {}) {
+  const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  if (search) params.set('search', search);
+  const res = await fetch(`${API_BASE}/documents?${params.toString()}`, {
     headers: getHeaders()
   });
   if (!res.ok) throw new Error('فشل جلب قائمة المستندات');

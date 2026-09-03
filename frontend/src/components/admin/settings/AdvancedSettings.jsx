@@ -43,6 +43,16 @@ export default function AdvancedSettings({ settings, setSettings }) {
             <input type="number" name="auto_rag_chunks" min="1" max="20" value={settings.auto_rag_chunks ?? 4} onChange={handleChange} className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-mono theme-text-primary" />
             <p className="text-[11px] theme-text-muted mt-1">يُستخدم في `RAGService.search_relevant_chunks(top_k)`.</p>
           </div>
+          <label className="flex items-center justify-between p-3 rounded-xl theme-card-inner border cursor-pointer hover:border-indigo-500/30 transition">
+            <div>
+              <span className="block text-xs font-black theme-text-primary">قواعد الصياغة الأساسية</span>
+              <span className="text-[11px] theme-text-muted font-bold">تُضاف لكل برومبت (~300 توكن) — عطّلها لتوفير التوكن</span>
+            </div>
+            <div className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" name="enable_base_rules" checked={settings.enable_base_rules !== false} onChange={handleChange} className="sr-only peer" />
+              <div className="w-11 h-6 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
+            </div>
+          </label>
         </div>
 
         {/* Formats & Limits */}
