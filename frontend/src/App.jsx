@@ -16,7 +16,7 @@ import TranslateView from './components/TranslateView';
 import DocumentFAB from './components/DocumentFAB';
 import AuthGateView from './components/AuthGateView';
 import { checkHealth, getUserProfile, getLatestDocument, fetchPublicSettings, setGoogleClientId } from './services/api';
-import { Wand2, ExternalLink, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { ShieldAlert, ShieldCheck } from 'lucide-react';
 
 const VALID_TABS = [
   'dashboard', 
@@ -383,34 +383,6 @@ export default function App() {
         activeCategory={promptCategory}
         onSelectPrompt={handleSelectPrompt}
       />
-
-      {/* Footer */}
-      <footer className="mt-16 border-t py-8 px-4 transition-colors duration-300">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-extrabold text-xs">
-              ذ
-            </div>
-            <span>© 2026 ذكاء | EduAI — المنصة الأكاديمية الذكية المتكاملة.</span>
-          </div>
-
-          <div className="flex items-center gap-6 flex-wrap">
-            <button onClick={() => setActiveTab('chat')} className="hover:text-cyan-500 transition">المحادثة RAG</button>
-            <button onClick={() => setActiveTab('summary')} className="hover:text-cyan-500 transition">الملخصات</button>
-            <button onClick={() => setActiveTab('quiz')} className="hover:text-cyan-500 transition">الاختبارات</button>
-            <button onClick={() => setActiveTab('proofread')} className="hover:text-cyan-500 transition">التدقيق الأكاديمي</button>
-            <button onClick={() => handleOpenPromptForCategory('quiz')} className="hover:text-cyan-500 text-cyan-500 font-bold transition flex items-center gap-1.5">
-              <Wand2 className="w-3.5 h-3.5 text-cyan-400" />
-              <span>بنك البرومبتات</span>
-            </button>
-            <button onClick={() => setIsApiKeyOpen(true)} className="hover:text-amber-500 text-amber-500 font-bold transition">إعدادات النماذج</button>
-            <a href="https://forms.gle/Eto4atri8" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:text-amber-400 font-bold flex items-center gap-1">
-              <span>التصويت للمشروع</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-        </div>
-      </footer>
 
     </div>
   );

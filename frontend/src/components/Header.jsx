@@ -16,7 +16,6 @@ import {
   Settings,
   ChevronDown,
   FileCheck2,
-  ExternalLink,
   Sliders,
   ShieldCheck,
   Plus,
@@ -260,12 +259,10 @@ export default function Header({
             {theme === 'dark' ? (
               <>
                 <Sun className="w-4 h-4 text-amber-400 animate-spin-slow" />
-                <span className="text-[11px] font-bold text-amber-300 hidden md:inline">نهاري</span>
               </>
             ) : (
               <>
                 <Moon className="w-4 h-4 text-indigo-600" />
-                <span className="text-[11px] font-bold text-indigo-700 hidden md:inline">ليلي</span>
               </>
             )}
           </button>
@@ -360,20 +357,6 @@ export default function Header({
                 </button>
 
                 <div className="border-t border-slate-200 dark:border-slate-800 my-1"></div>
-
-                {/* Vote Link for IT Exhibition */}
-                <a
-                  href="https://forms.gle/Eto4atri8"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full text-right p-2.5 rounded-xl hover:bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold transition flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-amber-500" />
-                    <span>صوّت للمشروع</span>
-                  </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-amber-500" />
-                </a>
 
                 {/* User Account / Profile */}
                 <div className="pt-1">
@@ -605,20 +588,6 @@ export default function Header({
 
             <div className="space-y-4">
               <div className="border-t border-white/10 my-2"></div>
-
-              {/* Vote details */}
-              <a
-                href="https://forms.gle/Eto4atri8"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full text-right p-2.5 rounded-xl hover:bg-amber-500/10 text-amber-400 font-bold transition flex items-center justify-between text-xs"
-              >
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span>صوّت للمشروع</span>
-                </div>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
 
               {/* User Account / Profile bottom card */}
               <div className="pt-2">

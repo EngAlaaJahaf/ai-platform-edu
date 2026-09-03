@@ -11,7 +11,6 @@ import {
   Award, 
   BookOpen, 
   Zap, 
-  ExternalLink,
   ArrowLeft
 } from 'lucide-react';
 import StudentAnalytics from './StudentAnalytics';
@@ -239,15 +238,6 @@ export default function DashboardView({
             </p>
           </div>
 
-          <a
-            href="https://forms.gle/Eto4atri8"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition"
-          >
-            <span className="font-extrabold text-slate-950">التصويت للمشروع عبر Google Forms</span>
-            <ExternalLink className="w-4 h-4 text-slate-950" />
-          </a>
         </div>
 
       </div>
