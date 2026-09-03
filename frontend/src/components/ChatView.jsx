@@ -338,6 +338,10 @@ export default function ChatView({
   const [speakingMsgId, setSpeakingMsgId] = useState(null);
   const [feedback, setFeedback] = useState({});
   const [showScrollBottom, setShowScrollBottom] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
+  const [navThumb, setNavThumb] = useState(0);
+  const [activeNavIndex, setActiveNavIndex] = useState(0);
+  const hideNavTimer = useRef(null);
 
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -694,7 +698,29 @@ export default function ChatView({
     if (chatContainerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
       setShowScrollBottom(scrollHeight - scrollTop - clientHeight > 150);
+      const maxScroll = scrollHeight - clientHeight;
+      const frac = maxScroll > 0 ? scrollTop / maxScroll : 0;
+      setNavThumb(frac * 100);
+      const count = (messages || []).length;
+      setActiveNavIndex(count > 1 ? Math.round(frac * (count - 1)) : 0);
     }
+  };
+
+  // Scroll the message stream to the message at the given index
+  const scrollToNavMessage = (index) => {
+    const nodes = chatContainerRef.current?.querySelectorAll('[data-msg-id]');
+    const target = nodes && nodes[index];
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  const openNav = () => {
+    if (hideNavTimer.current) clearTimeout(hideNavTimer.current);
+    setNavOpen(true);
+  };
+
+  const scheduleCloseNav = () => {
+    if (hideNavTimer.current) clearTimeout(hideNavTimer.current);
+    hideNavTimer.current = setTimeout(() => setNavOpen(false), 220);
   };
 
   const quickPrompts = activeDoc ? [
@@ -891,6 +917,15 @@ export default function ChatView({
     }
   };
 
+  // Delete a single message from the current session (persisted via the messages sync effect)
+  const handleDeleteMessage = (id) => {
+    const target = messages.find((m) => m.id === id);
+    const label = target && target.sender === 'user' ? 'السؤال' : 'الرسالة';
+    if (window.confirm(`هل تريد حذف ${label}؟ لا يمكن التراجع عن هذا الإجراء.`)) {
+      setMessages((prev) => prev.filter((m) => m.id !== id));
+    }
+  };
+
   // Move a session into/out of a project (persisted via the messages sync effect)
   const handleMoveSessionToProject = (sessionId, targetProjectId) => {
     setSessions(prev => {
@@ -997,7 +1032,8 @@ export default function ChatView({
         </div>
 
         {/* Messages Stream - airy, ChatGPT-like */}
-        <div ref={chatContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-3 md:p-4 space-y-4">
+        <div className="relative flex-1 overflow-hidden">
+        <div ref={chatContainerRef} onScroll={handleScroll} className="h-full overflow-y-auto p-3 md:p-4 space-y-4">
           {(messages || []).map((msg, index) => {
             const isUser = msg.sender === 'user';
             const isLastAi = !isUser && index === (messages || []).length - 1;
@@ -1227,6 +1263,16 @@ export default function ChatView({
                           </div>
                         )}
 
+                        {/* Delete Message Button */}
+                        <button
+                          onClick={() => handleDeleteMessage(msg.id)}
+                          className="p-1.5 rounded-lg theme-header-btn border hover:text-rose-500 hover:border-rose-500/40 hover:bg-rose-500/10 transition flex items-center gap-1 text-[11px]"
+                          title="حذف هذه الرسالة"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                          <span className="hidden sm:inline">حذف</span>
+                        </button>
+
                       </div>
                     </div>
 
@@ -1267,6 +1313,63 @@ export default function ChatView({
           )}
 
           <div ref={messagesEndRef} />
+        </div>
+
+        {/* Quick Navigation Rail between messages (Manus-style) */}
+        {(messages || []).length >= 2 && (
+            <div
+              className="absolute end-0 top-1/2 -translate-y-1/2 flex flex-col items-end pr-1 w-[24px] z-30 cursor-pointer select-none"
+              onMouseEnter={openNav}
+              onMouseLeave={scheduleCloseNav}
+            >
+              <div className="relative h-[min(50vh,calc(100vh-160px))] w-[12px] flex flex-col justify-between">
+                {(messages || []).map((m, idx) => (
+                  <button
+                    key={`nav-${m.id}`}
+                    onClick={() => scrollToNavMessage(idx)}
+                    className="group/tick flex h-[14px] w-[12px] shrink-0 items-center justify-end cursor-pointer"
+                    title={`${m.sender === 'user' ? 'سؤال' : 'إجابة'}: ${m.text.replace(/\s+/g, ' ').slice(0, 40)}`}
+                  >
+                    <span className={`h-[2px] rounded-[40px] transition-all duration-300 origin-right ${
+                      idx === activeNavIndex
+                        ? 'w-[12px] bg-indigo-500 dark:bg-cyan-400'
+                        : 'w-[7px] bg-slate-300 dark:bg-slate-600 group-hover/tick:w-[12px] group-hover/tick:bg-slate-400 dark:group-hover/tick:bg-slate-400'
+                    }`} />
+                  </button>
+                ))}
+                <span
+                  className="pointer-events-none absolute end-0 top-0 h-[4px] w-[16px] rounded-[40px] bg-indigo-500/70 dark:bg-cyan-400/70 transition-[top] duration-75"
+                  style={{ top: `${navThumb}%` }}
+                />
+              </div>
+
+              {navOpen && (
+                <div
+                  className="absolute end-8 top-1/2 -translate-y-1/2 w-[240px] max-h-[min(50vh,calc(100vh-160px))] overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/95 shadow-2xl p-1.5 z-40 animate-fade-in"
+                  onMouseEnter={openNav}
+                  onMouseLeave={scheduleCloseNav}
+                >
+                  <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 px-2 py-1">
+                    التنقّل السريع بين الرسائل ({messages.length})
+                  </div>
+                  {messages.map((m, idx) => (
+                    <button
+                      key={`navlist-${m.id}`}
+                      onClick={() => { scrollToNavMessage(idx); setNavOpen(false); }}
+                      className={`w-full text-right px-2.5 py-1.5 rounded-lg text-xs leading-[18px] transition flex items-center gap-1.5 cursor-pointer ${
+                        idx === activeNavIndex
+                          ? 'bg-indigo-500/15 text-indigo-600 dark:text-cyan-300 font-bold'
+                          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <span className="shrink-0 text-[10px] opacity-60">{m.sender === 'user' ? '💬' : '🤖'}</span>
+                      <span className="truncate">{m.text.replace(/\s+/g, ' ').slice(0, 44) || '(رسالة فارغة)'}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Quick Prompts - compact */}
