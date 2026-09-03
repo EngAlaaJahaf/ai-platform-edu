@@ -316,3 +316,9 @@ html.light select:focus {
   border-radius: 14px;
 }
 
+/* Fix Arabic text spacing in prose containers */
+.prose {
+  word-spacing: normal;
+  letter-spacing: normal;
+}
+
