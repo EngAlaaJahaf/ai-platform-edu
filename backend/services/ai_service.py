@@ -320,6 +320,94 @@ class AIService:
         raise ValueError(error_msg)
 
     @classmethod
+    def execute_chat_completion_stream(
+        cls,
+        system_prompt: str,
+        user_prompt: str,
+        provider: str = "gemini",
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        model: Optional[str] = None,
+        temperature: Optional[float] = None
+    ):
+        """Yield text chunks as they arrive (streaming)."""
+        provider = (provider or "gemini").lower()
+        key = api_key or ENV_GEMINI_KEY or ""
+        clean_model = cls.clean_model_name(model)
+        if temperature is None:
+            try:
+                from backend.database import get_system_settings
+                temperature = float(get_system_settings().get("temperature", 0.3))
+            except Exception:
+                temperature = 0.3
+        else:
+            temperature = float(temperature)
+
+        base_rules = (
+            "\n\nقواعد الصياغة الأساسية الواجب الالتزام بها:\n"
+            "- استخدم لغة واضحة وبسيطة.\n"
+            "- اكتب بأسلوب مقتضب ومعلوماتي.\n"
+            "- استخدم جملًا قصيرة وقوية الأثر.\n"
+            "- اعتمد صيغة المبني للمعلوم دائما.\n"
+        )
+        if system_prompt and "You are an AI assistant. Reply with 'OK'." not in system_prompt and use_base_rules_var.get():
+            system_prompt = f"{system_prompt}\n{base_rules}"
+
+        # OpenAI-compatible streaming
+        if base_url or provider in ["ollama", "openai", "deepseek", "groq", "openrouter", "custom"]:
+            target_base_url = base_url
+            if provider == "ollama" and not target_base_url:
+                target_base_url = "http://localhost:11434/v1"
+            elif provider == "deepseek" and not target_base_url:
+                target_base_url = "https://api.deepseek.com/v1"
+            elif provider == "groq" and not target_base_url:
+                target_base_url = "https://api.groq.com/openai/v1"
+            elif provider == "openrouter" and not target_base_url:
+                target_base_url = "https://openrouter.ai/api/v1"
+            client = OpenAI(base_url=target_base_url, api_key=key if key else "ollama", timeout=180.0, max_retries=2)
+            messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
+            stream = client.chat.completions.create(model=clean_model, messages=messages, temperature=temperature, stream=True)
+            for chunk in stream:
+                delta = chunk.choices[0].delta.content if chunk.choices and chunk.choices[0].delta else None
+                if delta:
+                    yield delta
+            return
+
+        # Gemini streaming
+        if not key:
+            raise ValueError("مفتاح Gemini API غير مدخل.")
+        from google import genai
+        from google.genai import types
+        client = genai.Client(api_key=key, http_options={'timeout': 180.0})
+        combined_prompt = f"{system_prompt}\n\n{user_prompt}"
+        config_kwargs = {"temperature": temperature, "max_output_tokens": 8192}
+        stream = client.models.generate_content_stream(model=clean_model, contents=combined_prompt, config=types.GenerateContentConfig(**config_kwargs))
+        for chunk in stream:
+            if chunk and getattr(chunk, 'text', None):
+                yield chunk.text
+
+    @classmethod
+    def answer_with_rag_stream(
+        cls,
+        query: str,
+        context_chunks: List[Dict[str, Any]],
+        conversation_history: Optional[List[Dict[str, str]]] = None,
+        provider: str = "gemini",
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        model: Optional[str] = None,
+        custom_system_prompt: Optional[str] = None
+    ):
+        context_text = "\n\n".join([f"--- [المصدر: صفحة {c.get('page_number', 1)}] ---\n{c.get('text', '')}" for c in context_chunks])
+        system_prompt = custom_system_prompt or (
+            "أنت «ذكاء | EduAI»، أستاذ جامعي ومساعد أكاديمي متقدم. "
+            "أجب بدقة استناداً إلى المستند المرفق مع توثيق الصفحات [المصدر: صفحة X] وبتنسيق Markdown."
+        )
+        user_prompt = f"محتوى المستند المرفق الكامل:\n{context_text}\n\nسؤال الطالب: {query}"
+        for chunk in cls.execute_chat_completion_stream(system_prompt=system_prompt, user_prompt=user_prompt, provider=provider, api_key=api_key, base_url=base_url, model=model):
+            yield cls.sanitize_text(chunk) if chunk else ""
+
+    @classmethod
     def validate_connection(
         cls, 
         provider: str = "gemini", 

@@ -3,6 +3,7 @@ import shutil
 import uuid
 from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Header, Response, Depends
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from backend.config import UPLOAD_DIR
@@ -453,6 +454,40 @@ def chat_with_doc(
         "is_out_of_scope": result["is_out_of_scope"],
         "sources": result.get("sources", [])
     }
+
+@router.post("/chat/stream")
+def chat_stream(
+    req: ChatRequest,
+    x_ai_provider: Optional[str] = Header("gemini"),
+    x_gemini_api_key: Optional[str] = Header(None),
+    x_ai_base_url: Optional[str] = Header(None),
+    x_gemini_model: Optional[str] = Header(None),
+    x_user_id: Optional[str] = Header(None)
+):
+    """Streaming RAG chat - yields text chunks as they arrive (vector-ranked)."""
+    doc = get_document(req.doc_id, user_id=x_user_id) if req.doc_id else get_latest_document(user_id=x_user_id)
+    chunks = doc.get("chunks", []) if doc else []
+    rag_k = int(get_system_settings().get("auto_rag_chunks", 4))
+    top_k = max(4, min(50, rag_k * 3)) if rag_k else 50
+    relevant_chunks = RAGService.search_relevant_chunks(req.query, chunks, top_k=top_k)
+
+    def gen():
+        try:
+            for token in AIService.answer_with_rag_stream(
+                query=req.query,
+                context_chunks=relevant_chunks,
+                conversation_history=req.history,
+                provider=x_ai_provider or "gemini",
+                api_key=x_gemini_api_key,
+                base_url=x_ai_base_url,
+                model=x_gemini_model,
+                custom_system_prompt=req.custom_system_prompt
+            ):
+                yield token
+        except Exception as e:
+            yield f"\n\n⚠️ خطأ في البث: {e}"
+
+    return StreamingResponse(gen(), media_type="text/plain; charset=utf-8", headers={"X-Accel-Buffering": "no", "Cache-Control": "no-cache"})
 
 @router.post("/summarize")
 def summarize_doc(
