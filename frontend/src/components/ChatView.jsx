@@ -810,13 +810,13 @@ export default function ChatView({
   };
 
   return (
-    <div className="grid gap-6 max-w-4xl mx-auto w-full">
+    <div className="grid gap-6 max-w-3xl mx-auto w-full">
       
-      {/* Main Wide Chat Stream Container - Full width ChatGPT style */}
-      <div className="col-span-1 flex flex-col glass-panel rounded-3xl overflow-hidden shadow-2xl h-[calc(100vh-130px)] min-h-[640px]">
+      {/* Main Chat - ChatGPT style, airy and spacious */}
+      <div className="col-span-1 flex flex-col glass-panel rounded-2xl overflow-hidden shadow-xl h-[calc(100vh-90px)] min-h-[500px]">
         
-        {/* Chat Stream Header */}
-        <div className="px-5 py-3.5 border-b border-white/10 theme-nav flex items-center justify-between shrink-0 font-['Tajawal']">
+        {/* Minimal Header */}
+        <div className="px-4 py-2.5 border-b border-white/10 theme-nav flex items-center justify-between shrink-0 font-['Tajawal']">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-md">
               <Bot className="w-4 h-4" />
@@ -857,73 +857,36 @@ export default function ChatView({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            
-            {/* New Chat Session Button */}
+          <div className="flex items-center gap-1.5">
             <button
               onClick={() => handleCreateNewSession()}
-              className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black shadow-md transition flex items-center gap-1.5 cursor-pointer"
-              title="بدء محادثة جديدة وتخصيصها لمادة معينة"
+              className="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-sm transition flex items-center gap-1"
+              title="محادثة جديدة"
             >
-              <Plus className="w-3.5 h-3.5 text-white" />
-              <span>محادثة جديدة</span>
+              <Plus className="w-3 h-3" />
+              <span className="hidden sm:inline">جديد</span>
             </button>
-
-            {/* Sessions Master Drawer / Fast Search Button */}
             <button
               onClick={() => setIsSessionsModalOpen(true)}
-              className="px-3 py-1.5 rounded-xl theme-header-btn border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-              title="استعراض والبحث السريع في سجل المحادثات"
+              className="px-2.5 py-1.5 rounded-lg theme-header-btn border text-xs font-bold transition flex items-center gap-1"
+              title="المحادثات"
             >
-              <MessageSquare className="w-3.5 h-3.5 text-cyan-400" />
-              <span>المحادثات ({sessions.length})</span>
-              <Search className="w-3 h-3 text-amber-400" />
+              <MessageSquare className="w-3 h-3 text-cyan-500" />
+              <span className="hidden sm:inline">المحادثات</span>
+              <span className="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-[10px]">{sessions.length}</span>
             </button>
-
-            {/* Academic Export Button */}
-            {(messages || []).length > 0 && (
-              <button
-                onClick={() => setIsExportModalOpen(true)}
-                className="p-2 rounded-xl theme-header-btn border hover:text-cyan-500 transition cursor-pointer"
-                title="تصدير وطباعة الحوار كملف أكاديمي (PDF, HTML, MD, TXT)"
-              >
-                <Download className="w-4 h-4 text-cyan-500" />
-              </button>
-            )}
-
-            {/* Clear Current Chat Button */}
             <button
               onClick={handleClearHistory}
-              className="p-2 rounded-xl theme-header-btn border hover:text-rose-400 transition cursor-pointer"
-              title="مسح رسائل هذه المحادثة"
+              className="p-1.5 rounded-lg theme-header-btn border hover:text-rose-400 transition"
+              title="مسح"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-3.5 h-3.5" />
             </button>
-
-            {/* Quick action buttons */}
-            {activeDoc && (
-              <>
-                <button 
-                  onClick={onSwitchToSummary}
-                  className="text-xs font-bold px-3 py-1.5 rounded-xl theme-header-btn border transition hidden sm:flex items-center gap-1.5"
-                >
-                  <FileText className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>الملخص</span>
-                </button>
-                <button 
-                  onClick={onSwitchToQuiz}
-                  className="text-xs font-bold text-white px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 transition shadow-md shadow-indigo-600/20 flex items-center gap-1.5"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                  <span>اختبرني</span>
-                </button>
-              </>
-            )}
           </div>
         </div>
 
-        {/* Messages Stream with Full Markdown, Tables, Code Blocks */}
-        <div ref={chatContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+        {/* Messages Stream - airy, ChatGPT-like */}
+        <div ref={chatContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-3 md:p-4 space-y-4">
           {(messages || []).map((msg, index) => {
             const isUser = msg.sender === 'user';
             const isLastAi = !isUser && index === (messages || []).length - 1;
@@ -932,20 +895,20 @@ export default function ChatView({
             return (
               <div
                 key={msg.id}
-                className={`flex gap-3.5 max-w-[92%] ${isUser ? 'mr-auto flex-row-reverse' : 'ml-auto'}`}
+                className={`flex gap-2.5 max-w-[85%] ${isUser ? 'mr-auto flex-row-reverse' : 'ml-auto'}`}
               >
-                {/* Avatar */}
-                <div className={`w-8 h-8 rounded-xl shrink-0 flex items-center justify-center text-xs font-bold shadow-md ${
+                {/* Avatar - smaller */}
+                <div className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-xs font-bold shadow-sm ${
                   isUser 
                     ? 'bg-gradient-to-br from-cyan-500 to-indigo-600 text-white' 
                     : 'bg-gradient-to-br from-indigo-600 to-violet-700 text-white border border-indigo-400/30'
                 }`}>
-                  {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                  {isUser ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
                 </div>
 
-                {/* Message Bubble & Markdown Body */}
+                {/* Message Bubble - compact */}
                 <div className={`flex flex-col flex-1 ${isUser ? 'items-end' : 'items-start'} max-w-full overflow-hidden`}>
-                  <div className={`p-5 rounded-3xl text-sm leading-relaxed relative group w-full ${
+                  <div className={`p-3.5 rounded-2xl text-[13.5px] leading-[1.7] relative group w-full ${
                     isUser
                       ? 'bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/70 dark:border-indigo-800/40 theme-text-primary rounded-tr-none shadow-sm'
                       : 'glass-card theme-text-primary rounded-tl-none border shadow-md'
@@ -960,7 +923,7 @@ export default function ChatView({
                     )}
 
                     {/* Rich Markdown Renderer */}
-                    <div className="prose prose-indigo dark:prose-invert max-w-none font-['Tajawal'] text-[14.5px] leading-relaxed break-words space-y-2">
+                    <div className="prose prose-indigo dark:prose-invert max-w-none font-['Tajawal'] text-[13.5px] leading-[1.7] break-words space-y-1.5">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
@@ -1194,24 +1157,24 @@ export default function ChatView({
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Quick Prompts Bar */}
-        <div className="px-4 py-2 theme-nav border-t border-slate-200 dark:border-white/10 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0">
-          <span className="text-[11px] font-bold theme-text-muted flex items-center gap-1 shrink-0 font-['Tajawal']">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" /> مقترحات سريعة:
+        {/* Quick Prompts - compact */}
+        <div className="px-3 py-1.5 theme-nav border-t border-slate-200 dark:border-white/10 flex items-center gap-1.5 overflow-x-auto scrollbar-none shrink-0">
+          <span className="text-[10px] font-bold theme-text-muted flex items-center gap-1 shrink-0">
+            <Sparkles className="w-3 h-3 text-amber-400" /> سريع:
           </span>
           {quickPrompts.map((qp, idx) => (
             <button
               key={idx}
               onClick={() => handleSend(qp.query)}
-              className="text-xs font-semibold px-3 py-1.5 rounded-full theme-header-btn border hover:border-indigo-400 transition whitespace-nowrap shrink-0 font-['Tajawal'] cursor-pointer"
+              className="text-[11px] font-semibold px-2.5 py-1 rounded-full theme-header-btn border hover:border-indigo-400 transition whitespace-nowrap shrink-0 cursor-pointer"
             >
               {qp.label}
             </button>
           ))}
         </div>
 
-        {/* Modern AI Chat Input Area */}
-        <div className="p-3 md:p-4 border-t border-slate-200 dark:border-white/10 theme-nav shrink-0">
+        {/* Input - compact ChatGPT style */}
+        <div className="p-2 md:p-2.5 border-t border-slate-200 dark:border-white/10 theme-nav shrink-0">
           
           {/* Voice Listening Banner */}
           {isListening && (
