@@ -335,6 +335,32 @@ export async function sendChatMessage(query, docId = null, history = [], customS
   return await res.json();
 }
 
+export async function sendChatMessageStream(query, docId = null, history = [], customSystemPrompt = null, onChunk) {
+  const res = await fetch(`${API_BASE}/chat/stream`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ query, doc_id: docId, history, custom_system_prompt: customSystemPrompt }),
+  });
+  if (!res.ok) throw new Error('Chat stream error');
+  if (!res.body) {
+    let data;
+    try { data = await res.json(); } catch { const txt = await res.text(); data = { answer: txt }; }
+    if (onChunk) onChunk(data.answer || '');
+    return data;
+  }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let full = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value, { stream: true });
+    full += chunk;
+    if (onChunk) onChunk(chunk);
+  }
+  return { answer: full };
+}
+
 export async function fetchSummary(docId = null, level = 'full', language = 'ar', customSystemPrompt = null) {
   const res = await fetch(`${API_BASE}/summarize`, {
     method: 'POST',

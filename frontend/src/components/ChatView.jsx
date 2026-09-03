@@ -57,7 +57,7 @@ import {
   X,
   Layers
 } from 'lucide-react';
-import { sendChatMessage, getApiKey, getSelectedModel } from '../services/api';
+import { sendChatMessage, sendChatMessageStream, getApiKey, getSelectedModel } from '../services/api';
 import ExportModal from './ExportModal';
 
 // Smart Language Detection Function
@@ -634,42 +634,83 @@ export default function ChatView({
         content: m.text
       }));
 
-      const res = await sendChatMessage(
-        textToSend, 
-        activeDoc?.doc_id, 
-        historyPayload,
-        activePrompt?.prompt
-      );
-
-      const aiMsg = {
-        id: (Date.now() + 1).toString(),
+      const aiId = (Date.now() + 1).toString();
+      const placeholderMsg = {
+        id: aiId,
         sender: 'ai',
-        text: res.answer,
-        citations: res.citations || [],
-        is_out_of_scope: res.is_out_of_scope,
-        sources: res.sources || [],
+        text: '',
+        citations: [],
+        is_out_of_scope: false,
+        sources: [],
         timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
       };
+      setMessages((prev) => [...prev, placeholderMsg]);
 
-      setMessages((prev) => {
-        const next = [...prev, aiMsg];
-        try {
-          const raw = localStorage.getItem('eduai_chat_sessions_master');
-          if (raw) {
-            const allSessions = JSON.parse(raw);
-            const activeId = localStorage.getItem('eduai_active_session_id') || 'sess_default';
-            const updated = allSessions.map(s => s.id === activeId ? { ...s, messages: next, updatedAt: aiMsg.timestamp } : s);
-            localStorage.setItem('eduai_chat_sessions_master', JSON.stringify(updated));
+      let fullAnswer = '';
+      let streamed = false;
+      try {
+        await sendChatMessageStream(
+          textToSend,
+          activeDoc?.doc_id,
+          historyPayload,
+          activePrompt?.prompt,
+          (chunk) => {
+            fullAnswer += chunk;
+            streamed = true;
+            setMessages((prev) => prev.map(m => m.id === aiId ? { ...m, text: fullAnswer } : m));
           }
-        } catch (_) {}
-        return next;
-      });
+        );
+        if (!streamed || !fullAnswer.trim()) throw new Error('empty stream');
+        setMessages((prev) => {
+          const next = prev.map(m => m.id === aiId ? { ...m, text: fullAnswer } : m);
+          try {
+            const raw = localStorage.getItem('eduai_chat_sessions_master');
+            if (raw) {
+              const allSessions = JSON.parse(raw);
+              const activeId = localStorage.getItem('eduai_active_session_id') || 'sess_default';
+              const updated = allSessions.map(s => s.id === activeId ? { ...s, messages: next, updatedAt: placeholderMsg.timestamp } : s);
+              localStorage.setItem('eduai_chat_sessions_master', JSON.stringify(updated));
+            }
+          } catch (_) {}
+          return next;
+        });
+        return;
+      } catch (streamErr) {
+        setMessages((prev) => prev.filter(m => m.id !== aiId));
+        const res = await sendChatMessage(textToSend, activeDoc?.doc_id, historyPayload, activePrompt?.prompt);
+        const aiMsg = {
+          id: aiId,
+          sender: 'ai',
+          text: res.answer,
+          citations: res.citations || [],
+          is_out_of_scope: res.is_out_of_scope,
+          sources: res.sources || [],
+          timestamp: placeholderMsg.timestamp
+        };
+        setMessages((prev) => {
+          const next = [...prev, aiMsg];
+          try {
+            const raw = localStorage.getItem('eduai_chat_sessions_master');
+            if (raw) {
+              const allSessions = JSON.parse(raw);
+              const activeId = localStorage.getItem('eduai_active_session_id') || 'sess_default';
+              const updated = allSessions.map(s => s.id === activeId ? { ...s, messages: next, updatedAt: aiMsg.timestamp } : s);
+              localStorage.setItem('eduai_chat_sessions_master', JSON.stringify(updated));
+            }
+          } catch (_) {}
+          return next;
+        });
+      }
     } catch (err) {
       console.error(err);
       const errMsg = {
         id: (Date.now() + 1).toString(),
         sender: 'ai',
-        text: `⚠️ تعذر استلام الإجابة من النموذج المختار.\n\nسبب الخطأ: ${err.message || 'انتهت مهلة استجابة الخادم'}\n\n💡 نصيحة: يرجى فتح (إعدادات المزود 🔑) والتأكد من اختيار نموذج مفعّل في خادمك.`,
+        text: `⚠️ تعذر استلام الإجابة من النموذج المختار.
+
+سبب الخطأ: ${err.message || 'انتهت مهلة استجابة الخادم'}
+
+💡 نصيحة: يرجى فتح (إعدادات المزود 🔑) والتأكد من اختيار نموذج مفعّل في خادمك.`,
         timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
       };
       setMessages((prev) => [...prev, errMsg]);
