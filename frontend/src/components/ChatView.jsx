@@ -34,8 +34,6 @@ import {
   FileCode,
   RotateCcw,
   Edit3,
-  Maximize2,
-  Minimize2,
   Trash2,
   Share2,
   CheckCircle2,
@@ -57,7 +55,7 @@ import {
   X,
   Layers
 } from 'lucide-react';
-import { sendChatMessage, sendChatMessageStream, getApiKey, getSelectedModel, fetchCurrentUser } from '../services/api';
+import { sendChatMessage, sendChatMessageStream, getApiKey, getSelectedModel, setSelectedModel, getAIProvider, getBaseUrl, fetchAvailableModels, fetchCurrentUser } from '../services/api';
 import ExportModal from './ExportModal';
 
 // Smart Language Detection Function
@@ -321,7 +319,6 @@ export default function ChatView({
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
   const [editingMsgId, setEditingMsgId] = useState(null);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [activeExportId, setActiveExportId] = useState(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
@@ -343,12 +340,46 @@ export default function ChatView({
   const textareaRef = useRef(null);
   const recognitionRef = useRef(null);
   const exportMenuRef = useRef(null);
+  const modelDropdownRef = useRef(null);
   const latestMessagesRef = useRef(messages);
   const model = getSelectedModel();
+  const [chatModel, setChatModel] = useState(model);
+  const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+  const [chatModels, setChatModels] = useState([]);
+  const [fetchingChatModels, setFetchingChatModels] = useState(false);
 
   useEffect(() => {
     latestMessagesRef.current = messages;
   }, [messages]);
+
+  useEffect(() => {
+    async function loadChatModels() {
+      try {
+        setFetchingChatModels(true);
+        const provider = getAIProvider();
+        const baseUrl = getBaseUrl();
+        const apiKey = getApiKey();
+        const models = await fetchAvailableModels(provider, baseUrl, apiKey);
+        if (models && models.length) {
+          setChatModels(models.map(m => typeof m === 'string' ? m : m.id));
+        } else {
+          setChatModels([chatModel]);
+        }
+      } catch {}
+      setFetchingChatModels(false);
+    }
+    loadChatModels();
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (modelDropdownRef.current && !modelDropdownRef.current.contains(e.target)) {
+        setIsModelDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Sync active session messages to localStorage
   useEffect(() => {
@@ -779,10 +810,10 @@ export default function ChatView({
   };
 
   return (
-    <div className={`grid gap-6 transition-all duration-300 ${isExpanded ? 'grid-cols-1 max-w-6xl mx-auto' : 'grid-cols-1 lg:grid-cols-12 max-w-7xl mx-auto'}`}>
+    <div className="grid gap-6 max-w-4xl mx-auto w-full">
       
-      {/* Main Wide Chat Stream Container */}
-      <div className={`${isExpanded ? 'col-span-1' : 'lg:col-span-8 xl:col-span-9'} flex flex-col glass-panel rounded-3xl overflow-hidden shadow-2xl h-[calc(100vh-130px)] min-h-[640px]`}>
+      {/* Main Wide Chat Stream Container - Full width ChatGPT style */}
+      <div className="col-span-1 flex flex-col glass-panel rounded-3xl overflow-hidden shadow-2xl h-[calc(100vh-130px)] min-h-[640px]">
         
         {/* Chat Stream Header */}
         <div className="px-5 py-3.5 border-b border-white/10 theme-nav flex items-center justify-between shrink-0 font-['Tajawal']">
@@ -807,6 +838,22 @@ export default function ChatView({
               <p className="text-[11px] theme-text-muted truncate max-w-sm">
                 {activeDoc ? `المستند: ${activeDoc.filename} (${activeDoc.pages_count} صفحة)` : 'إجابات أكاديمية عامة'}
               </p>
+              <div className="relative mt-1" ref={modelDropdownRef}>
+                <button onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)} className="flex items-center gap-1.5 text-[11px] font-bold theme-text-muted hover:theme-text-primary transition">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="font-mono">{chatModel}</span>
+                  <ChevronDown className={`w-3 h-3 transition ${isModelDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isModelDropdownOpen && (
+                  <div className="absolute top-full right-0 mt-1.5 w-64 theme-bg-card border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                    <div className="p-2 max-h-60 overflow-y-auto space-y-1">
+                      {chatModels.length ? chatModels.map(m => (
+                        <button key={m} onClick={() => { setChatModel(m); setSelectedModel(m); setIsModelDropdownOpen(false); }} className={`w-full text-right px-3 py-2 rounded-xl text-xs font-mono transition ${chatModel===m ? 'bg-indigo-500/20 text-indigo-500 border border-indigo-500/30' : 'theme-text-secondary hover:bg-slate-500/10'}`}>{m}</button>
+                      )) : <div className="text-xs theme-text-muted p-3 text-center">{fetchingChatModels ? 'جاري الجلب...' : 'لا توجد نماذج'}</div>}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -851,15 +898,6 @@ export default function ChatView({
               title="مسح رسائل هذه المحادثة"
             >
               <Trash2 className="w-4 h-4" />
-            </button>
-
-            {/* Expand / Collapse Width Toggle */}
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="p-2 rounded-xl theme-header-btn border transition hidden md:flex items-center"
-              title={isExpanded ? 'تصغير العرض' : 'توسيع مساحة المحادثة'}
-            >
-              {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </button>
 
             {/* Quick action buttons */}
@@ -1303,98 +1341,6 @@ export default function ChatView({
         </div>
 
       </div>
-
-      {/* Sidebar Context Details (collapsible if expanded) */}
-      {!isExpanded && (
-        <div className="lg:col-span-4 xl:col-span-3 flex flex-col gap-4">
-          
-          {/* Active Prompt Info if selected */}
-          {activePrompt && (
-            <div className="glass-card rounded-2xl p-4 border border-cyan-500/30 bg-cyan-500/5 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-cyan-400 flex items-center gap-1.5">
-                  <Wand2 className="w-4 h-4" /> قالب البرومبت النشط
-                </span>
-                <button
-                  onClick={onOpenPromptManager}
-                  className="text-[10px] text-cyan-300 hover:underline"
-                >
-                  تغيير
-                </button>
-              </div>
-              <p className="text-xs theme-text-primary font-bold">{activePrompt.title}</p>
-              <p className="text-[11px] theme-text-muted line-clamp-2">{activePrompt.prompt}</p>
-            </div>
-          )}
-
-          {/* Active Document Details */}
-          {activeDoc ? (
-            <div className="glass-card rounded-2xl p-5 border space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-extrabold text-xs theme-text-primary uppercase tracking-wider">تفاصيل المستند المفهرس</h4>
-                <button
-                  onClick={onOpenUpload}
-                  className="text-[11px] font-bold text-cyan-500 hover:underline"
-                >
-                  تبديل الملف
-                </button>
-              </div>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between p-2.5 rounded-xl theme-card-inner">
-                  <span className="theme-text-muted">اسم الملف:</span>
-                  <span className="font-bold theme-text-primary truncate max-w-[140px]">{activeDoc.filename}</span>
-                </div>
-                <div className="flex justify-between p-2.5 rounded-xl theme-card-inner">
-                  <span className="theme-text-muted">عدد الصفحات:</span>
-                  <span className="font-bold theme-text-primary">{activeDoc.pages_count} صفحة</span>
-                </div>
-                <div className="flex justify-between p-2.5 rounded-xl theme-card-inner">
-                  <span className="theme-text-muted">عدد الكلمات:</span>
-                  <span className="font-bold theme-text-primary">{activeDoc.words_count || 0} كلمة</span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="glass-card rounded-2xl p-5 border text-center space-y-3">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 mx-auto flex items-center justify-center text-cyan-400">
-                <Upload className="w-5 h-5" />
-              </div>
-              <b className="text-sm font-black theme-text-primary block">ارفع المحاضرة للتوثيق</b>
-              <p className="text-xs theme-text-muted leading-relaxed">
-                ارفع أي ملف Word أو PowerPoint أو PDF وسيقوم ذكاء بفهرسته تلقائياً وتوثيق الصفحات.
-              </p>
-              <button
-                onClick={onOpenUpload}
-                className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black transition shadow-md shadow-indigo-600/25"
-              >
-                رفع مادة الآن
-              </button>
-            </div>
-          )}
-
-          {/* Model Hub Quick Indicator */}
-          <div className="glass-card rounded-2xl p-5 border space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black theme-text-primary flex items-center gap-1.5">
-                <KeyRound className="w-4 h-4 text-amber-400" />
-                المحرك الذكي النشط
-              </span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            </div>
-            <div className="p-2.5 rounded-xl theme-card-inner">
-              <span className="text-[10px] theme-text-muted block">النموذج المختار</span>
-              <p className="text-xs font-mono font-bold theme-text-primary truncate">{model || 'Gemini 1.5 Flash'}</p>
-            </div>
-            <button
-              onClick={onOpenApiKey}
-              className="w-full py-2 rounded-xl theme-header-btn border text-xs font-bold transition flex items-center justify-center gap-1.5"
-            >
-              <span>تغيير المحرك أو المفتاح</span>
-            </button>
-          </div>
-
-        </div>
-      )}
 
       {/* Master Chat Sessions & Fast Full-Text Search Modal */}
       {isSessionsModalOpen && (
