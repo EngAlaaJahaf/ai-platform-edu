@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Shield, Edit3, Trash2, Key, Search, UserPlus, CheckCircle2, X } from 'lucide-react';
+import { Users, Shield, Edit3, Trash2, Key, Search, UserPlus, CheckCircle2, X, RotateCcw, BarChart3 } from 'lucide-react';
 
 export default function UserSettings({ 
   usersList, 
@@ -7,6 +7,8 @@ export default function UserSettings({
   handleUpdateUser, 
   handleDeleteUser, 
   handleResetPassword,
+  handleResetTokens,
+  handleSetTokens,
   newUserData,
   setNewUserData,
   editingUser,
@@ -143,19 +145,24 @@ export default function UserSettings({
                     </span>
                   </td>
                   <td className="px-4 py-4 text-center">
-                    <div className="font-mono text-[11px] font-bold">
-                      <span className={user.tokens_used > (user.tokens_limit * 0.9) ? 'text-rose-500 font-black' : 'theme-text-primary'}>
-                        {(user.tokens_used || 0).toLocaleString()}
-                      </span>
-                      <span className="theme-text-muted mx-1">/</span>
-                      <span className="theme-text-muted">{(user.tokens_limit || 500000).toLocaleString()}</span>
-                    </div>
-                    <div className="w-28 mx-auto bg-slate-200 dark:theme-card-inner h-1.5 rounded-full mt-1.5 overflow-hidden">
-                      <div 
-                        className={`h-full ${user.tokens_used > (user.tokens_limit * 0.9) ? 'bg-rose-500' : 'bg-indigo-500'}`} 
-                        style={{ width: `${Math.min(100, ((user.tokens_used || 0) / (user.tokens_limit || 1)) * 100)}%` }}
-                      ></div>
-                    </div>
+                    {(() => {
+                      const pct = Math.min(100, ((user.tokens_used || 0) / (user.tokens_limit || 500000)) * 100);
+                      const color = pct >= 90 ? 'text-rose-500' : pct >= 70 ? 'text-amber-500' : 'theme-text-primary';
+                      const barColor = pct >= 90 ? 'bg-rose-500' : pct >= 70 ? 'bg-amber-500' : 'bg-indigo-500';
+                      return (
+                        <>
+                          <div className="font-mono text-[11px] font-bold">
+                            <span className={color}>{(user.tokens_used || 0).toLocaleString()}</span>
+                            <span className="theme-text-muted mx-1">/</span>
+                            <span className="theme-text-muted">{(user.tokens_limit || 500000).toLocaleString()}</span>
+                            <span className={`mr-1 text-[10px] font-black ${color}`}>({pct.toFixed(1)}%)</span>
+                          </div>
+                          <div className="w-28 mx-auto bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                            <div className={`h-full ${barColor} transition-all`} style={{ width: `${pct}%` }}></div>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center justify-center gap-1.5">
@@ -178,6 +185,13 @@ export default function UserSettings({
                         title="إعادة تعيين كلمة المرور"
                       >
                         <Key className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleResetTokens(user)}
+                        className="p-1.5 rounded-xl theme-header-btn border hover:text-emerald-500 transition cursor-pointer"
+                        title="تصفير استهلاك التوكنز (0) وإتاحة الاستخدام من جديد"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDeleteUser(user.id)}
@@ -251,7 +265,16 @@ export default function UserSettings({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold theme-text-muted mb-1">حد التوكنز (Quota)</label>
+                    <label className="block text-xs font-bold theme-text-muted mb-1">المستهلك (Used)</label>
+                    <input
+                      type="number"
+                      value={editingUser.tokens_used ?? 0}
+                      onChange={(e) => setEditingUser({ ...editingUser, tokens_used: parseInt(e.target.value) || 0 })}
+                      className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-indigo-500 font-bold transition font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold theme-text-muted mb-1">الحد (Limit)</label>
                     <input
                       type="number"
                       required
@@ -259,6 +282,17 @@ export default function UserSettings({
                       onChange={(e) => setEditingUser({ ...editingUser, tokens_limit: parseInt(e.target.value) || 0 })}
                       className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-indigo-500 font-bold transition font-mono"
                     />
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl theme-card-inner border flex flex-col sm:flex-row items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-xs font-bold">
+                    <BarChart3 className="w-4 h-4 text-indigo-500" />
+                    <span className="theme-text-primary">النسبة: {Math.min(100, ((editingUser.tokens_used||0)/(editingUser.tokens_limit||1)*100)).toFixed(1)}% مستخدم</span>
+                    <span className="theme-text-muted">({(editingUser.tokens_used||0).toLocaleString()} / {(editingUser.tokens_limit||0).toLocaleString()})</span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <button type="button" onClick={() => setEditingUser(prev=>({...prev, tokens_used:0}))} className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[11px] font-black hover:bg-emerald-500/20 transition flex items-center gap-1"><RotateCcw className="w-3 h-3" /> تصفير محلي</button>
+                    <button type="button" onClick={async()=>{ await handleSetTokens(editingUser.id, 0, editingUser.tokens_limit); setEditingUser(prev=>({...prev, tokens_used:0})); }} className="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-[11px] font-black hover:bg-indigo-700 transition">حفظ التصفير بالخادم</button>
                   </div>
                 </div>
 

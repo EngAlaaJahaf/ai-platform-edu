@@ -18,6 +18,8 @@ import {
   createAdminUser,
   updateAdminUser,
   resetAdminUserPassword,
+  resetAdminUserTokens,
+  setAdminUserTokens,
   deleteAdminUser,
   fetchAdminLogs, 
   clearAdminLogs,
@@ -164,6 +166,10 @@ export default function AdminDashboardView({
     if (!editingUser) return;
     try {
       await updateAdminUser(editingUser.id, editingUser);
+      // Sync tokens_used/limit if changed (separate endpoint)
+      if (editingUser.tokens_used !== undefined || editingUser.tokens_limit !== undefined) {
+        await setAdminUserTokens(editingUser.id, { tokens_used: editingUser.tokens_used, tokens_limit: editingUser.tokens_limit }).catch(()=>{});
+      }
       setEditingUser(null);
       loadAdminData();
     } catch (err) {
@@ -191,6 +197,25 @@ export default function AdminDashboardView({
       loadAdminData();
     } catch (err) {
       alert(err.message || 'فشل حذف المستخدم');
+    }
+  };
+
+  const handleResetTokens = async (user) => {
+    if (!window.confirm(`تصفير استهلاك التوكنز للمستخدم ${user.name} (${user.email})؟ سيعود إلى 0 ويُتاح له الاستخدام من جديد.`)) return;
+    try {
+      await resetAdminUserTokens(user.id);
+      loadAdminData();
+    } catch (err) {
+      alert(err.message || 'فشل تصفير التوكنز');
+    }
+  };
+
+  const handleSetTokens = async (userId, tokens_used, tokens_limit) => {
+    try {
+      await setAdminUserTokens(userId, { tokens_used, tokens_limit });
+      loadAdminData();
+    } catch (err) {
+      alert(err.message || 'فشل تحديث التوكنز');
     }
   };
 
@@ -283,6 +308,8 @@ export default function AdminDashboardView({
                 handleUpdateUser={handleUpdateUser}
                 handleDeleteUser={handleDeleteUser}
                 handleResetPassword={handleResetPassword}
+                handleResetTokens={handleResetTokens}
+                handleSetTokens={handleSetTokens}
                 newUserData={newUserData}
                 setNewUserData={setNewUserData}
                 editingUser={editingUser}

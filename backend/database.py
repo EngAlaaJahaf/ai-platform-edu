@@ -454,6 +454,37 @@ def admin_reset_user_password(user_id: str, new_password: str) -> Dict[str, Any]
     log_activity("admin_reset_password", f"إعادة تعيين كلمة مرور للمستخدم: {user_id}", "warn")
     return {"success": True, "message": "تم إعادة تعيين كلمة المرور بنجاح"}
 
+def admin_reset_user_tokens(user_id: str) -> Dict[str, Any]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET tokens_used = 0 WHERE id = ?", (user_id,))
+    if cursor.rowcount == 0:
+        conn.close()
+        return {"success": False, "error": "المستخدم غير موجود"}
+    conn.commit()
+    conn.close()
+    log_activity("admin_reset_tokens", f"تصفير استهلاك التوكنز للمستخدم: {user_id}", "warn")
+    return {"success": True, "message": "تم تصفير الاستهلاك بنجاح"}
+
+def admin_set_user_tokens(user_id: str, tokens_used: Optional[int] = None, tokens_limit: Optional[int] = None) -> Dict[str, Any]:
+    if tokens_used is None and tokens_limit is None:
+        return {"success": False, "error": "لا يوجد ما يتم تحديثه"}
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if tokens_used is not None and tokens_limit is not None:
+        cursor.execute("UPDATE users SET tokens_used = ?, tokens_limit = ? WHERE id = ?", (int(tokens_used), int(tokens_limit), user_id))
+    elif tokens_used is not None:
+        cursor.execute("UPDATE users SET tokens_used = ? WHERE id = ?", (int(tokens_used), user_id))
+    else:
+        cursor.execute("UPDATE users SET tokens_limit = ? WHERE id = ?", (int(tokens_limit), user_id))
+    if cursor.rowcount == 0:
+        conn.close()
+        return {"success": False, "error": "المستخدم غير موجود"}
+    conn.commit()
+    conn.close()
+    log_activity("admin_set_tokens", f"تعديل التوكنز للمستخدم {user_id}: used={tokens_used} limit={tokens_limit}", "info")
+    return {"success": True, "message": "تم تحديث التوكنز بنجاح"}
+
 def admin_delete_user(user_id: str) -> Dict[str, Any]:
     conn = get_db_connection()
     cursor = conn.cursor()
