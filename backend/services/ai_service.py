@@ -172,11 +172,21 @@ class AIService:
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
         model: Optional[str] = None,
-        json_mode: bool = False
+        json_mode: bool = False,
+        temperature: Optional[float] = None
     ) -> str:
         provider = (provider or "gemini").lower()
         key = api_key or ENV_GEMINI_KEY or ""
         clean_model = cls.clean_model_name(model)
+        # Dynamic temperature from system_settings if not provided
+        if temperature is None:
+            try:
+                from backend.database import get_system_settings
+                temperature = float(get_system_settings().get("temperature", 0.3))
+            except Exception:
+                temperature = 0.3
+        else:
+            temperature = float(temperature)
 
         base_rules = (
             "\n\nقواعد الصياغة الأساسية الواجب الالتزام بها:\n"
@@ -242,7 +252,7 @@ class AIService:
                     response = client.chat.completions.create(
                         model=cand_model,
                         messages=messages,
-                        temperature=0.3,
+                        temperature=temperature,
                         response_format=response_format
                     )
                     return response.choices[0].message.content or ""
@@ -287,7 +297,7 @@ class AIService:
                 )
                 combined_prompt = f"{system_prompt}\n\n{user_prompt}"
                 
-                config_kwargs = {"temperature": 0.3, "max_output_tokens": 8192}
+                config_kwargs = {"temperature": temperature, "max_output_tokens": 8192}
                 if json_mode:
                     config_kwargs["response_mime_type"] = "application/json"
                     

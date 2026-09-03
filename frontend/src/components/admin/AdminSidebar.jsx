@@ -1,5 +1,5 @@
 import React from 'react';
-import { Palette, Users, Cpu, Settings, MessageSquare, Save, Server, Shield, Activity, HardDrive, RefreshCw, Layers } from 'lucide-react';
+import { Palette, Users, Cpu, Settings, MessageSquare, Save, Server, Shield, Activity, HardDrive, RefreshCw, Layers, Sliders } from 'lucide-react';
 
 export default function AdminSidebar({ activeSection, setActiveSection, stats, onSave, saving, saveSuccess, loading, onRefresh }) {
   const sections = [
@@ -8,6 +8,7 @@ export default function AdminSidebar({ activeSection, setActiveSection, stats, o
     { id: 'ai', label: 'محركات الذكاء والنماذج', icon: Cpu, category: 'Configuration' },
     { id: 'prompts', label: 'قوالب التوجيه', icon: MessageSquare, category: 'Configuration' },
     { id: 'policies', label: 'إعدادات النظام والسياسات', icon: Settings, category: 'General' },
+    { id: 'advanced', label: 'إعدادات متقدمة', icon: Sliders, category: 'Configuration' },
     { id: 'logs', label: 'سجلات النشاط (Logs)', icon: Activity, category: 'Access' },
   ];
 
