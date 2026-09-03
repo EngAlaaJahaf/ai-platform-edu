@@ -615,10 +615,10 @@ export async function fetchPublicSettings() {
     return {
       platform_name: "ذكاء EduAI",
       platform_subtitle: "المنصة الأكاديمية الذكية المتكاملة",
-      university_name: "جامعة ذمار / صنعاء",
+      university_name: "الجامعة",
       faculty_name: "كلية الحاسبات وتكنولوجيا المعلومات",
       support_email: "admin@eduai.edu",
-      footer_text: "معرض مشاريع تقنية المعلومات #07 • المنصة الأكاديمية الذكية المتقدمة"
+      footer_text: "المنصة الأكاديمية الذكية المتقدمة"
     };
   }
 }

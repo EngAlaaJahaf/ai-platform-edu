@@ -735,10 +735,10 @@ def get_public_settings_endpoint():
     return {
         "platform_name": settings.get("platform_name", "ذكاء EduAI"),
         "platform_subtitle": settings.get("platform_subtitle", "المنصة الأكاديمية الذكية المتكاملة"),
-        "university_name": settings.get("university_name", "جامعة ذمار / صنعاء"),
+        "university_name": settings.get("university_name", "الجامعة"),
         "faculty_name": settings.get("faculty_name", "كلية الحاسبات وتكنولوجيا المعلومات"),
         "support_email": settings.get("support_email", "admin@eduai.edu"),
-        "footer_text": settings.get("footer_text", "معرض مشاريع تقنية المعلومات #07 • المنصة الأكاديمية الذكية المتقدمة"),
+        "footer_text": settings.get("footer_text", "المنصة الأكاديمية الذكية المتقدمة"),
         "logo_icon": settings.get("logo_icon", "GraduationCap"),
         "custom_logo_url": settings.get("custom_logo_url", ""),
         "welcome_headline": settings.get("welcome_headline", "مرحباً بك في المنصة الأكاديمية الذكية"),

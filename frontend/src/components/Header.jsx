@@ -370,7 +370,7 @@ export default function Header({
                 >
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-amber-500" />
-                    <span>صوّت للمشروع (معرض IT #07)</span>
+                    <span>صوّت للمشروع</span>
                   </div>
                   <ExternalLink className="w-3.5 h-3.5 text-amber-500" />
                 </a>
@@ -615,7 +615,7 @@ export default function Header({
               >
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span>صوّت للمشروع (IT #07)</span>
+                  <span>صوّت للمشروع</span>
                 </div>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>

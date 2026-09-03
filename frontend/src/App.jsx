@@ -385,7 +385,7 @@ export default function App() {
             <div className="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-extrabold text-xs">
               ذ
             </div>
-            <span>© 2026 ذكاء | EduAI — المنصة الأكاديمية الذكية المتكاملة. معرض مشاريع تقنية المعلومات #07</span>
+            <span>© 2026 ذكاء | EduAI — المنصة الأكاديمية الذكية المتكاملة.</span>
           </div>
 
           <div className="flex items-center gap-6 flex-wrap">
