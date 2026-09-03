@@ -731,6 +731,34 @@ export async function resetAdminUserPassword(userId, newPassword) {
   return await res.json();
 }
 
+export async function resetAdminUserTokens(userId) {
+  const res = await fetch(`${API_BASE}/admin/users/${userId}/reset-tokens`, {
+    method: 'PATCH',
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل تصفير التوكنز');
+  }
+  return await res.json();
+}
+
+export async function setAdminUserTokens(userId, { tokens_used, tokens_limit }) {
+  const body = {};
+  if (tokens_used !== undefined && tokens_used !== null) body.tokens_used = Number(tokens_used);
+  if (tokens_limit !== undefined && tokens_limit !== null) body.tokens_limit = Number(tokens_limit);
+  const res = await fetch(`${API_BASE}/admin/users/${userId}/tokens`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل تحديث التوكنز');
+  }
+  return await res.json();
+}
+
 export async function deleteAdminUser(userId) {
   const res = await fetch(`${API_BASE}/admin/users/${userId}`, {
     method: 'DELETE',

@@ -36,6 +36,8 @@ from backend.database import (
     admin_create_user,
     admin_update_user,
     admin_reset_user_password,
+    admin_reset_user_tokens,
+    admin_set_user_tokens,
     admin_delete_user,
     clear_activity_logs,
     list_prompts,
@@ -116,6 +118,10 @@ class AdminUpdateUserRequest(BaseModel):
 
 class AdminResetPasswordRequest(BaseModel):
     new_password: str
+
+class AdminSetTokensRequest(BaseModel):
+    tokens_used: Optional[int] = None
+    tokens_limit: Optional[int] = None
 
 class UpdateDocumentRequest(BaseModel):
     title: str
@@ -933,6 +939,22 @@ def reset_admin_user_password_endpoint(user_id: str, req: AdminResetPasswordRequ
     res = admin_reset_user_password(user_id, req.new_password)
     if not res["success"]:
         raise HTTPException(status_code=400, detail=res.get("error", "فشل إعادة تعيين كلمة المرور"))
+    return res
+
+@router.patch("/admin/users/{user_id}/reset-tokens")
+def reset_admin_user_tokens_endpoint(user_id: str, current_admin: dict = Depends(_require_admin)):
+    """Reset tokens_used to 0 for a user."""
+    res = admin_reset_user_tokens(user_id)
+    if not res["success"]:
+        raise HTTPException(status_code=400, detail=res.get("error", "فشل تصفير التوكنز"))
+    return res
+
+@router.patch("/admin/users/{user_id}/tokens")
+def set_admin_user_tokens_endpoint(user_id: str, req: AdminSetTokensRequest, current_admin: dict = Depends(_require_admin)):
+    """Set tokens_used and/or tokens_limit for a user."""
+    res = admin_set_user_tokens(user_id, tokens_used=req.tokens_used, tokens_limit=req.tokens_limit)
+    if not res["success"]:
+        raise HTTPException(status_code=400, detail=res.get("error", "فشل تحديث التوكنز"))
     return res
 
 @router.delete("/admin/users/{user_id}")
