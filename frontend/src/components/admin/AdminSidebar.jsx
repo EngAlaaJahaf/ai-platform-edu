@@ -41,34 +41,69 @@ export default function AdminSidebar({ activeSection, setActiveSection, stats, o
           })}
         </div>
 
-        {stats && (
+        {stats ? (
           <div className="px-4 mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
-            <h3 className="text-[10px] uppercase font-black theme-text-muted mb-3 tracking-wider">نظرة عامة</h3>
+            <h3 className="text-[10px] uppercase font-black theme-text-muted mb-3 tracking-wider flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> نظرة عامة حية
+            </h3>
             <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-xs theme-text-secondary mb-1">
-                  <span>المستخدمين</span>
-                  <span className="font-mono font-bold theme-text-primary">{stats.total_users || 0}</span>
-                </div>
-                <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-indigo-500 w-1/3"></div>
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-xs theme-text-secondary mb-1">
-                  <span>المستندات</span>
-                  <span className="font-mono font-bold theme-text-primary">{stats.total_documents || 0}</span>
-                </div>
-                <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-cyan-500 w-1/2"></div>
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-xs theme-text-secondary mb-1">
-                  <span>قاعدة البيانات</span>
-                  <span className="font-mono font-bold theme-text-primary">{stats.db_size_kb || 0} KB</span>
-                </div>
-              </div>
+              {(() => {
+                const usersPct = Math.min(100, ((stats.total_users || 0) / 50) * 100);
+                const docsPct = Math.min(100, ((stats.total_documents || 0) / 50) * 100);
+                const dbPct = Math.min(100, ((stats.db_size_kb || 0) / 5120) * 100);
+                const promptsPct = Math.min(100, ((stats.total_prompts || 0) / 20) * 100);
+                return (
+                  <>
+                    <div>
+                      <div className="flex justify-between text-xs theme-text-secondary mb-1">
+                        <span className="flex items-center gap-1"><Users className="w-3 h-3" /> المستخدمين</span>
+                        <span className="font-mono font-bold theme-text-primary">{stats.total_users || 0} <span className="text-[10px] theme-text-muted">({usersPct.toFixed(0)}%)</span></span>
+                      </div>
+                      <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-500 transition-all duration-700" style={{width: `${usersPct}%`}}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs theme-text-secondary mb-1">
+                        <span className="flex items-center gap-1"><HardDrive className="w-3 h-3" /> المستندات</span>
+                        <span className="font-mono font-bold theme-text-primary">{stats.total_documents || 0} <span className="text-[10px] theme-text-muted">({docsPct.toFixed(0)}%)</span></span>
+                      </div>
+                      <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-cyan-500 transition-all duration-700" style={{width: `${docsPct}%`}}></div>
+                      </div>
+                      <div className="text-[10px] theme-text-muted mt-1 flex justify-between"><span>{stats.total_pages || 0} صفحة</span><span>{(stats.total_words || 0).toLocaleString()} كلمة</span></div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs theme-text-secondary mb-1">
+                        <span className="flex items-center gap-1"><Layers className="w-3 h-3" /> القوالب</span>
+                        <span className="font-mono font-bold theme-text-primary">{stats.total_prompts || 0}</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-violet-500 transition-all duration-700" style={{width: `${promptsPct}%`}}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs theme-text-secondary mb-1">
+                        <span>قاعدة البيانات</span>
+                        <span className="font-mono font-bold theme-text-primary">{stats.db_size_kb || 0} KB</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div className={`h-full transition-all duration-700 ${dbPct>80?'bg-rose-500': dbPct>60?'bg-amber-500':'bg-emerald-500'}`} style={{width: `${dbPct}%`}}></div>
+                      </div>
+                      <div className="text-[10px] theme-text-muted mt-1 flex justify-between"><span>{stats.total_activities || 0} سجل</span><span className={`font-bold ${stats.server_status==='healthy'?'text-emerald-500':'text-rose-500'}`}>{stats.server_status || 'unknown'}</span></div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+            <div className="text-[10px] theme-text-muted mt-3 flex items-center gap-1"><Activity className="w-3 h-3" /> تحديث تلقائي كل 30 ثانية</div>
+          </div>
+        ) : (
+          <div className="px-4 mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+            <div className="animate-pulse space-y-3">
+              <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-1/2"></div>
+              <div className="h-1.5 bg-slate-200 dark:bg-slate-800 rounded"></div>
+              <div className="h-1.5 bg-slate-200 dark:bg-slate-800 rounded"></div>
             </div>
           </div>
         )}
