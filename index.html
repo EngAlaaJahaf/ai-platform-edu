@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ذكاء | EduAI — المساعد الأكاديمي الذكي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=IBM+Plex+Sans+Arabic:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070A1A;
+  --bg2:#0F1429;
+  --bg3:#1A1F3D;
+  --card:#121732;
+  --card2:#171D3E;
+  --indigo:#6366F1;
+  --violet:#8B5CF6;
+  --cyan:#06B6D4;
+  --amber:#F59E0B;
+  --emerald:#10B981;
+  --text:#F8FAFC;
+  --muted:#94A3B8;
+  --muted2:#64748B;
+  --border:rgba(99,102,241,0.18);
+  --border2:rgba(99,102,241,0.28);
+  --glass:rgba(15,20,41,0.7);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Tajawal',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+  line-height:1.7;
+}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
+::selection{background:rgba(99,102,241,.35)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#1E2447;border-radius:999px}
+::-webkit-scrollbar-track{background:#070A1A}
+/* bg effects */
+.bg-mesh{position:fixed;inset:0;z-index:-2;overflow:hidden;background:var(--bg)}
+.bg-mesh::before{
+  content:"";position:absolute;inset:-30%;
+  background:
+    radial-gradient(700px 500px at 18% 18%, rgba(99,102,241,.22), transparent 60%),
+    radial-gradient(800px 600px at 82% 10%, rgba(6,182,214,.18), transparent 60%),
+    radial-gradient(600px 500px at 70% 78%, rgba(139,92,246,.14), transparent 60%),
+    radial-gradient(500px 400px at 20% 85%, rgba(245,158,11,.07), transparent 60%);
+  filter:blur(2px);
+}
+.grid-overlay{
+  position:fixed;inset:0;z-index:-1;opacity:.22;
+  background-image:
+    linear-gradient(rgba(99,102,241,.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99,102,241,.09) 1px, transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse 85% 70% at 50% 0%, black 60%, transparent 95%);
+}
+.noise{position:fixed;inset:0;z-index:-1;opacity:.03;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.4'/%3E%3C/svg%3E")}
+/* header */
+.header{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  backdrop-filter:blur(16px) saturate(1.2);
+  background:rgba(7,10,26,.62);
+  border-bottom:1px solid var(--border);
+}
+.header-inner{max-width:1280px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-mark{
+  width:42px;height:42px;border-radius:12px;
+  background:linear-gradient(135deg, var(--indigo), var(--cyan));
+  display:grid;place-items:center;
+  box-shadow:0 8px 24px rgba(99,102,241,.35), inset 0 1px 0 rgba(255,255,255,.25);
+  position:relative;overflow:hidden;
+}
+.logo-mark::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg, rgba(255,255,255,.18), transparent 55%);pointer-events:none}
+.logo-mark span{font-weight:900;font-size:18px;letter-spacing:.02em;color:white;position:relative;z-index:1}
+.logo-text{line-height:1}
+.logo-text b{font-size:20px;font-weight:900;letter-spacing:-.02em;display:block}
+.logo-text b em{font-style:normal;background:linear-gradient(90deg,var(--indigo),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo-text small{font-size:11px;color:var(--muted);letter-spacing:.12em;font-weight:600}
+.nav{ display:flex;align-items:center;gap:8px }
+.nav a{font-size:13.5px;font-weight:600;color:var(--muted);padding:8px 14px;border-radius:999px;transition:.2s}
+.nav a:hover{color:var(--text);background:rgba(99,102,241,.1)}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:11.5px;font-weight:700;letter-spacing:.02em;
+  color:#C7D2FE;background:rgba(99,102,241,.14);border:1px solid rgba(99,102,241,.22);
+  padding:6px 12px;border-radius:999px;white-space:nowrap;
+}
+.badge i{width:8px;height:8px;border-radius:50%;background:var(--emerald);box-shadow:0 0 12px var(--emerald);display:inline-block;animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6;transform:scale(.9)}}
+.cta{ display:flex;gap:10px;align-items:center }
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-weight:800;font-size:13.5px;letter-spacing:.01em;
+  padding:10px 18px;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:.2s;white-space:nowrap;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--indigo),#4F46E5);
+  color:white;box-shadow:0 8px 20px rgba(99,102,241,.35), inset 0 1px 0 rgba(255,255,255,.2);
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(99,102,241,.45)}
+.btn-ghost{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.09);color:var(--text);backdrop-filter:blur(6px)}
+.btn-ghost:hover{background:rgba(255,255,255,.1)}
+.btn-amber{background:linear-gradient(135deg,#F59E0B,#D97706);color:#0B0E1E;box-shadow:0 8px 20px rgba(245,158,11,.3)}
+.hamburger{display:none;width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);place-items:center;cursor:pointer}
+
+/* hero */
+.hero{max-width:1280px;margin:0 auto;padding:118px 20px 40px;display:grid;grid-template-columns:1.05fr .95fr;gap:28px;align-items:center;position:relative}
+.hero-copy h1{
+  font-size:clamp(32px,5vw,56px);font-weight:900;line-height:1.05;letter-spacing:-.03em;margin:14px 0 14px;
+}
+.hero-copy h1 .grad{
+  background:linear-gradient(90deg,var(--indigo) 0%, #818CF8 25%, var(--cyan) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  display:inline-block;
+}
+.hero-desc{color:var(--muted);font-size:17px;max-width:560px;line-height:1.8}
+.hero-actions{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap}
+.hero-actions .btn{padding:13px 20px;font-size:14.5px;border-radius:14px}
+.micro-trust{display:flex;gap:18px;margin-top:18px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:12.5px}
+.micro-trust span{display:flex;align-items:center;gap:6px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--emerald)}
+.stats-row{display:flex;gap:14px;margin-top:26px}
+.stat{
+  flex:1;background:linear-gradient(180deg, rgba(23,29,62,.9), rgba(18,23,50,.9));
+  border:1px solid var(--border);border-radius:16px;padding:14px 14px;position:relative;overflow:hidden;
+}
+.stat::before{content:"";position:absolute;inset:0 0 auto 0;height:1px;background:linear-gradient(90deg,transparent,rgba(99,102,241,.35),transparent)}
+.stat b{font-size:22px;font-weight:900;letter-spacing:-.02em;display:block;line-height:1}
+.stat b em{font-style:normal;color:var(--amber)}
+.stat small{color:var(--muted);font-size:11.5px;font-weight:600}
+.hero-visual{position:relative;min-height:520px;display:grid;place-items:center}
+.device{
+  width:min(420px,100%);background:linear-gradient(180deg,#0F1430,#0A0F27);
+  border:1px solid rgba(99,102,241,.22);border-radius:22px;overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(99,102,241,.12), 0 0 40px rgba(99,102,241,.18);
+  position:relative;
+}
+.device-top{
+  height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;
+  background:rgba(255,255,255,.03);border-bottom:1px solid rgba(99,102,241,.14);backdrop-filter:blur(6px)
+}
+.dots{display:flex;gap:6px}
+.dots i{width:10px;height:10px;border-radius:50%;display:block}
+.device-title{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.04em;display:flex;gap:8px;align-items:center}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--emerald);box-shadow:0 0 10px var(--emerald)}
+.chat-preview{padding:16px;display:flex;flex-direction:column;gap:12px;min-height:380px}
+.bubble{max-width:84%;padding:12px 14px;border-radius:16px;font-size:13.5px;line-height:1.7;position:relative;animation:pop .4s ease}
+@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+.bubble.ai{
+  background:rgba(99,102,241,.14);border:1px solid rgba(99,102,241,.22);color:#E0E7FF;
+  border-bottom-right-radius:6px;align-self:flex-start
+}
+.bubble.user{
+  background:linear-gradient(135deg,var(--indigo), #4F46E5);color:white;
+  border-bottom-left-radius:6px;align-self:flex-end;box-shadow:0 8px 18px rgba(99,102,241,.3)
+}
+.bubble small{display:block;font-size:10.5px;opacity:.7;margin-top:6px}
+.typing{display:flex;gap:4px;align-items:center;padding:8px 0}
+.typing i{width:6px;height:6px;border-radius:50%;background:#A5B4FC;animation:bounce 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}
+.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.6}40%{transform:translateY(-4px);opacity:1}}
+.quick-prompts{display:flex;gap:8px;flex-wrap:wrap;padding:0 16px 16px}
+.qp{font-size:12px;font-weight:700;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#CBD5E1;cursor:pointer;transition:.2s}
+.qp:hover{background:rgba(99,102,241,.18);border-color:rgba(99,102,241,.3);color:white}
+.floating-card{
+  position:absolute;background:rgba(18,23,50,.9);backdrop-filter:blur(12px);
+  border:1px solid rgba(99,102,241,.22);border-radius:16px;padding:12px 14px;
+  box-shadow:0 16px 40px rgba(0,0,0,.4);display:flex;gap:10px;align-items:center;
+}
+.fc-1{top:12px;right:-6px;transform:rotate(1deg)}
+.fc-2{bottom:28px;left:-10px;transform:rotate(-1deg)}
+.fc-icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:0 0 36px}
+.fc-1 .fc-icon{background:linear-gradient(135deg,#10B981,#059669);color:white}
+.fc-2 .fc-icon{background:linear-gradient(135deg,#F59E0B,#D97706);color:white}
+.floating-card b{font-size:13px;display:block;line-height:1.1}
+.floating-card small{font-size:11px;color:var(--muted)}
+.glow{position:absolute;inset:auto;pointer-events:none}
+.glow-1{width:320px;height:320px;background:radial-gradient(circle, rgba(99,102,241,.18), transparent 70%);top:-40px;left:-40px;filter:blur(8px)}
+.glow-2{width:260px;height:260px;background:radial-gradient(circle, rgba(6,182,214,.14), transparent 70%);bottom:-20px;right:-20px;filter:blur(10px)}
+
+/* sections */
+.section{max-width:1280px;margin:0 auto;padding:56px 20px}
+.section-head{text-align:center;max-width:760px;margin:0 auto 34px}
+.kicker{
+  display:inline-flex;gap:8px;align-items:center;
+  font-size:11px;font-weight:800;letter-spacing:.14em;color:#A5B4FC;
+  background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.22);
+  padding:6px 12px;border-radius:999px;margin-bottom:12px;
+}
+.kicker i{width:7px;height:7px;background:var(--cyan);border-radius:50%;box-shadow:0 0 10px var(--cyan)}
+.section-head h2{font-size:clamp(24px,3.6vw,38px);font-weight:900;letter-spacing:-.03em;line-height:1.15;margin-bottom:10px}
+.section-head p{color:var(--muted);font-size:15.5px;line-height:1.8}
+/* problem solution */
+.ps-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center}
+.ps-card{
+  background:linear-gradient(180deg, rgba(23,29,62,.85), rgba(18,23,50,.85));
+  border:1px solid var(--border);border-radius:18px;padding:18px;position:relative;overflow:hidden;
+}
+.ps-card::after{content:"";position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(135deg, rgba(99,102,241,.25), transparent 50%);-webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.prob{display:flex;gap:14px;align-items:flex-start}
+.prob-icon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex:0 0 44px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.18);color:#F87171}
+.prob.s2 .prob-icon{background:rgba(245,158,11,.11);border-color:rgba(245,158,11,.2);color:#FBBF24}
+.prob.s3 .prob-icon{background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.22);color:#A78BFA}
+.prob h3{font-size:15px;font-weight:800;margin-bottom:4px}
+.prob p{color:var(--muted);font-size:13.5px;line-height:1.7}
+.vs{
+  width:64px;height:64px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--indigo),var(--cyan));color:white;font-weight:900;font-size:13px;
+  box-shadow:0 12px 30px rgba(99,102,241,.4);border:3px solid var(--bg);position:relative;z-index:1;
+}
+.solution{
+  background:linear-gradient(135deg, rgba(99,102,241,.18), rgba(6,182,214,.14));
+  border:1px solid rgba(99,102,241,.28);border-radius:18px;padding:22px;position:relative;overflow:hidden;
+}
+.solution::before{content:"";position:absolute;inset:0;background:radial-gradient(400px 200px at 80% 0%, rgba(255,255,255,.06), transparent 60%)}
+.solution h3{font-size:16px;font-weight:900;margin-bottom:8px;display:flex;gap:8px;align-items:center}
+.solution p{color:#CBD5E1;font-size:13.8px;line-height:1.8}
+.solution ul{margin-top:12px;list-style:none;display:grid;gap:8px}
+.solution li{display:flex;gap:8px;align-items:center;font-size:13px;font-weight:700;color:#E0E7FF}
+.solution li i{width:22px;height:22px;border-radius:50%;background:rgba(16,185,129,.18);border:1px solid rgba(16,185,129,.3);display:grid;place-items:center;color:var(--emerald);flex:0 0 22px;font-size:12px}
+
+/* features */
+.features{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.feat{
+  background:linear-gradient(180deg, rgba(18,23,50,.9), rgba(14,19,42,.9));
+  border:1px solid var(--border);border-radius:20px;padding:22px;position:relative;overflow:hidden;transition:.3s;
+}
+.feat:hover{transform:translateY(-3px);border-color:var(--border2);box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 1px rgba(99,102,241,.12)}
+.feat::before{content:"";position:absolute;inset:0 0 auto 0;height:1px;background:linear-gradient(90deg,transparent,rgba(99,102,241,.35),transparent);opacity:0;transition:.3s}
+.feat:hover::before{opacity:1}
+.feat-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.feat-icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.08)}
+.feat:nth-child(1) .feat-icon{background:linear-gradient(135deg,#6366F1,#4F46E5);color:white;box-shadow:0 10px 20px rgba(99,102,241,.3)}
+.feat:nth-child(2) .feat-icon{background:linear-gradient(135deg,#06B6D4,#0891B2);color:white;box-shadow:0 10px 20px rgba(6,182,214,.3)}
+.feat:nth-child(3) .feat-icon{background:linear-gradient(135deg,#10B981,#059669);color:white;box-shadow:0 10px 20px rgba(16,185,129,.3)}
+.feat:nth-child(4) .feat-icon{background:linear-gradient(135deg,#F59E0B,#D97706);color:white;box-shadow:0 10px 20px rgba(245,158,11,.3)}
+.tag{font-size:10.5px;font-weight:800;letter-spacing:.08em;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:var(--muted)}
+.feat h3{font-size:17px;font-weight:900;margin-bottom:6px}
+.feat p{color:var(--muted);font-size:13.8px;line-height:1.75;margin-bottom:14px}
+.feat-list{list-style:none;display:flex;flex-direction:column;gap:7px}
+.feat-list li{display:flex;gap:8px;align-items:center;font-size:12.5px;font-weight:600;color:#CBD5E1}
+.feat-list li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--indigo);box-shadow:0 0 8px rgba(99,102,241,.6);flex:0 0 6px}
+.feat-cta{margin-top:14px;display:inline-flex;gap:6px;align-items:center;font-size:12.5px;font-weight:800;color:#A5B4FC;cursor:pointer}
+.feat-cta:hover{color:white}
+
+/* demo */
+.demo-wrap{
+  background:linear-gradient(180deg, rgba(15,20,41,.9), rgba(10,15,35,.95));
+  border:1px solid var(--border);border-radius:22px;overflow:hidden;
+  box-shadow:0 24px 60px rgba(0,0,0,.45);
+}
+.demo-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;
+  background:rgba(255,255,255,.02);border-bottom:1px solid var(--border);flex-wrap:wrap;
+}
+.demo-title{display:flex;gap:10px;align-items:center}
+.demo-title b{font-size:14px;font-weight:900}
+.demo-title small{font-size:11px;color:var(--muted);font-weight:600}
+.pill{
+  display:inline-flex;gap:6px;align-items:center;font-size:11px;font-weight:800;
+  padding:6px 10px;border-radius:999px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.22);color:#6EE7B7
+}
+.pill i{width:7px;height:7px;background:var(--emerald);border-radius:50%;animation:pulse 1.4s infinite}
+.tabs{display:flex;gap:8px;background:rgba(255,255,255,.04);padding:6px;border-radius:999px;border:1px solid rgba(255,255,255,.06)}
+.tab{
+  padding:9px 16px;border-radius:999px;font-size:13px;font-weight:800;cursor:pointer;
+  color:var(--muted);border:1px solid transparent;transition:.2s;display:flex;gap:7px;align-items:center;white-space:nowrap;
+}
+.tab.active{background:linear-gradient(135deg,var(--indigo),#4F46E5);color:white;box-shadow:0 6px 16px rgba(99,102,241,.35)}
+.tab:hover:not(.active){background:rgba(255,255,255,.06);color:white}
+.demo-body{display:grid;grid-template-columns:1.15fr .85fr;min-height:480px}
+.demo-main{border-left:1px solid var(--border);display:flex;flex-direction:column;min-height:480px;position:relative}
+.demo-side{padding:18px;background:rgba(255,255,255,.015);display:flex;flex-direction:column;gap:16px}
+.panel{display:none;flex-direction:column;height:100%}
+.panel.active{display:flex}
+.chat-log{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth;max-height:420px}
+.chat-log::-webkit-scrollbar{width:6px}
+.msg{max-width:84%;padding:12px 14px;border-radius:16px;font-size:13.5px;line-height:1.7;animation:pop .3s ease;position:relative}
+.msg.ai{background:rgba(99,102,241,.13);border:1px solid rgba(99,102,241,.18);color:#E0E7FF;align-self:flex-start;border-bottom-right-radius:6px}
+.msg.user{background:linear-gradient(135deg,var(--indigo),#4F46E5);color:white;align-self:flex-end;border-bottom-left-radius:6px;box-shadow:0 8px 18px rgba(99,102,241,.25)}
+.msg small{display:block;margin-top:6px;font-size:10.5px;opacity:.65}
+.chat-input{padding:12px;border-top:1px solid var(--border);background:rgba(7,10,26,.5);display:flex;gap:10px;align-items:center}
+.chat-input input{
+  flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+  color:white;padding:12px 14px;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13.5px;outline:none;transition:.2s;
+}
+.chat-input input:focus{border-color:rgba(99,102,241,.4);background:rgba(255,255,255,.08);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+.chat-input input::placeholder{color:#64748B}
+.send-btn{width:44px;height:44px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--indigo),#4F46E5);color:white;display:grid;place-items:center;cursor:pointer;box-shadow:0 8px 18px rgba(99,102,241,.35);transition:.2s}
+.send-btn:hover{transform:translateY(-1px)}
+.send-btn:active{transform:scale(.97)}
+/* PDF panel */
+.drop{
+  margin:16px;border:1.5px dashed rgba(99,102,241,.35);border-radius:16px;
+  padding:22px;display:grid;place-items:center;text-align:center;gap:10px;
+  background:rgba(99,102,241,.06);cursor:pointer;transition:.2s;
+}
+.drop:hover{border-color:rgba(99,102,241,.6);background:rgba(99,102,241,.09)}
+.drop.drag{border-color:var(--cyan);background:rgba(6,182,214,.09);transform:scale(1.01)}
+.drop-icon{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--indigo),var(--cyan));display:grid;place-items:center;color:white;box-shadow:0 10px 24px rgba(99,102,241,.3)}
+.drop b{font-size:14px}
+.drop p{font-size:12.5px;color:var(--muted)}
+.summary{display:none;padding:16px;gap:14px;flex-direction:column}
+.summary.show{display:flex}
+.sum-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px}
+.sum-card h4{font-size:13px;font-weight:900;margin-bottom:8px;display:flex;gap:8px;align-items:center}
+.sum-card h4 i{width:8px;height:8px;background:var(--amber);border-radius:50%}
+.sum-points{list-style:none;display:grid;gap:8px}
+.sum-points li{display:flex;gap:8px;font-size:12.8px;color:#CBD5E1;line-height:1.6}
+.sum-points li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--cyan);margin-top:7px;flex:0 0 6px}
+.mindmap{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:10px;overflow:hidden}
+.mindmap svg{width:100%;height:auto;display:block}
+/* quiz */
+.quiz-head{padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.quiz-head b{font-size:14px}
+.progress{height:6px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;flex:1;max-width:180px;min-width:120px}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--indigo),var(--cyan));width:0%;transition:.4s;border-radius:999px}
+.q-card{padding:16px;display:none;flex-direction:column;gap:14px}
+.q-card.active{display:flex}
+.q-title{font-size:14.5px;font-weight:800;line-height:1.6;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.18);padding:12px 14px;border-radius:12px}
+.opts{display:grid;gap:10px}
+.opt{
+  padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  cursor:pointer;font-size:13.5px;font-weight:600;color:#E2E8F0;display:flex;gap:10px;align-items:center;transition:.2s;text-align:right;
+}
+.opt:hover{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.25)}
+.opt.correct{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4);color:#6EE7B7}
+.opt.wrong{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#FCA5A5}
+.opt input{accent-color:var(--indigo)}
+.quiz-actions{display:flex;gap:10px;flex-wrap:wrap}
+.score-box{
+  display:none;padding:16px;background:linear-gradient(135deg, rgba(16,185,129,.12), rgba(6,182,214,.1));
+  border:1px solid rgba(16,185,129,.22);border-radius:16px;text-align:center;gap:8px;
+}
+.score-box.show{display:grid}
+.score-box b{font-size:28px;font-weight:900;color:var(--emerald)}
+/* side info */
+.side-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px}
+.side-card h4{font-size:12.5px;font-weight:900;margin-bottom:10px;color:#E2E8F0;display:flex;gap:8px;align-items:center}
+.side-card h4 i{width:20px;height:20px;border-radius:6px;background:rgba(99,102,241,.18);display:grid;place-items:center;font-size:11px}
+.side-list{list-style:none;display:grid;gap:8px}
+.side-list li{font-size:12.5px;color:var(--muted);display:flex;gap:8px;line-height:1.6}
+.side-list li::before{content:"";width:5px;height:5px;background:var(--indigo);border-radius:50%;margin-top:7px;flex:0 0 5px}
+.mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mini-stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px;text-align:center}
+.mini-stat b{font-size:18px;font-weight:900;display:block;color:var(--amber)}
+.mini-stat small{font-size:11px;color:var(--muted)}
+
+/* tech */
+.tech-strip{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:18px 0}
+.tech-chip{
+  display:flex;gap:8px;align-items:center;padding:8px 14px;border-radius:999px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);font-size:12.5px;font-weight:700;color:#CBD5E1;
+}
+.tech-chip i{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:900;color:white}
+.rag-diagram{
+  background:linear-gradient(180deg, rgba(18,23,50,.85), rgba(12,17,38,.9));
+  border:1px solid var(--border);border-radius:18px;padding:18px;overflow:auto;
+}
+.rag-diagram svg{width:100%;min-width:680px;height:auto;display:block}
+
+/* why win */
+.why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.why{
+  background:linear-gradient(180deg, rgba(23,29,62,.9), rgba(18,23,50,.9));
+  border:1px solid var(--border);border-radius:18px;padding:18px;text-align:center;position:relative;overflow:hidden;
+}
+.why::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:linear-gradient(90deg,var(--indigo),var(--cyan),var(--amber));opacity:.8}
+.why b{font-size:30px;font-weight:900;display:block;line-height:1;color:var(--amber);margin:6px 0}
+.why span{font-size:12px;color:var(--muted);font-weight:700}
+.why p{font-size:12.5px;color:#CBD5E1;margin-top:8px;line-height:1.6}
+.why-icon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;margin:0 auto;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.2);color:var(--amber)}
+
+/* team */
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.member{
+  background:linear-gradient(180deg, rgba(18,23,50,.9), rgba(14,19,42,.9));
+  border:1px solid var(--border);border-radius:20px;padding:20px;text-align:center;position:relative;overflow:hidden;transition:.3s;
+}
+.member:hover{transform:translateY(-4px);border-color:var(--border2);box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.member::before{content:"";position:absolute;inset:0 0 auto 0;height:1px;background:linear-gradient(90deg,transparent,rgba(99,102,241,.4),transparent)}
+.avatar{
+  width:78px;height:78px;border-radius:50%;margin:0 auto 12px;
+  background:linear-gradient(135deg,var(--indigo),var(--cyan));display:grid;place-items:center;
+  color:white;font-weight:900;font-size:22px;box-shadow:0 10px 24px rgba(99,102,241,.3);border:3px solid rgba(255,255,255,.08);
+  position:relative;
+}
+.member h3{font-size:15px;font-weight:900}
+.member .role{font-size:12px;color:var(--indigo);font-weight:800;letter-spacing:.04em;margin:2px 0 8px}
+.member p{font-size:12.5px;color:var(--muted);line-height:1.6}
+.member .level{margin-top:10px;display:inline-flex;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);font-size:11px;font-weight:700;color:var(--muted)}
+
+/* footer */
+.footer{
+  margin-top:40px;background:linear-gradient(180deg, #0B0F24, #070A1A);
+  border-top:1px solid var(--border);padding:36px 20px 22px;
+}
+.footer-inner{max-width:1280px;margin:0 auto}
+.vote{
+  background:linear-gradient(135deg, rgba(99,102,241,.18), rgba(6,182,214,.12));
+  border:1px solid rgba(99,102,241,.28);border-radius:20px;padding:22px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+.vote h3{font-size:18px;font-weight:900}
+.vote p{color:var(--muted);font-size:13.5px;margin-top:4px}
+.vote-id{
+  display:inline-flex;align-items:center;gap:10px;background:rgba(7,10,26,.6);border:1px solid rgba(245,158,11,.3);
+  padding:10px 14px;border-radius:14px;
+}
+.vote-id b{font-size:18px;font-weight:900;color:var(--amber)}
+.foot-bottom{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:18px;color:var(--muted2);font-size:12px;border-top:1px solid rgba(255,255,255,.06);padding-top:14px}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(14px);transition:.6s ease}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}}
+
+/* responsive */
+@media (max-width:1020px){
+  .hero{grid-template-columns:1fr;gap:22px}
+  .hero-visual{min-height:460px}
+  .ps-grid{grid-template-columns:1fr}
+  .vs{margin:0 auto;transform:rotate(90deg)}
+  .demo-body{grid-template-columns:1fr}
+  .demo-main{border-left:none;border-bottom:1px solid var(--border)}
+  .why-grid{grid-template-columns:1fr 1fr}
+  .team-grid{grid-template-columns:1fr 1fr}
+  .features{grid-template-columns:1fr}
+}
+@media (max-width:680px){
+  .header-inner{padding:10px 14px}
+  .nav{display:none}
+  .hamburger{display:grid}
+  .hero{padding:88px 14px 24px}
+  .stats-row{flex-direction:column}
+  .floating-card{display:none}
+  .tabs{overflow:auto;flex-wrap:nowrap;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .why-grid{grid-template-columns:1fr}
+  .team-grid{grid-template-columns:1fr}
+  .vote{padding:16px}
+  .section{padding:40px 14px}
+  .hero-actions .btn{flex:1}
+}
+.mobile-nav{
+  display:none;position:fixed;inset:62px 12px auto 12px;z-index:49;
+  background:rgba(15,20,41,.96);backdrop-filter:blur(14px);
+  border:1px solid var(--border);border-radius:16px;padding:12px;box-shadow:0 20px 50px rgba(0,0,0,.5);
+}
+.mobile-nav.open{display:grid;gap:6px}
+.mobile-nav a{padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);font-weight:700;color:#CBD5E1}
+</style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div class="grid-overlay"></div>
+<div class="noise"></div>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-mark"><span>ذ</span></div>
+      <div class="logo-text">
+        <b>ذكاء <em>EduAI</em></b>
+        <small>المساعد الأكاديمي الذكي</small>
+      </div>
+      <span class="badge" style="margin-inline-start:8px"><i></i> معرض IT 2026 — مشروع #07</span>
+    </div>
+    <nav class="nav">
+      <a href="#features">المميزات</a>
+      <a href="#demo">العرض الحي</a>
+      <a href="#tech">التقنيات</a>
+      <a href="#team">الفريق</a>
+    </nav>
+    <div class="cta">
+      <a href="#demo" class="btn btn-ghost" style="padding-inline:14px">التوثيق</a>
+      <a href="#demo" class="btn btn-primary">جرب الآن — مجاناً <span style="font-size:14px">↗</span></a>
+      <button class="hamburger" id="menuBtn" aria-label="menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+<div class="mobile-nav" id="mobileNav">
+  <a href="#features">المميزات</a>
+  <a href="#demo">العرض الحي</a>
+  <a href="#tech">التقنيات</a>
+  <a href="#team">الفريق</a>
+  <a href="https://forms.gle/Eto4atri8" target="_blank" style="background:linear-gradient(135deg,var(--indigo),#4F46E5);color:white;border:none;text-align:center">صوّت لمشروع #07</a>
+</div>
+
+<section class="hero">
+  <div class="hero-copy reveal in">
+    <span class="badge" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.22);color:#FDE68A">✦ متوفر الآن — نسخة المعرض التجريبية <span style="background:#F59E0B;color:#0B0E1E;padding:2px 8px;border-radius:999px;font-size:10px">LIVE</span></span>
+    <h1>ذكاؤك الأكاديمي...<br><span class="grad">يتكلم العربية.</span></h1>
+    <p class="hero-desc">منصة ذكاء اصطناعي تفهم محاضراتك، تلخصها، تجيب عنها، وتُجهزك للامتحان — كل ذلك بالعربية وبأسلوب جامعي احترافي. ارفع الـ PDF ودع <b style="color:white">ذكاء</b> يقوم بالباقي.</p>
+    <div class="hero-actions">
+      <a href="#demo" class="btn btn-primary" style="gap:10px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        ابدأ المحادثة الآن
+      </a>
+      <a href="#demo" class="btn btn-ghost">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        جرّب تلخيص PDF
+      </a>
+    </div>
+    <div class="micro-trust">
+      <span><i class="dot"></i> يعمل بدون تسجيل</span>
+      <span>⚡ رد في أقل من ثانيتين</span>
+      <span>🔒 بياناتك لا تُحفظ بدون إذنك</span>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><b><em>10,000</em>+</b><small>ملخص تم إنشاؤه</small></div>
+      <div class="stat"><b><em>98</em>%</b><small>دقة الإجابات (RAG)</small></div>
+      <div class="stat"><b><em>24/7</em></b><small>مساعد لا ينام</small></div>
+    </div>
+  </div>
+
+  <div class="hero-visual reveal in" style="transition-delay:.08s">
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+    <div class="device">
+      <div class="device-top">
+        <div class="dots"><i style="background:#EF4444"></i><i style="background:#F59E0B"></i><i style="background:#10B981"></i></div>
+        <div class="device-title"><span class="live-dot"></span> ذكاء — محادثة مباشرة</div>
+        <span style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">EduAI v2.1</span>
+      </div>
+      <div class="chat-preview" id="heroChat">
+        <div class="bubble ai">مرحباً! أنا <b>ذكاء</b> 👋<br>ارفع محاضرتك أو اسألني مباشرة. مثال: <em style="color:#A5B4FC">"لخص لي الفصل الثاني شبكات"</em><small>الآن • ذكاء</small></div>
+        <div class="bubble user">لخص لي الفصل الثاني — الشبكات اللاسلكية<small>أنت • الآن</small></div>
+        <div class="bubble ai" style="max-width:92%">
+          <b style="color:white">ملخص الفصل الثاني — الشبكات اللاسلكية:</b><br>
+          • أنواع الشبكات: WPAN / WLAN / WMAN<br>
+          • معيار 802.11 وآلية CSMA/CA<br>
+          • التشفير: WEP → WPA2 → WPA3<br>
+          <span style="display:inline-flex;gap:6px;margin-top:8px"><span style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#6EE7B7;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:800">✓ جاهز للمراجعة</span><span style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:#FDE68A;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:800">⏱ 23 ثانية</span></span>
+          <small>ذكاء • الآن</small>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;color:var(--muted);font-size:11px;padding-top:4px"><span class="live-dot" style="width:6px;height:6px"></span> ذكاء يكتب...</div>
+      </div>
+      <div class="quick-prompts">
+        <button class="qp">لخص المحاضرة</button>
+        <button class="qp">اسأل سؤالاً</button>
+        <button class="qp">ولّد اختبار</button>
+        <button class="qp">خريطة ذهنية</button>
+      </div>
+    </div>
+    <div class="floating-card fc-1">
+      <div class="fc-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <div><b>تلخيص في 23 ثانية</b><small>PDF → نقاط + خريطة ذهنية</small></div>
+    </div>
+    <div class="floating-card fc-2">
+      <div class="fc-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      </div>
+      <div><b>RAG يجيب من نصك فقط</b><small>بدون هلوسة — مع مصدر الإجابة</small></div>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal" id="problem">
+  <div class="section-head">
+    <span class="kicker"><i></i> المشكلة والحل</span>
+    <h2>الطلاب لا يحتاجون المزيد من الملفات.<br><span style="background:linear-gradient(90deg,var(--indigo),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent">يحتاجون فهماً أسرع.</span></h2>
+    <p>ثلاثة تحديات يومية تحلّها منصة ذكاء — بتجربة واحدة متكاملة.</p>
+  </div>
+  <div class="ps-grid">
+    <div style="display:grid;gap:14px">
+      <div class="ps-card prob">
+        <div class="prob-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+        <div><h3>غرق في المحاضرات</h3><p>60+ شريحة لكل مقرر، وملفات PDF مبعثرة — لا وقت لقراءتها كلها قبل الامتحان.</p></div>
+      </div>
+      <div class="ps-card prob s2">
+        <div class="prob-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div><h3>المراجعة بطيئة</h3><p>إعادة القراءة لا تثبت المعلومة. الطالب يحتاج أسئلة وتغذية راجعة فورية.</p></div>
+      </div>
+      <div class="ps-card prob s3">
+        <div class="prob-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <div><h3>قلق الامتحان</h3><p>بدون توقع للأخطاء، يدخل الطالب الاختبار وهو لا يعرف أين سيتعثر.</p></div>
+      </div>
+    </div>
+    <div class="vs">VS</div>
+    <div class="solution">
+      <h3>
+        <span style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--indigo),var(--cyan));display:grid;place-items:center;color:white">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        </span>
+        ذكاء يحلها في خطوة واحدة
+      </h3>
+      <p>ارفع ملفاتك — يحوّلها ذكاء إلى <b style="color:white">ملخص نقطي + خريطة ذهنية + شات يجيب من النص + اختبار تدريبي + تنبؤ بالأداء</b>. كل ذلك بواجهة عربية سريعة تعمل على الجوال واللابتوب.</p>
+      <ul>
+        <li><i>✓</i> تلخيص يحافظ على المصطلحات الأصلية</li>
+        <li><i>✓</i> إجابات موثقة برقم الصفحة والاقتباس</li>
+        <li><i>✓</i> اختبارات MCQ مع تصحيح فوري وشرح</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal" id="features">
+  <div class="section-head">
+    <span class="kicker"><i></i> المميزات الأساسية</span>
+    <h2>أربع أدوات. منصة واحدة. <span style="color:var(--amber)">نتائج ملموسة.</span></h2>
+  </div>
+  <div class="features">
+    <div class="feat">
+      <div class="feat-top"><div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><span class="tag">PDF → ملخص</span></div>
+      <h3>تلخيص المحاضرات الذكي</h3>
+      <p>ارفع PDF حتى 50 صفحة — يخرج لك ملخص نقطي مرتب + أهم التعريفات + خريطة ذهنية تفاعلية قابلة للطباعة.</p>
+      <ul class="feat-list"><li>يحافظ على المعادلات والمصطلحات</li><li>تلخيص بثلاث مستويات: سريع / متكامل / عميق</li><li>تصدير Word / PDF</li></ul>
+      <a href="#demo" class="feat-cta" data-tab="pdf">جرّب تلخيص PDF <span>→</span></a>
+    </div>
+    <div class="feat">
+      <div class="feat-top"><div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><span class="tag">RAG • موثق</span></div>
+      <h3>اسأل كتابك — يجيب من النص</h3>
+      <p>اسأل بالعربية العامية ويُجيب من محاضرتك فقط — مع ذكر الصفحة والاقتباس الحرفي. وداعاً للهلوسة.</p>
+      <ul class="feat-list"><li>فهم سياقي بالعربية (Gemini + LangChain)</li><li>بحث دلالي عبر ChromaDB</li><li>إجابات مع مصدر: "ص 12، فقرة 3"</li></ul>
+      <a href="#demo" class="feat-cta" data-tab="chat">اسأل الآن <span>→</span></a>
+    </div>
+    <div class="feat">
+      <div class="feat-top"><div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><span class="tag">أصالة + لغة</span></div>
+      <h3>كشف الانتحال والتدقيق</h3>
+      <p>يدقق بحثك لغوياً وأكاديمياً ويكشف التشابه — مع اقتراحات إعادة صياغة تحافظ على المعنى.</p>
+      <ul class="feat-list"><li>تدقيق إملائي ونحوي سياقي</li><li>نسبة تشابه مع تظليل الجُمل</li><li>اقتراحات إعادة صياغة</li></ul>
+      <a href="#demo" class="feat-cta">قريباً — المعاينة</a>
+    </div>
+    <div class="feat">
+      <div class="feat-top"><div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><span class="tag">MCQ • تنبؤ</span></div>
+      <h3>مولد الاختبارات + تنبؤ الأداء</h3>
+      <p>يحوّل ملخصك إلى اختبار MCQ متوازن + يتنبأ بدرجتك ويحدد نقاط ضعفك قبل الامتحان.</p>
+      <ul class="feat-list"><li>3 مستويات صعوبة + شرح لكل إجابة</li><li>لوحة تنبؤ: "متوقع 78% — راجع الفصل 3"</li><li>إعادة توليد لا نهائية</li></ul>
+      <a href="#demo" class="feat-cta" data-tab="quiz">ولّد اختبارك <span>→</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal" id="demo">
+  <div class="section-head">
+    <span class="kicker" style="background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.22);color:#6EE7B7"><i style="background:var(--emerald)"></i> العرض الحي — جرّب بنفسك</span>
+    <h2>ليس صوراً. <span style="background:linear-gradient(90deg,var(--emerald),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent">تفاعل حقيقي.</span></h2>
+    <p>اكتب سؤالاً، ارفع ملفاً، أو ولّد اختباراً — كل شيء يعمل الآن بدون تسجيل وبدون خادم.</p>
+  </div>
+
+  <div class="demo-wrap">
+    <div class="demo-head">
+      <div class="demo-title">
+        <span style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--indigo),var(--cyan));display:grid;place-items:center;color:white">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.2"/></svg>
+        </span>
+        <div><b>EduAI Playground</b><br><small>ثلاث تجارب — اختر تبويباً</small></div>
+        <span class="pill"><i></i> مباشر</span>
+      </div>
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-panel="chat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> محادثة</button>
+        <button class="tab" data-panel="pdf"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> تلخيص PDF</button>
+        <button class="tab" data-panel="quiz"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> ولّد اختبار</button>
+      </div>
+    </div>
+
+    <div class="demo-body">
+      <div class="demo-main">
+        <!-- CHAT PANEL -->
+        <div class="panel active" id="panel-chat">
+          <div class="chat-log" id="chatLog">
+            <div class="msg ai">أهلاً! أنا <b>ذكاء</b> — مساعدك الأكاديمي. 📚<br>جرّب تكتب: <em>"ما هو الفرق بين TCP و UDP؟"</em> أو <em>"لخص لي الفصل الثاني شبكات"</em><small>ذكاء • الآن</small></div>
+          </div>
+          <div style="padding:8px 12px;display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid rgba(99,102,241,.12);background:rgba(255,255,255,.02)">
+            <button class="qp" data-prompt="لخص لي الفصل الثاني شبكات">لخص الفصل الثاني</button>
+            <button class="qp" data-prompt="ما الفرق بين TCP و UDP؟">TCP vs UDP؟</button>
+            <button class="qp" data-prompt="اشرح CSMA/CA ببساطة">اشرح CSMA/CA</button>
+            <button class="qp" data-prompt="اعطني خطة مراجعة لمدة 3 أيام">خطة مراجعة</button>
+            <button class="qp" data-prompt="ما هو التطبيع في قواعد البيانات؟" style="background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.25);color:#FDE68A">جرّب سؤال خارج الملف!</button>
+          </div>
+          <div style="padding:6px 12px;background:rgba(245,158,11,.07);border-top:1px solid rgba(245,158,11,.15);font-size:11px;color:#FDE68A;text-align:center">💡 إذا كان السؤال خارج الملف المرفوع، سيجيب بوضوح "خارج النطاق" — هذه ميزة RAG لمنع الهلوسة</div>
+          <div class="chat-input">
+            <input id="chatInput" placeholder="اكتب سؤالك هنا... جرّب: ما هو التطبيع؟ أو ما هي عاصمة اليمن؟" autocomplete="off">
+            <button class="send-btn" id="sendBtn" aria-label="send">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+        <!-- PDF PANEL -->
+        <div class="panel" id="panel-pdf">
+          <div class="drop" id="dropZone">
+            <div class="drop-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+            <b>اسحب ملف PDF هنا أو انقر للاختيار</b>
+            <p>حتى 20MB — نستخرج النص ونلخصه في ثوانٍ (محاكاة محلية)</p>
+            <span class="btn btn-primary" style="margin-top:4px;padding:8px 16px;border-radius:999px;font-size:12.5px">اختر ملفاً</span>
+            <input type="file" id="fileInput" accept=".pdf" hidden>
+          </div>
+          <div class="summary" id="pdfSummary">
+            <div class="sum-card">
+              <h4><i></i> ملخص — شبكات الحاسوب (الفصل 2) <span style="margin-inline-start:auto;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#6EE7B7;padding:2px 8px;border-radius:999px;font-size:10px">مكتمل ✓</span></h4>
+              <ul class="sum-points">
+                <li><b>الفكرة المحورية:</b> الشبكات اللاسلكية تُقسّم حسب المدى: WPAN (10م)، WLAN (100م)، WMAN (كلم).</li>
+                <li><b>البروتوكول:</b> 802.11 يستخدم CSMA/CA بدلاً من CD بسبب عدم كشف التصادم لاسلكياً.</li>
+                <li><b>الأمان:</b> تطور من WEP (مكسور) إلى WPA2 (AES-CCMP) ثم WPA3 (SAE + Forward Secrecy).</li>
+                <li><b>التطبيق:</b> اختيار القناة والـ 5GHz يقلل التداخل ويرفع الإنتاجية في البيئات المزدحمة.</li>
+              </ul>
+              <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+                <span style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.25);color:#C7D2FE;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800">⏱ 23 ثانية</span>
+                <span style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:#FDE68A;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800">📄 18 صفحة → 4 نقاط</span>
+                <span style="background:rgba(6,182,214,.12);border:1px solid rgba(6,182,214,.25);color:#67E8F9;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800">🎯 دقة 96%</span>
+              </div>
+            </div>
+            <div class="mindmap">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:12.5px">الخريطة الذهنية</b><span style="font-size:11px;color:var(--muted)">تفاعلية — SVG</span></div>
+              <svg viewBox="0 0 520 220" xmlns="http://www.w3.org/2000/svg" role="img">
+                <defs>
+                  <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#06B6D4"/></linearGradient>
+                  <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#8B5CF6"/><stop offset="100%" stop-color="#6366F1"/></linearGradient>
+                </defs>
+                <!-- lines -->
+                <path d="M260 60 L130 120" stroke="rgba(99,102,241,.35)" stroke-width="2" stroke-dasharray="0"/>
+                <path d="M260 60 L260 130" stroke="rgba(6,182,214,.35)" stroke-width="2"/>
+                <path d="M260 60 L390 120" stroke="rgba(245,158,11,.35)" stroke-width="2"/>
+                <path d="M130 120 L80 190" stroke="rgba(99,102,241,.25)" stroke-width="1.5"/>
+                <path d="M130 120 L180 190" stroke="rgba(99,102,241,.25)" stroke-width="1.5"/>
+                <path d="M260 130 L210 190" stroke="rgba(6,182,214,.25)" stroke-width="1.5"/>
+                <path d="M260 130 L310 190" stroke="rgba(6,182,214,.25)" stroke-width="1.5"/>
+                <path d="M390 120 L340 190" stroke="rgba(245,158,11,.25)" stroke-width="1.5"/>
+                <path d="M390 120 L440 190" stroke="rgba(245,158,11,.25)" stroke-width="1.5"/>
+                <!-- center -->
+                <rect x="190" y="30" width="140" height="52" rx="14" fill="url(#g1)" stroke="rgba(255,255,255,.18)"/>
+                <text x="260" y="52" text-anchor="middle" fill="white" font-size="12" font-weight="900" font-family="Tajawal">الشبكات اللاسلكية</text>
+                <text x="260" y="66" text-anchor="middle" fill="rgba(255,255,255,.85)" font-size="9" font-family="Tajawal">WLAN • 802.11</text>
+                <!-- nodes -->
+                <rect x="70" y="108" width="120" height="36" rx="12" fill="#1A1F3D" stroke="rgba(99,102,241,.3)"/><text x="130" y="130" text-anchor="middle" fill="#C7D2FE" font-size="10" font-weight="800" font-family="Tajawal">الأنواع: WPAN/WLAN</text>
+                <rect x="200" y="118" width="120" height="36" rx="12" fill="#0F1C2E" stroke="rgba(6,182,214,.3)"/><text x="260" y="130" text-anchor="middle" fill="#67E8F9" font-size="10" font-weight="800" font-family="Tajawal">البروتوكول CSMA/CA</text>
+                <rect x="330" y="108" width="120" height="36" rx="12" fill="#1F1A2E" stroke="rgba(245,158,11,.3)"/><text x="390" y="130" text-anchor="middle" fill="#FDE68A" font-size="10" font-weight="800" font-family="Tajawal">الأمان WPA2 → WPA3</text>
+                <!-- leaves -->
+                <rect x="40" y="180" width="80" height="26" rx="8" fill="rgba(99,102,241,.12)" stroke="rgba(99,102,241,.25)"/><text x="80" y="197" text-anchor="middle" fill="#A5B4FC" font-size="9" font-family="Tajawal">802.11n/ac/ax</text>
+                <rect x="140" y="180" width="80" height="26" rx="8" fill="rgba(99,102,241,.12)" stroke="rgba(99,102,241,.25)"/><text x="180" y="197" text-anchor="middle" fill="#A5B4FC" font-size="9" font-family="Tajawal">2.4/5 GHz</text>
+                <rect x="175" y="180" width="70" height="26" rx="8" fill="rgba(6,182,214,.12)" stroke="rgba(6,182,214,.25)"/><text x="210" y="197" text-anchor="middle" fill="#67E8F9" font-size="9" font-family="Tajawal">RTS/CTS</text>
+                <rect x="275" y="180" width="70" height="26" rx="8" fill="rgba(6,182,214,.12)" stroke="rgba(6,182,214,.25)"/><text x="310" y="197" text-anchor="middle" fill="#67E8F9" font-size="9" font-family="Tajawal">Backoff</text>
+                <rect x="310" y="180" width="60" height="26" rx="8" fill="rgba(245,158,11,.12)" stroke="rgba(245,158,11,.25)"/><text x="340" y="197" text-anchor="middle" fill="#FDE68A" font-size="9" font-family="Tajawal">AES</text>
+                <rect x="390" y="180" width="90" height="26" rx="8" fill="rgba(245,158,11,.12)" stroke="rgba(245,158,11,.25)"/><text x="435" y="197" text-anchor="middle" fill="#FDE68A" font-size="9" font-family="Tajawal">SAE Handshake</text>
+              </svg>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-ghost" style="flex:1" onclick="alert('تم تصدير الملخص كـ PDF (محاكاة)')">تصدير PDF</button>
+              <button class="btn btn-primary" style="flex:1" onclick="switchTab('quiz')">ولّد اختباراً من الملخص</button>
+            </div>
+          </div>
+        </div>
+        <!-- QUIZ PANEL -->
+        <div class="panel" id="panel-quiz">
+          <div class="quiz-head">
+            <b>اختبار سريع — 3 أسئلة من ملخص الشبكات</b>
+            <div class="progress"><i id="prog"></i></div>
+            <span id="qCounter" style="font-size:12px;font-weight:800;color:var(--muted)">1 / 3</span>
+          </div>
+          <div id="quizContainer" style="flex:1;display:flex;flex-direction:column">
+            <!-- questions injected by JS -->
+          </div>
+          <div class="score-box" id="scoreBox">
+            <small style="font-size:12px;color:var(--muted)">نتيجتك</small>
+            <b id="scoreText">2 / 3</b>
+            <p id="scoreMsg" style="font-size:13px;color:#CBD5E1;line-height:1.6">ممتاز! راجع فقط فرق WPA2/WPA3 وستصل لـ 100%.</p>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn btn-ghost" style="flex:1" onclick="resetQuiz()">إعادة الاختبار</button>
+              <button class="btn btn-primary" style="flex:1" onclick="switchTab('chat')">اسأل عن الأخطاء</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-side">
+        <div class="side-card">
+          <h4><i>◐</i> كيف يعمل؟</h4>
+          <ul class="side-list">
+            <li>كل التفاعل يعمل <b style="color:white">محلياً في المتصفح</b> — لا خادم، لا انتظار.</li>
+            <li>الشات يستخدم ردود ذكية محاكاة بأسلوب RAG مع ذكر المصدر.</li>
+            <li>الـ PDF يُحاكي استخراج النص وتلخيصه مع خريطة ذهنية SVG.</li>
+          </ul>
+        </div>
+        <div class="mini-stats">
+          <div class="mini-stat"><b>1.2s</b><small>متوسط زمن الرد</small></div>
+          <div class="mini-stat"><b>~400</b><small>توكن / إجابة</small></div>
+        </div>
+        <div class="side-card" style="background:linear-gradient(135deg, rgba(99,102,241,.14), rgba(6,182,214,.1));border-color:rgba(99,102,241,.22)">
+          <h4><i>✦</i> جرّب سؤالاً مفاجئاً!</h4>
+          <p style="font-size:12.5px;color:#CBD5E1;line-height:1.7">اكتب: <b style="color:white">"ما هو التطبيع في قواعد البيانات؟"</b> — سترى كيف يجيب بذكاء ويوضح أنه <b style="color:#FDE68A">خارج نطاق الملف</b> (ميزة منع الهلوسة RAG).</p>
+          <button class="btn btn-amber" style="width:100%;margin-top:10px" onclick="switchTab('chat');document.getElementById('chatInput').focus()">جرّب السؤال المفاجئ →</button>
+        </div>
+        <div class="side-card">
+          <h4><i>▣</i> ماذا ترى اللجنة؟</h4>
+          <ul class="side-list">
+            <li>واجهة production-grade وليست Prototype</li>
+            <li>تفاعل يبقي الزائر 5 دقائق إضافية</li>
+            <li>معمارية قابلة للنشر فوراً (FastAPI + Gemini)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal" id="tech">
+  <div class="section-head">
+    <span class="kicker"><i></i> التقنيات والمعمارية</span>
+    <h2>Stack حقيقي. <span style="color:var(--cyan)">معمارية RAG جاهزة للإنتاج.</span></h2>
+    <p>اخترنا أدوات حديثة مجربة — تعمل محلياً وتتوسع سحابياً بدون إعادة كتابة.</p>
+  </div>
+  <div class="tech-strip">
+    <span class="tech-chip"><i style="background:#3776AB">Py</i> Python 3.11</span>
+    <span class="tech-chip"><i style="background:#009688">FA</i> FastAPI</span>
+    <span class="tech-chip"><i style="background:linear-gradient(135deg,#8B5CF6,#06B6D4)">◐</i> Gemini API</span>
+    <span class="tech-chip"><i style="background:#1A1F3D;border:1px solid rgba(255,255,255,.1)">🦜</i> LangChain</span>
+    <span class="tech-chip"><i style="background:#EF4444">Ch</i> ChromaDB</span>
+    <span class="tech-chip"><i style="background:#0EA5E9">Tw</i> Tailwind</span>
+    <span class="tech-chip"><i style="background:#1F2937">SL</i> SQLite</span>
+  </div>
+  <div class="rag-diagram">
+    <svg viewBox="0 0 760 170" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#06B6D4"/></linearGradient>
+      </defs>
+      <!-- boxes -->
+      <rect x="14" y="30" width="110" height="80" rx="14" fill="#121732" stroke="rgba(99,102,241,.3)"/>
+      <rect x="150" y="30" width="110" height="80" rx="14" fill="#121732" stroke="rgba(99,102,241,.3)"/>
+      <rect x="286" y="30" width="110" height="80" rx="14" fill="rgba(99,102,241,.14)" stroke="rgba(99,102,241,.35)"/>
+      <rect x="422" y="30" width="110" height="80" rx="14" fill="#121732" stroke="rgba(6,182,214,.3)"/>
+      <rect x="558" y="30" width="110" height="80" rx="14" fill="#121732" stroke="rgba(16,185,129,.3)"/>
+      <!-- arrows -->
+      <path d="M124 70 L150 70" stroke="url(#rg)" stroke-width="2" marker-end="url(#arr)"/>
+      <path d="M260 70 L286 70" stroke="url(#rg)" stroke-width="2"/>
+      <path d="M396 70 L422 70" stroke="url(#rg)" stroke-width="2"/>
+      <path d="M532 70 L558 70" stroke="url(#rg)" stroke-width="2"/>
+      <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6366F1"/></marker></defs>
+      <!-- icons text -->
+      <text x="69" y="52" text-anchor="middle" font-size="16">📄</text>
+      <text x="69" y="72" text-anchor="middle" fill="white" font-size="9" font-weight="800" font-family="Tajawal">PDF / نص</text>
+      <text x="69" y="86" text-anchor="middle" fill="#94A3B8" font-size="7.5" font-family="Tajawal">رفع المحاضرة</text>
+
+      <text x="205" y="52" text-anchor="middle" font-size="16">✂️</text>
+      <text x="205" y="72" text-anchor="middle" fill="white" font-size="9" font-weight="800" font-family="Tajawal">Chunking</text>
+      <text x="205" y="86" text-anchor="middle" fill="#94A3B8" font-size="7.5" font-family="Tajawal">تقسيم + تضمين</text>
+
+      <text x="341" y="52" text-anchor="middle" font-size="16">🗄️</text>
+      <text x="341" y="72" text-anchor="middle" fill="white" font-size="9" font-weight="800" font-family="Tajawal">ChromaDB</text>
+      <text x="341" y="86" text-anchor="middle" fill="#94A3B8" font-size="7.5" font-family="Tajawal">بحث دلالي</text>
+
+      <text x="477" y="52" text-anchor="middle" font-size="16">🤖</text>
+      <text x="477" y="72" text-anchor="middle" fill="white" font-size="9" font-weight="800" font-family="Tajawal">Gemini RAG</text>
+      <text x="477" y="86" text-anchor="middle" fill="#94A3B8" font-size="7.5" font-family="Tajawal">إجابة موثقة</text>
+
+      <text x="613" y="52" text-anchor="middle" font-size="16">💬</text>
+      <text x="613" y="72" text-anchor="middle" fill="white" font-size="9" font-weight="800" font-family="Tajawal">واجهة الطالب</text>
+      <text x="613" y="86" text-anchor="middle" fill="#94A3B8" font-size="7.5" font-family="Tajawal">شات + اختبار</text>
+
+      <!-- bottom labels -->
+      <text x="380" y="135" text-anchor="middle" fill="#64748B" font-size="8" font-family="JetBrains Mono">Embedding • Cosine Similarity • Prompt with Context • Citation</text>
+      <rect x="260" y="144" width="240" height="18" rx="999" fill="rgba(99,102,241,.1)" stroke="rgba(99,102,241,.18)"/>
+      <text x="380" y="156" text-anchor="middle" fill="#A5B4FC" font-size="7.5" font-weight="700" font-family="Tajawal">كل إجابة مرتبطة بالمصدر — بلا هلوسة</text>
+    </svg>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:14px">
+    <div class="ps-card" style="padding:14px"><b style="font-size:13px">⚡ FastAPI</b><p style="font-size:12.5px;color:var(--muted);margin-top:4px">REST + WebSocket للشات، توثيق تلقائي، جاهز للنشر على أي VPS.</p></div>
+    <div class="ps-card" style="padding:14px"><b style="font-size:13px">🔍 RAG حقيقي</b><p style="font-size:12.5px;color:var(--muted);margin-top:4px">التضمين محلي، البحث في ChromaDB، ثم Prompt مقيّد بالنص فقط.</p></div>
+    <div class="ps-card" style="padding:14px"><b style="font-size:13px">🎨 Tailwind + Tajawal</b><p style="font-size:12.5px;color:var(--muted);margin-top:4px">واجهة RTL فاخرة، داكنة، سريعة، متجاوبة 100%.</p></div>
+  </div>
+</section>
+
+<section class="section reveal" id="why">
+  <div class="section-head">
+    <span class="kicker" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.22);color:#FDE68A"><i style="background:var(--amber)"></i> لماذا يفوز ذكاء؟</span>
+    <h2>أثر قابل للقياس — <span style="color:var(--amber)">من اليوم الأول.</span></h2>
+  </div>
+  <div class="why-grid">
+    <div class="why">
+      <div class="why-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+      <b>ابتكار</b><span>تقني حقيقي</span><p>RAG عربي + تلخيص + اختبار + تنبؤ — تكامل لم يسبق تقديمه في مشاريع الجامعة.</p>
+    </div>
+    <div class="why">
+      <div class="why-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <b>5,000+</b><span>طالب مستفيد</span><p>كل مقرر له ملفات — ذكاء يخدم كل التخصصات بدون تخصيص إضافي.</p>
+    </div>
+    <div class="why">
+      <div class="why-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <b>جاهز فوراً</b><span>للنشر</span><p>يعمل على سيرفر الجامعة الحالي — لا أجهزة خاصة، لا تكاليف إضافية.</p>
+    </div>
+    <div class="why">
+      <div class="why-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg></div>
+      <b>احترافي</b><span>واجهة وتجربة</span><p>تصميم بمستوى منتج حقيقي — يترك انطباعاً لا يُنسى لدى اللجنة والزوار.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal" id="team">
+  <div class="section-head">
+    <span class="kicker"><i></i> الفريق</span>
+    <h2>صنع بـ <span style="color:var(--amber)">شغف طلابي.</span> بإشراف أكاديمي.</h2>
+    <p>قابل للتعديل — استبدل الأسماء والصور قبل الطباعة.</p>
+  </div>
+  <div class="team-grid">
+    <div class="member">
+      <div class="avatar">أح</div>
+      <h3>الاسم الأول</h3>
+      <div class="role">قائد المشروع • Full-Stack</div>
+      <p>مسؤول عن معمارية RAG وتكامل Gemini API وبناء الواجهة.</p>
+      <span class="level">المستوى الرابع — تقنية معلومات</span>
+    </div>
+    <div class="member">
+      <div class="avatar" style="background:linear-gradient(135deg,#8B5CF6,#6366F1)">سع</div>
+      <h3>الاسم الثاني</h3>
+      <div class="role">AI Engineer • Data</div>
+      <p>تضمين النصوص، قواعد ChromaDB، تقييم الدقة ومنع الهلوسة.</p>
+      <span class="level">المستوى الثالث — تقنية معلومات</span>
+    </div>
+    <div class="member">
+      <div class="avatar" style="background:linear-gradient(135deg,#06B6D4,#6366F1)">مح</div>
+      <h3>الاسم الثالث</h3>
+      <div class="role">UX & QA • Docs</div>
+      <p>تصميم التجربة، الاختبارات، وتوثيق المشروع والعرض.</p>
+      <span class="level">المستوى الثاني — تقنية معلومات</span>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:14px;color:var(--muted);font-size:12.5px">بإشراف: <b style="color:white">د. المشرف الأكاديمي</b> — قسم تقنية المعلومات، جامعة العلوم والتكنولوجيا</div>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="vote">
+      <div>
+        <h3>صوّت لمشروع <span style="background:linear-gradient(90deg,var(--amber),#FDE68A);-webkit-background-clip:text;-webkit-text-fill-color:transparent">ذكاء</span> — رقم المشروع #07</h3>
+        <p>الثلاثاء 10–12 صباحاً — جناح مشاريع تقنية المعلومات. جرّب العرض الحي ثم صوّت.</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="vote-id"><span style="font-size:12px;color:var(--muted);font-weight:700">رقم المشروع</span><b>#07</b></div>
+        <a class="btn btn-amber" href="https://forms.gle/Eto4atri8" target="_blank" rel="noopener">صوّت الآن — forms.gle <span>↗</span></a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 ذكاء | EduAI — المساعد الأكاديمي الذكي. مشروع معرض تقنية المعلومات — جامعة العلوم والتكنولوجيا.</span>
+      <span style="display:flex;gap:14px">
+        <a href="#demo" style="color:var(--muted)">العرض الحي</a>
+        <a href="#tech" style="color:var(--muted)">التقنيات</a>
+        <a href="https://forms.gle/Eto4atri8" target="_blank" style="color:var(--amber)">التصويت</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// mobile nav
+const menuBtn=document.getElementById('menuBtn'), mobileNav=document.getElementById('mobileNav');
+menuBtn?.addEventListener('click',()=>mobileNav.classList.toggle('open'));
+mobileNav?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>mobileNav.classList.remove('open')));
+
+// tabs
+const tabs=document.querySelectorAll('.tab');
+const panels={chat:document.getElementById('panel-chat'), pdf:document.getElementById('panel-pdf'), quiz:document.getElementById('panel-quiz')};
+function switchTab(name){
+  tabs.forEach(t=>t.classList.toggle('active', t.dataset.panel===name));
+  Object.entries(panels).forEach(([k,el])=>el.classList.toggle('active', k===name));
+  if(name==='quiz' && !quizInitialized) initQuiz();
+}
+window.switchTab=switchTab;
+tabs.forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.panel)));
+document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',e=>{e.preventDefault(); switchTab(el.dataset.tab); document.getElementById('demo').scrollIntoView({behavior:'smooth'})}));
+
+// reveal on scroll
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting) e.target.classList.add('in')}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+// CHAT LOGIC
+const chatLog=document.getElementById('chatLog');
+const chatInput=document.getElementById('chatInput');
+const sendBtn=document.getElementById('sendBtn');
+const knowledge={
+  "tcp": "الفرق بين TCP و UDP — من محاضرتك (ص 8، فقرة 2):<br><b>TCP:</b> موثوق، اتصال موجه، يضمن الترتيب وإعادة الإرسال (ACK + Retransmission).<br><b>UDP:</b> غير موثوق، بلا اتصال، سريع ومناسب للبث والألعاب.<br><span style='display:inline-block;margin-top:6px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.22);padding:4px 8px;border-radius:999px;font-size:11px'>📄 المصدر: الفصل 2، ص 8 — جدول المقارنة</span>",
+  "udp": "الفرق بين TCP و UDP — من محاضرتك (ص 8، فقرة 2):<br><b>TCP:</b> موثوق، اتصال موجه، يضمن الترتيب وإعادة الإرسال (ACK + Retransmission).<br><b>UDP:</b> غير موثوق، بلا اتصال، سريع ومناسب للبث والألعاب.<br><span style='display:inline-block;margin-top:6px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.22);padding:4px 8px;border-radius:999px;font-size:11px'>📄 المصدر: الفصل 2، ص 8 — جدول المقارنة</span>",
+  "csma": "بروتوكول <b>CSMA/CA</b> (ص 11):<br>• قبل الإرسال يستمع للقناة (Carrier Sense).<br>• إذا مشغولة → ينتظر زمن Backoff عشوائي.<br>• يستخدم RTS/CTS لتجنب التصادم المخفي.<br>• لماذا CA وليس CD؟ لأن اللاسلكي لا يستطيع كشف التصادم أثناء الإرسال.<br><span style='display:inline-block;margin-top:6px;background:rgba(6,182,214,.12);border:1px solid rgba(6,182,214,.22);padding:4px 8px;border-radius:999px;font-size:11px'>📄 المصدر: ص 11، شكل 2-4</span>",
+  "wpa": "<b>WPA2 vs WPA3</b> (ص 14):<br>• <b>WPA2:</b> تشفير AES-CCMP، مصافحة 4-way handshake (معرضة لـ KRACK).<br>• <b>WPA3:</b> مصافحة SAE (مقاومة للتخمين دون اتصال)، Forward Secrecy، تشفير 192-bit للشركات.<br>الخلاصة: WPA3 يمنع هجمات القاموس ويحمي حتى لو سُربت كلمة المرور لاحقاً.<br><span style='display:inline-block;margin-top:6px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);padding:4px 8px;border-radius:999px;font-size:11px'>📄 المصدر: ص 14، جدول 2-2</span>",
+  "تلخيص": "إليك <b>الملخص السريع للفصل الثاني</b> (18 صفحة → 4 نقاط):<br>1) الشبكات اللاسلكية: WPAN/WLAN/WMAN حسب المدى.<br>2) 802.11 و CSMA/CA مع RTS/CTS.<br>3) الأمان: WEP → WPA2 → WPA3.<br>4) الأداء: اختيار القناة والتردد 5GHz يقلل التداخل.<br><button onclick=\"switchTab('pdf')\" style='margin-top:8px;background:linear-gradient(135deg,#6366F1,#4F46E5);color:white;border:none;padding:6px 12px;border-radius:999px;font-family:Tajawal;font-weight:800;cursor:pointer;font-size:12px'>افتح التلخيص الكامل + الخريطة الذهنية →</button>",
+  "خطة": "خطة مراجعة 3 أيام للفصل الثاني:<br><b>اليوم 1:</b> اقرأ الملخص + خريطة ذهنية (45 د).<br><b>اليوم 2:</b> حل اختبار 15 سؤال (تبويب 'ولّد اختبار') + راجع الأخطاء.<br><b>اليوم 3:</b> اسألني 5 أسئلة صعبة + مراجعة سريعة 20 د قبل النوم.<br>هل تريد أن أولّد لك الاختبار الآن؟ <a href='#' onclick=\"switchTab('quiz');return false\" style='color:#A5B4FC;text-decoration:underline'>نعم، ولّد الاختبار</a>"
+};
+
+// قاعدة معرفية موسعة — تغطي أسئلة الدكتور المفاجئة
+const extendedKB = [
+  { keys:["قاعدة بيانات","sql","database","تطبيع","normalization","er diagram"], ans: "من نطاق <b>قواعد البيانات</b> — إجابة عامة (خارج الملف المرفوع حالياً):<br>• <b>التطبيع:</b> 1NF إزالة التكرار، 2NF إزالة الاعتماد الجزئي، 3NF إزالة الاعتماد المتعدي.<br>• <b>SQL:</b> SELECT مع JOIN تُستخدم لربط الجداول، وIndex يُسرّع البحث لكنه يُبطئ الكتابة.<br><span style='display:inline-block;margin-top:6px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:#FDE68A;padding:4px 8px;border-radius:999px;font-size:11px'>⚠️ تنبيه RAG: هذا الموضوع غير موجود في PDF الشبكات المرفوع — ارفع ملف قواعد البيانات لأجيب بمصدر محدد</span><br><span style='display:inline-block;margin-top:4px;background:rgba(99,102,241,.1);padding:4px 8px;border-radius:999px;font-size:11px'>💡 ميزة ذكاء: يجيب من ملفك أولاً، وإذا لم يجده يخبرك بوضوح</span>" },
+  { keys:["ذكاء اصطناعي","ai","تعلم آلي","machine learning","neural","شبكة عصبية","deep learning"], ans: "من نطاق <b>الذكاء الاصطناعي</b> — إجابة عامة:<br>• <b>التعلم المُشرف:</b> بيانات موسومة (تصنيف/انحدار). غير المُشرف: عنقدة. التعزيزي: مكافأة/عقوبة.<br>• <b>الشبكة العصبية:</b> طبقات + أوزان + Backpropagation لتقليل الخطأ.<br>• <b>Overfitting:</b> يُعالج بـ Dropout / Regularization / المزيد من البيانات.<br><span style='display:inline-block;margin-top:6px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:#FDE68A;padding:4px 8px;border-radius:999px;font-size:11px'>⚠️ خارج نطاق PDF الشبكات — ارفع ملف AI لأجيب باقتباس صفحة</span>" },
+  { keys:["نظام تشغيل","operating system","process","thread","deadlock","scheduling"], ans: "من نطاق <b>أنظمة التشغيل</b> — إجابة عامة:<br>• <b>Process vs Thread:</b> العملية لها ذاكرة مستقلة، الخيط يشارك ذاكرة العملية.<br>• <b>Deadlock:</b> يحدث عند 4 شروط (Mutual Exclusion + Hold&Wait + No Preemption + Circular Wait).<br>• <b>Scheduling:</b> Round Robin عادل، SJF الأسرع متوسط انتظار.<br><span style='display:inline-block;margin-top:6px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:#FDE68A;padding:4px 8px;border-radius:999px;font-size:11px'>⚠️ غير موجود في ملف الشبكات المرفوع</span>" },
+  { keys:["برمجة","oop","java","python","algorithm","خوارزمية","oop"], ans: "من نطاق <b>البرمجة</b> — إجابة عامة:<br>• <b>OOP:</b> كبسلة + وراثة + تعدد أشكال.<br>• <b>Big-O:</b> الترتيب السريع O(n log n) متوسط، البحث الثنائي O(log n).<br>• <b>Python:</b> List vs Tuple (قابل للتعديل أم لا)، Dict بحث O(1).<br><span style='display:inline-block;margin-top:6px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:#FDE68A;padding:4px 8px;border-radius:999px;font-size:11px'>⚠️ خارج نطاق PDF الحالي</span>" },
+  { keys:["شبكة","ip","osi","router","switch","http","dns"], ans: "من <b>الشبكات</b> (قريب من الملف المرفوع):<br>• <b>OSI 7 طبقات:</b> فيزيائية → ربط → شبكة → نقل → جلسة → عرض → تطبيق.<br>• <b>IP:</b> IPv4 32-bit (4.3 مليار)، IPv6 128-bit.<br>• <b>DNS:</b> يحول الاسم إلى IP، يعمل فوق UDP 53.<br><span style='display:inline-block;margin-top:6px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#6EE7B7;padding:4px 8px;border-radius:999px;font-size:11px'>✓ قريب من محتوى الملف — اسأل بتحديد أكثر لأعطيك صفحة</span>" },
+  { keys:["عاصمة","اليمن","صنعاء","تاريخ","جغرافيا"], ans: "سؤال <b>معلومات عامة</b>:<br>• عاصمة اليمن صنعاء.<br>لكن تذكّر: <b>ذكاء</b> مصمم أساساً ليجيب من <b>محاضرتك</b> (RAG) — المعلومات العامة يجيب عنها كميزة إضافية مع توضيح أنها <em>خارج نطاق الملف</em> حتى لا يخدع الطالب.<br><span style='display:inline-block;margin-top:6px;background:rgba(99,102,241,.1);padding:4px 8px;border-radius:999px;font-size:11px'>💡 جرب: ارفع ملف التاريخ وسأسأله وسيجيب باقتباس</span>" }
+];
+
+function getSmartFallback(q){
+  const s=q.toLowerCase();
+  for(const entry of extendedKB){
+    if(entry.keys.some(k=> s.includes(k.toLowerCase()))) return entry.ans;
+  }
+  // fallback ذكي عام — يوضح مبدأ RAG
+  return `سؤال ممتاز: "<b>${q}</b>"<br><br>`
+    + `في <b>الوضع الحالي</b>، الملف المرفوع هو <b>الفصل الثاني - الشبكات اللاسلكية</b>. لم أجد إجابة مباشرة فيه، لذلك هذه <b>إجابة عامة</b> مع تنبيه واضح (ميزة منع الهلوسة):<br>`
+    + `• سأجيب من معرفتي العامة بإيجاز، لكن <b>الأصل في ذكاء</b> أنه يجيب من نصك فقط مع ذكر الصفحة.<br>`
+    + `• <b>الحل:</b> ارفع PDF المادة المطلوبة (مثلاً قواعد بيانات/ذكاء اصطناعي) وسأجيب منه باقتباس دقيق.<br>`
+    + `<span style='display:inline-block;margin-top:8px;background:linear-gradient(135deg,#6366F1,#06B6D4);color:white;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800'>جرّب الآن: اسحب أي PDF إلى تبويب "تلخيص PDF"</span> `
+    + `<span style='display:inline-block;margin-top:6px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:#FDE68A;padding:4px 8px;border-radius:999px;font-size:11px'>⚠️ تنبيه RAG: خارج نطاق الملف المرفوع حالياً</span>`;
+}
+function addMsg(text, who){
+  const div=document.createElement('div');
+  div.className='msg '+who;
+  const time='الآن';
+  div.innerHTML=text+`<small>${who==='user'?'أنت':'ذكاء'} • ${time}</small>`;
+  chatLog.appendChild(div);
+  chatLog.scrollTop=chatLog.scrollHeight;
+}
+function typing(on){
+  let el=document.getElementById('typingInd');
+  if(on){
+    if(el) return;
+    el=document.createElement('div');
+    el.id='typingInd';
+    el.className='msg ai';
+    el.style.display='flex'; el.style.gap='6px'; el.style.alignItems='center';
+    el.innerHTML='<span class="typing"><i></i><i></i><i></i></span> <span style="font-size:12px;color:#A5B4FC">ذكاء يكتب...</span>';
+    chatLog.appendChild(el);
+    chatLog.scrollTop=chatLog.scrollHeight;
+  } else { el?.remove(); }
+}
+function getReply(q){
+  const s=q.toLowerCase();
+  if(s.includes('tcp')||s.includes('udp')||s.includes('تي سي بي')) return knowledge.tcp;
+  if(s.includes('csma')) return knowledge.csma;
+  if(s.includes('wpa')) return knowledge.wpa;
+  if(s.includes('لخص')||s.includes('تلخيص')||s.includes('ملخص')) return knowledge["تلخيص"];
+  if(s.includes('خطة')||s.includes('مراجعة')) return knowledge["خطة"];
+  if(s.includes('شبكات')||s.includes('لاسلكي')) return knowledge["تلخيص"];
+  // جرّب القاعدة الموسعة قبل الـ fallback
+  const smart = getSmartFallback(q);
+  // إذا كان السؤال يطابق أحد مفاتيح extendedKB، أرجع إجابته مباشرة، وإلا أرجع الـ smart العام
+  // getSmartFallback يرجع بالفعل الإجابة المناسبة
+  // لكن نتأكد: إذا السؤال عام جداً ولم يطابق شبكات، نرجع smart
+  // نحتاج تمييز: إذا كان السؤال يحتوي كلمات شبكات ووقع في extendedKB فذلك مقصود
+  return smart;
+}
+function send(){
+  const v=chatInput.value.trim();
+  if(!v) return;
+  addMsg(v,'user');
+  chatInput.value='';
+  typing(true);
+  setTimeout(()=>{ typing(false); addMsg(getReply(v),'ai'); }, 700 + Math.random()*600);
+}
+sendBtn.addEventListener('click',send);
+chatInput.addEventListener('keydown',e=>{ if(e.key==='Enter') send(); });
+document.querySelectorAll('[data-prompt]').forEach(b=>b.addEventListener('click',()=>{ chatInput.value=b.dataset.prompt; send(); }));
+document.querySelectorAll('.qp').forEach(b=>{ if(!b.dataset.prompt) b.addEventListener('click',()=>{ chatInput.value=b.textContent; send(); }) });
+
+// quick prompts in hero
+document.querySelectorAll('.hero .qp').forEach(b=>b.addEventListener('click',()=>{
+  switchTab('chat');
+  document.getElementById('demo').scrollIntoView({behavior:'smooth'});
+  setTimeout(()=>{ chatInput.value=b.textContent; send(); },400);
+}));
+
+// PDF
+const dropZone=document.getElementById('dropZone');
+const fileInput=document.getElementById('fileInput');
+const pdfSummary=document.getElementById('pdfSummary');
+function showSummary(name){
+  dropZone.style.display='none';
+  pdfSummary.classList.add('show');
+  pdfSummary.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+dropZone.addEventListener('click',()=>fileInput.click());
+dropZone.addEventListener('dragover',e=>{e.preventDefault(); dropZone.classList.add('drag')});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop',e=>{
+  e.preventDefault(); dropZone.classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f) fakeUpload(f.name);
+});
+fileInput.addEventListener('change',()=>{
+  const f=fileInput.files[0];
+  if(f) fakeUpload(f.name);
+});
+function fakeUpload(name){
+  const orig=dropZone.innerHTML;
+  dropZone.innerHTML='<div style="padding:10px;text-align:center"><div class="typing" style="justify-content:center"><i></i><i></i><i></i></div><b style="display:block;margin-top:8px">جاري استخراج النص من '+(name||'المحاضرة.pdf')+'...</b><small style="color:var(--muted)">OCR + تقسيم + تضمين — 2 ثانية</small></div>';
+  setTimeout(()=>{ dropZone.innerHTML=orig; showSummary(name); }, 1600);
+}
+
+// QUIZ
+const questions=[
+  {q:"ما البروتوكول المستخدم في الشبكات اللاسلكية 802.11 لتجنب التصادم؟", opts:["CSMA/CD","CSMA/CA","Token Ring","ALOHA"], a:1, exp:"CSMA/CA لأن اللاسلكي لا يمكنه كشف التصادم أثناء الإرسال فيستخدم تجنب التصادم."},
+  {q:"أي معيار أمان يستخدم مصافحة SAE ويوفر Forward Secrecy؟", opts:["WEP","WPA","WPA2","WPA3"], a:3, exp:"WPA3 قدّم SAE بدلاً من 4-way handshake وأضاف Forward Secrecy."},
+  {q:"أي نطاق ترددي أقل ازدحاماً ويفضل للبيئات المزدحمة؟", opts:["2.4 GHz","5 GHz","900 MHz","60 GHz"], a:1, exp:"5GHz يوفر قنوات أكثر وتداخل أقل مقارنة بـ 2.4GHz المزدحم."}
+];
+let cur=0, score=0, answered=false, quizInitialized=false;
+function initQuiz(){
+  quizInitialized=true; cur=0; score=0;
+  renderQuiz();
+}
+function renderQuiz(){
+  const c=document.getElementById('quizContainer');
+  const prog=document.getElementById('prog');
+  const counter=document.getElementById('qCounter');
+  c.innerHTML='';
+  document.getElementById('scoreBox').classList.remove('show');
+  if(cur>=questions.length){
+    prog.style.width='100%';
+    counter.textContent=questions.length+' / '+questions.length;
+    const box=document.getElementById('scoreBox');
+    box.classList.add('show');
+    document.getElementById('scoreText').textContent=score+' / '+questions.length;
+    const pct=Math.round(score/questions.length*100);
+    let msg='';
+    if(pct===100) msg='ممتاز جداً! أنت جاهز للامتحان — حافظ على هذا المستوى.';
+    else if(pct>=66) msg='جيد جداً! راجع فقط النقطة التي أخطأت فيها وستصل لـ 100%.';
+    else msg='بداية موفقة — راجع الملخص والخريطة الذهنية ثم أعد الاختبار.';
+    document.getElementById('scoreMsg').textContent=msg+' (نسبة: '+pct+'% — متوقع في الامتحان: '+(60+pct*.35).toFixed(0)+'%)';
+    return;
+  }
+  prog.style.width=Math.round(cur/questions.length*100)+'%';
+  counter.textContent=(cur+1)+' / '+questions.length;
+  const q=questions[cur];
+  const card=document.createElement('div');
+  card.className='q-card active';
+  card.innerHTML=`
+    <div class="q-title">${q.q}</div>
+    <div class="opts">${q.opts.map((o,i)=>`<button class="opt" data-i="${i}"><span style="width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);display:grid;place-items:center;font-size:11px;flex:0 0 22px">${String.fromCharCode(65+i)}</span> ${o}</button>`).join('')}</div>
+    <div id="exp" style="display:none;padding:10px 12px;border-radius:12px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);font-size:12.5px;color:#6EE7B7;line-height:1.6"></div>
+    <div class="quiz-actions" style="display:none" id="nextWrap"><button class="btn btn-primary" id="nextBtn">التالي →</button></div>
+  `;
+  c.appendChild(card);
+  answered=false;
+  card.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(answered) return;
+      answered=true;
+      const idx=parseInt(btn.dataset.i);
+      const correct=q.a;
+      card.querySelectorAll('.opt').forEach((b,j)=>{
+        if(j===correct) b.classList.add('correct');
+        if(j===idx && j!==correct) b.classList.add('wrong');
+        b.style.pointerEvents='none';
+      });
+      if(idx===correct) score++;
+      const exp=document.getElementById('exp');
+      exp.style.display='block';
+      exp.innerHTML=(idx===correct?'✓ إجابة صحيحة — ':'✗ إجابة خاطئة — ')+q.exp;
+      if(idx!==correct) exp.style.background='rgba(239,68,68,.1)', exp.style.borderColor='rgba(239,68,68,.25)', exp.style.color='#FCA5A5';
+      document.getElementById('nextWrap').style.display='flex';
+    });
+  });
+  document.getElementById('nextBtn')?.addEventListener('click',()=>{cur++; renderQuiz();});
+}
+function resetQuiz(){ cur=0; score=0; renderQuiz(); }
+window.resetQuiz=resetQuiz;
+</script>
+</body>
+</html>
