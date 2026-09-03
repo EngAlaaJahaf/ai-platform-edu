@@ -191,7 +191,7 @@ export default function AuthGateView({ onAuthSuccess }) {
           </div>
 
           <div className="pt-2 text-[11px] text-slate-400">
-            معرض مشاريع تقنية المعلومات #07 • جامعة ذمار / صنعاء
+            المنصة الأكاديمية الذكية المتقدمة
           </div>
         </div>
 

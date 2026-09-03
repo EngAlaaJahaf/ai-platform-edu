@@ -227,7 +227,7 @@ export default function DashboardView({
               <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400">
                 معرض IT 2026
               </span>
-              <span className="text-xs font-bold theme-text-muted">مشروع #07</span>
+              <span className="text-xs font-bold theme-text-muted">المشروع</span>
             </div>
 
             <h4 className="text-lg font-black theme-text-primary mb-2">
