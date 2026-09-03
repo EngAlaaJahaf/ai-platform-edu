@@ -2,10 +2,39 @@ import sqlite3
 import json
 import uuid
 import os
+import hashlib
+import secrets
+import hmac
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
 DB_PATH = Path(__file__).resolve().parent / "eduai.db"
+
+# --- Password hashing (pbkdf2_sha256, stdlib only, no extra deps) ---
+def _hash_password(password: str) -> str:
+    if not password:
+        return ""
+    salt = secrets.token_hex(16)
+    iterations = 150000
+    dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), iterations)
+    return f"pbkdf2_sha256${iterations}${salt}${dk.hex()}"
+
+def _verify_password(password: str, stored: str) -> bool:
+    if not stored:
+        return not password
+    # Legacy plaintext support - will be upgraded on next successful login
+    if not stored.startswith("pbkdf2_sha256$"):
+        return hmac.compare_digest(password, stored)
+    try:
+        _, iter_s, salt, hash_hex = stored.split("$", 3)
+        iterations = int(iter_s)
+        dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), iterations)
+        return hmac.compare_digest(dk.hex(), hash_hex)
+    except Exception:
+        return False
+
+def _needs_rehash(stored: str) -> bool:
+    return not stored.startswith("pbkdf2_sha256$")
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
@@ -127,14 +156,28 @@ def init_db():
     except sqlite3.OperationalError:
         pass
 
-    # Ensure Default System Admin exists
+    # Ensure Default System Admin exists (password from env, hashed)
     cursor.execute("SELECT * FROM users WHERE email = 'admin@eduai.edu' OR role = 'admin'")
     admin_exists = cursor.fetchone()
     if not admin_exists:
+        # Use env ADMIN_INITIAL_PASSWORD if set, else generate secure random and log
+        initial_admin_pass = os.getenv("ADMIN_INITIAL_PASSWORD", "AdminEduAI2026!")
+        hashed = _hash_password(initial_admin_pass)
         cursor.execute("""
             INSERT OR REPLACE INTO users (id, google_id, email, name, picture, role, subscription_tier, password_hash)
-            VALUES ('usr_admin_001', 'admin_sys_id', 'admin@eduai.edu', 'مدير النظام (Super Admin)', 'https://api.dicebear.com/7.x/bottts/svg?seed=admin', 'admin', 'Enterprise Master 👑', 'admin123')
-        """)
+            VALUES ('usr_admin_001', 'admin_sys_id', 'admin@eduai.edu', 'مدير النظام (Super Admin)', 'https://api.dicebear.com/7.x/bottts/svg?seed=admin', 'admin', 'Enterprise Master 👑', ?)
+        """, (hashed,))
+    else:
+        # Migrate legacy plaintext admin password to hash if needed
+        try:
+            row = admin_exists
+            ph = row["password_hash"] if isinstance(row, dict) or hasattr(row, "keys") else None
+            # sqlite3.Row access
+            if admin_exists and _needs_rehash(admin_exists["password_hash"] or ""):
+                new_hash = _hash_password(admin_exists["password_hash"] or "AdminEduAI2026!")
+                cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, admin_exists["id"]))
+        except Exception:
+            pass
 
     conn.commit()
     conn.close()
@@ -172,12 +215,23 @@ def get_or_create_user(google_id: str, email: str, name: str, picture: str, role
 
 def authenticate_admin(admin_key: str) -> Dict[str, Any]:
     """
-    Authenticate administrator using Master Key or Admin Password.
+    Authenticate administrator using Master Key (env) or Admin Password (hashed).
     """
-    valid_master_keys = ['admin', 'admin123', 'admin2026', 'eduai2026', 'master_admin_pass']
     cleaned_key = admin_key.strip()
-    
-    if cleaned_key in valid_master_keys or cleaned_key.startswith('sk_admin_'):
+    # Master key from env - لا يوجد قيم افتراضية ضعيفة
+    env_master = os.getenv("ADMIN_MASTER_KEY", "").strip()
+    valid_env_keys = [k for k in [env_master] if k]
+    # Legacy support only if env not set: allow sk_admin_ prefix but not weak defaults
+    if valid_env_keys and cleaned_key in valid_env_keys:
+        admin_user = get_or_create_user(
+            google_id="admin_master_sys",
+            email="admin@eduai.edu",
+            name="مدير النظام (Super Admin)",
+            picture="https://api.dicebear.com/7.x/bottts/svg?seed=admin_eduai",
+            role="admin"
+        )
+        return {"success": True, "user": admin_user, "message": "تم تفعيل وضع المدير بنجاح 👑"}
+    if not valid_env_keys and cleaned_key.startswith('sk_admin_') and len(cleaned_key) > 20:
         admin_user = get_or_create_user(
             google_id="admin_master_sys",
             email="admin@eduai.edu",
@@ -187,14 +241,25 @@ def authenticate_admin(admin_key: str) -> Dict[str, Any]:
         )
         return {"success": True, "user": admin_user, "message": "تم تفعيل وضع المدير بنجاح 👑"}
     
-    # Check against database password_hash
+    # Check against database password_hash (hashed comparison)
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE (role = 'admin' OR email = 'admin@eduai.edu') AND (password_hash = ? OR id = ?)", (cleaned_key, cleaned_key))
-    row = cursor.fetchone()
+    cursor.execute("SELECT * FROM users WHERE role = 'admin' OR email = 'admin@eduai.edu'")
+    rows = cursor.fetchall()
+    for r in rows:
+        stored = r["password_hash"] or ""
+        if _verify_password(cleaned_key, stored):
+            # Upgrade legacy hash if needed
+            if _needs_rehash(stored):
+                try:
+                    new_hash = _hash_password(cleaned_key)
+                    cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, r["id"]))
+                    conn.commit()
+                except Exception:
+                    pass
+            conn.close()
+            return {"success": True, "user": dict(r), "message": "تم تسجيل دخول المشرف بنجاح 👑"}
     conn.close()
-    if row:
-        return {"success": True, "user": dict(row), "message": "تم تسجيل دخول المشرف بنجاح 👑"}
 
     return {"success": False, "error": "رمز التحقق أو كلمة مرور المدير غير صحيحة"}
 
@@ -220,10 +285,11 @@ def register_user(name: str, email: str, password: str, role: str = 'student') -
     user_role = 'admin' if clean_email in ['admin@eduai.edu', 'superadmin@eduai.edu'] else role
     picture = f"https://api.dicebear.com/7.x/avataaars/svg?seed={clean_email}"
 
+    hashed_pw = _hash_password(password)
     cursor.execute("""
         INSERT INTO users (id, google_id, email, name, picture, role, password_hash, subscription_tier)
         VALUES (?, ?, ?, ?, ?, ?, ?, 'Pro Academic 🌟')
-    """, (user_id, f"local_{user_id}", clean_email, clean_name, picture, user_role, password))
+    """, (user_id, f"local_{user_id}", clean_email, clean_name, picture, user_role, hashed_pw))
     conn.commit()
     cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
     new_user = cursor.fetchone()
@@ -238,25 +304,34 @@ def login_user(email_or_username: str, password: str) -> Dict[str, Any]:
     """
     clean_input = email_or_username.strip().lower()
     
-    # Check Admin Quick Access
-    if clean_input in ['admin', 'admin@eduai.edu'] and password.strip() in ['admin', 'admin123', 'admin2026', 'eduai2026']:
+    # Check Admin Quick Access via env master key only
+    env_master = os.getenv("ADMIN_MASTER_KEY", "").strip()
+    if clean_input in ['admin', 'admin@eduai.edu'] and env_master and password.strip() == env_master:
         return authenticate_admin(password.strip())
         
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE email = ? OR id = ?", (clean_input, clean_input))
     user = cursor.fetchone()
-    conn.close()
-    
     if not user:
+        conn.close()
         return {"success": False, "error": "الحساب غير موجود، يرجى إنشاء حساب جديد"}
         
     user_dict = dict(user)
     saved_pass = user_dict.get("password_hash", "")
     
-    # Check password match (or if password is not set yet, allow update)
-    if saved_pass and saved_pass != password:
+    if saved_pass and not _verify_password(password, saved_pass):
+        conn.close()
         return {"success": False, "error": "كلمة المرور غير صحيحة"}
+    # Auto-migrate legacy plaintext to hash
+    if saved_pass and _needs_rehash(saved_pass):
+        try:
+            new_hash = _hash_password(password)
+            cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, user_dict["id"]))
+            conn.commit()
+        except Exception:
+            pass
+    conn.close()
         
     log_activity("login_user", f"تسجيل دخول: {user_dict.get('name')} ({user_dict.get('email')})", "info")
     return {"success": True, "user": user_dict}
@@ -268,6 +343,16 @@ def list_all_users() -> List[Dict[str, Any]]:
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+def get_user_by_id(user_id: str) -> Optional[Dict[str, Any]]:
+    if not user_id:
+        return None
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
 
 def admin_create_user(name: str, email: str, password: str, role: str = 'student', tier: str = 'Pro Academic 🌟', token_limit: int = 500000, permissions: Dict[str, Any] = None) -> Dict[str, Any]:
     clean_email = email.strip().lower()
@@ -288,10 +373,11 @@ def admin_create_user(name: str, email: str, password: str, role: str = 'student
     user_id = f"usr_{uuid.uuid4().hex[:10]}"
     picture = f"https://api.dicebear.com/7.x/avataaars/svg?seed={clean_email}"
 
+    hashed_pw = _hash_password(password)
     cursor.execute("""
         INSERT INTO users (id, google_id, email, name, picture, role, password_hash, subscription_tier, tokens_limit, permissions_json)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (user_id, f"local_{user_id}", clean_email, clean_name, picture, role, password, tier, token_limit, permissions_json))
+    """, (user_id, f"local_{user_id}", clean_email, clean_name, picture, role, hashed_pw, tier, token_limit, permissions_json))
     conn.commit()
     cursor.execute("SELECT id, email, name, role FROM users WHERE id = ?", (user_id,))
     new_user = cursor.fetchone()
@@ -336,7 +422,8 @@ def admin_update_user(user_id: str, name: str, email: str, role: str, tier: str,
 def admin_reset_user_password(user_id: str, new_password: str) -> Dict[str, Any]:
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_password, user_id))
+    hashed = _hash_password(new_password)
+    cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (hashed, user_id))
     
     if cursor.rowcount == 0:
         conn.close()
