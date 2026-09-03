@@ -39,7 +39,7 @@ function highlightText(text, query) {
 export default function ChatSidebar({
   sessions, activeSessionId, onSelectSession, onDeleteSession, onRenameSession,
   onCreateNew, onMoveSession, searchQuery, setSearchQuery, searchResults,
-  onExportTracked
+  onExportTracked, onOpenSearchResult
 }) {
   const [projects, setProjects] = useState(loadProjects);
   const [exports, setExports] = useState(loadExports);
@@ -195,7 +195,7 @@ export default function ChatSidebar({
           {(searchResults || []).map(r => {
             const sess = sessions.find(s => s.id === r.sessionId);
             return sess ? (
-              <div key={r.sessionId + r.messageId} onClick={() => onSelectSession(r.sessionId)} className="p-2.5 rounded-xl border theme-card-inner hover:border-indigo-500/30 cursor-pointer">
+              <div key={r.sessionId + r.messageId} onClick={() => onOpenSearchResult ? onOpenSearchResult(r) : onSelectSession(r.sessionId)} className="p-2.5 rounded-xl border theme-card-inner hover:border-indigo-500/30 cursor-pointer">
                 <div className="text-xs font-bold theme-text-primary truncate">{highlightText(r.sessionTitle, searchQuery)}</div>
                 <div className="text-[11px] theme-text-muted line-clamp-2" dir="auto">{highlightText(r.snippet, searchQuery)}</div>
               </div>

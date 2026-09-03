@@ -331,6 +331,7 @@ export default function ChatView({
   const [newSessionName, setNewSessionName] = useState('');
   const [editingSessionId, setEditingSessionId] = useState(null);
   const [editSessionTitle, setEditSessionTitle] = useState('');
+  const [highlight, setHighlight] = useState(null); // { messageId, keyword }
 
   // Voice & TTS states
   const [isListening, setIsListening] = useState(false);
@@ -456,6 +457,48 @@ export default function ChatView({
     }
   };
 
+  // Open session from a search result and highlight/scroll to the matched message
+  const handleOpenSearchResult = (result) => {
+    const target = sessions.find(s => s.id === result.sessionId);
+    if (!target) return;
+    setActiveSessionId(target.id);
+    setMessages(target.messages || []);
+    setIsSessionsModalOpen(false);
+    if (result.messageId) {
+      setHighlight({ messageId: result.messageId, keyword: searchQuery.trim() });
+    } else {
+      setHighlight(null);
+    }
+  };
+
+  // Wrap keyword occurrences in the target message's DOM text nodes with <mark>.
+  const highlightDomText = (root, keyword) => {
+    if (!root || !keyword) return;
+    const q = keyword.toLowerCase();
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+    textNodes.forEach((node) => {
+      const value = node.nodeValue;
+      const lower = value.toLowerCase();
+      if (!lower.includes(q)) return;
+      const frag = document.createDocumentFragment();
+      let last = 0;
+      let i = lower.indexOf(q);
+      while (i !== -1) {
+        if (i > last) frag.appendChild(document.createTextNode(value.substring(last, i)));
+        const mark = document.createElement('mark');
+        mark.className = 'rounded-[3px] px-0.5 bg-amber-200/80 dark:bg-amber-500/40 text-inherit';
+        mark.textContent = value.substring(i, i + q.length);
+        frag.appendChild(mark);
+        last = i + q.length;
+        i = lower.indexOf(q, last);
+      }
+      if (last < value.length) frag.appendChild(document.createTextNode(value.substring(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+  };
+
   // Delete session
   const handleDeleteSession = (sessionId, e) => {
     e.stopPropagation();
@@ -558,6 +601,21 @@ export default function ChatView({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Scroll to + flash + highlight the matched message after it's rendered
+  useEffect(() => {
+    if (!highlight || !highlight.messageId) return;
+    const timer = setTimeout(() => {
+      const el = chatContainerRef.current?.querySelector(`[data-msg-id="${highlight.messageId}"]`);
+      if (el) {
+        highlightDomText(el, highlight.keyword);
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('search-highlight-flash');
+        setTimeout(() => el.classList.remove('search-highlight-flash'), 2600);
+      }
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [highlight]);
 
   // Initialize Speech Recognition
   useEffect(() => {
@@ -860,6 +918,7 @@ export default function ChatView({
             setSearchQuery={setSearchQuery}
             searchResults={searchResults}
             docs={[]}
+            onOpenSearchResult={handleOpenSearchResult}
           />
         </div>
       </div>
@@ -947,6 +1006,7 @@ export default function ChatView({
             return (
               <div
                 key={msg.id}
+                data-msg-id={msg.id}
                 className={`flex gap-2.5 max-w-[85%] ${isUser ? 'mr-auto flex-row-reverse' : 'ml-auto'}`}
               >
                 {/* Avatar - smaller */}
@@ -1444,7 +1504,7 @@ export default function ChatView({
                     searchResults.map((res, idx) => (
                       <div
                         key={idx}
-                        onClick={() => handleSelectSession(res.sessionId)}
+                        onClick={() => handleOpenSearchResult(res)}
                         className="p-3.5 rounded-2xl theme-card-inner border hover:border-indigo-500 transition cursor-pointer space-y-1.5 group"
                       >
                         <div className="flex items-center justify-between text-xs">
