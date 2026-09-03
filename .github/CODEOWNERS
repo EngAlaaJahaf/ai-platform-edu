@@ -1,0 +1,18 @@
+# CODEOWNERS - يحدد من يجب أن يراجع كل جزء من المشروع
+# الصيغة: المسار  @username أو @org/team
+
+# المالك العام للمشروع
+* @EngAlaaJahaf
+
+# Backend - فريق الخلفية
+/backend/ @EngAlaaJahaf
+/backend/services/rag_service.py @EngAlaaJahaf
+/backend/services/ai_service.py @EngAlaaJahaf
+
+# Frontend - فريق الواجهة
+/frontend/ @EngAlaaJahaf
+/frontend/src/components/ @EngAlaaJahaf
+
+# إعدادات حساسة - تحتاج موافقة المالك فقط
+/.github/ @EngAlaaJahaf
+/backend/config.py @EngAlaaJahaf
