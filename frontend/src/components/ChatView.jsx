@@ -1104,7 +1104,7 @@ export default function ChatView({
                         {msg.timestamp}
                       </span>
 
-                      <div className="flex items-center gap-1 opacity-90 group-hover:opacity-100 transition">
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
                         
                         {/* Text to Speech Button for AI Message */}
                         {!isUser && (
