@@ -53,7 +53,8 @@ import {
   MessageSquare,
   MessageSquarePlus,
   X,
-  Layers
+  Layers,
+  AlertTriangle
 } from 'lucide-react';
 import { sendChatMessage, sendChatMessageStream, getApiKey, getSelectedModel, setSelectedModel, getAIProvider, getBaseUrl, fetchAvailableModels, fetchCurrentUser } from '../services/api';
 import ExportModal from './ExportModal';
@@ -342,6 +343,7 @@ export default function ChatView({
   const [navThumb, setNavThumb] = useState(0);
   const [activeNavIndex, setActiveNavIndex] = useState(0);
   const hideNavTimer = useRef(null);
+  const [confirmDialog, setConfirmDialog] = useState(null);
 
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -510,15 +512,20 @@ export default function ChatView({
       alert('يجب الإبقاء على محادثة واحدة على الأقل.');
       return;
     }
-    if (window.confirm('هل أنت متأكد من حذف هذه المحادثة بالكامل؟')) {
-      const remaining = sessions.filter(s => s.id !== sessionId);
-      setSessions(remaining);
-      if (activeSessionId === sessionId) {
-        setActiveSessionId(remaining[0].id);
-        setMessages(remaining[0].messages || []);
+    setConfirmDialog({
+      title: 'حذف المحادثة',
+      message: 'هل أنت متأكد من حذف هذه المحادثة بالكامل؟ لا يمكن التراجع عن ذلك.',
+      confirmLabel: 'حذف',
+      onConfirm: () => {
+        const remaining = sessions.filter(s => s.id !== sessionId);
+        setSessions(remaining);
+        if (activeSessionId === sessionId) {
+          setActiveSessionId(remaining[0].id);
+          setMessages(remaining[0].messages || []);
+        }
+        try { localStorage.setItem('eduai_chat_sessions_master', JSON.stringify(remaining)); } catch (_) {}
       }
-      try { localStorage.setItem('eduai_chat_sessions_master', JSON.stringify(remaining)); } catch (_) {}
-    }
+    });
   };
 
   // Save session title edit
@@ -912,18 +919,24 @@ export default function ChatView({
   };
 
   const handleClearHistory = () => {
-    if (window.confirm('هل تريد مسح سجل المحادثة الحالية؟')) {
-      setMessages([]);
-    }
+    setConfirmDialog({
+      title: 'مسح سجل المحادثة',
+      message: 'هل تريد مسح سجل المحادثة الحالية بالكامل؟ لا يمكن التراجع عن ذلك.',
+      confirmLabel: 'مسح',
+      onConfirm: () => setMessages([]),
+    });
   };
 
   // Delete a single message from the current session (persisted via the messages sync effect)
   const handleDeleteMessage = (id) => {
     const target = messages.find((m) => m.id === id);
     const label = target && target.sender === 'user' ? 'السؤال' : 'الرسالة';
-    if (window.confirm(`هل تريد حذف ${label}؟ لا يمكن التراجع عن هذا الإجراء.`)) {
-      setMessages((prev) => prev.filter((m) => m.id !== id));
-    }
+    setConfirmDialog({
+      title: 'تأكيد الحذف',
+      message: `هل تريد حذف ${label}؟ لا يمكن التراجع عن هذا الإجراء.`,
+      confirmLabel: 'حذف',
+      onConfirm: () => setMessages((prev) => prev.filter((m) => m.id !== id)),
+    });
   };
 
   // Move a session into/out of a project (persisted via the messages sync effect)
@@ -939,7 +952,7 @@ export default function ChatView({
     <div className="grid gap-4 w-full px-4 lg:grid-cols-12 max-w-[1600px] mx-auto">
       
       {/* Right Sidebar - Manus style with options menu */}
-      <div className="hidden lg:flex lg:col-span-4 xl:col-span-3 flex-col gap-4 h-[calc(100vh-90px)] min-h-[500px]">
+      <div className="hidden lg:flex lg:col-span-3 xl:col-span-2 flex-col gap-4 h-[calc(100vh-90px)] min-h-[500px]">
         <div className="glass-panel rounded-2xl border flex flex-col h-full overflow-hidden">
           <ChatSidebar
             sessions={sessions}
@@ -959,7 +972,7 @@ export default function ChatView({
       </div>
 
       {/* Main Chat - ChatGPT style, airy and spacious */}
-      <div className="lg:col-span-8 xl:col-span-9 col-span-1 flex flex-col glass-panel rounded-2xl overflow-hidden shadow-xl h-[calc(100vh-90px)] min-h-[500px]">
+      <div className="lg:col-span-9 xl:col-span-10 col-span-1 flex flex-col glass-panel rounded-2xl overflow-hidden shadow-xl h-[calc(100vh-90px)] min-h-[500px]">
         
         {/* Minimal Header */}
         <div className="px-4 py-2.5 border-b border-white/10 theme-nav flex items-center justify-between shrink-0 font-['Tajawal']">
@@ -1043,7 +1056,7 @@ export default function ChatView({
               <div
                 key={msg.id}
                 data-msg-id={msg.id}
-                className={`flex gap-2.5 max-w-[85%] ${isUser ? 'mr-auto flex-row-reverse' : 'ml-auto'}`}
+                className={`flex gap-2.5 max-w-[95%] ${isUser ? 'mr-auto flex-row-reverse' : 'ml-auto'}`}
               >
                 {/* Avatar - smaller */}
                 <div className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-xs font-bold shadow-sm ${
@@ -1305,10 +1318,11 @@ export default function ChatView({
           {showScrollBottom && (
             <button
               onClick={scrollToBottom}
-              className="sticky bottom-2 left-1/2 -translate-x-1/2 px-3.5 py-1.5 rounded-full bg-indigo-600 text-white shadow-xl text-xs font-bold flex items-center gap-1.5 border border-white/20 hover:bg-indigo-500 transition animate-bounce z-20 font-['Tajawal']"
+              aria-label="الانتقال للأسفل"
+              title="الانتقال للأسفل"
+              className="sticky bottom-3 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-indigo-600 text-white shadow-xl flex items-center justify-center border border-white/20 hover:bg-indigo-500 hover:scale-105 transition animate-bounce z-20"
             >
-              <ArrowDown className="w-3.5 h-3.5" />
-              <span>الانتقال للأسفل</span>
+              <ArrowDown className="w-5 h-5" />
             </button>
           )}
 
@@ -1752,6 +1766,39 @@ export default function ChatView({
         data={messages}
         docName={activeDoc?.filename || 'جلسة الحوار والمناقشة'}
       />
+
+      {/* Custom Confirmation Modal (replaces native window.confirm) */}
+      {confirmDialog && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in text-right font-['Tajawal']" dir="rtl">
+          <div className="relative w-full max-w-sm glass-panel rounded-3xl p-6 border shadow-2xl space-y-5 animate-fade-in">
+            <div className="w-14 h-14 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-7 h-7 text-rose-500" />
+            </div>
+            <div className="text-center space-y-1.5">
+              <h3 className="text-base font-black theme-text-primary">{confirmDialog.title}</h3>
+              <p className="text-sm theme-text-muted leading-relaxed">{confirmDialog.message}</p>
+            </div>
+            <div className="flex items-center gap-2.5 justify-center">
+              <button
+                onClick={() => setConfirmDialog(null)}
+                className="px-5 py-2.5 rounded-xl theme-header-btn border font-bold text-sm"
+              >
+                إلغاء
+              </button>
+              <button
+                onClick={() => {
+                  try { confirmDialog.onConfirm && confirmDialog.onConfirm(); } catch (_) {}
+                  setConfirmDialog(null);
+                }}
+                className="px-5 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-sm shadow-lg flex items-center gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" />
+                {confirmDialog.confirmLabel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
