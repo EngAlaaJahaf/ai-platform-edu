@@ -10,6 +10,8 @@ export default function AISettings({
   setBaseUrl,
   selectedModel,
   setSelectedModel,
+  googleClientId,
+  setGoogleClientId,
   validating,
   validationResult,
   handleValidateConnection,
@@ -92,6 +94,22 @@ export default function AISettings({
                   dir="ltr"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-black theme-text-muted mb-1">Google OAuth Client ID</label>
+              <div className="relative">
+                <Key className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="1234567890-xxxx.apps.googleusercontent.com"
+                  value={googleClientId || ''}
+                  onChange={(e) => setGoogleClientId(e.target.value)}
+                  className="w-full pl-4 pr-10 py-2.5 rounded-2xl theme-card-inner border text-xs font-mono font-bold theme-text-primary focus:border-indigo-500 transition shadow-inner"
+                  dir="ltr"
+                />
+              </div>
+              <p className="text-[11px] theme-text-muted mt-1 font-bold">يُحفظ في النظام ويُستخدم لتسجيل الدخول بـ Google. اتركه فارغاً لتعطيل Google.</p>
             </div>
 
             <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">

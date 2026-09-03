@@ -15,7 +15,7 @@ import AdminDashboardView from './components/AdminDashboardView';
 import TranslateView from './components/TranslateView';
 import DocumentFAB from './components/DocumentFAB';
 import AuthGateView from './components/AuthGateView';
-import { checkHealth, getUserProfile, getLatestDocument } from './services/api';
+import { checkHealth, getUserProfile, getLatestDocument, fetchPublicSettings, setGoogleClientId } from './services/api';
 import { Wand2, ExternalLink, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 const VALID_TABS = [
@@ -98,6 +98,12 @@ export default function App() {
     checkHealth().then(data => {
       if (data) setHealth(data);
     });
+    // Sync Google Client ID from server (admin-set)
+    fetchPublicSettings().then(ps => {
+      if (ps && ps.google_client_id) {
+        setGoogleClientId(ps.google_client_id);
+      }
+    }).catch(()=>{});
 
     // Sync active tab with browser URL history (Back / Forward buttons)
     const handlePopState = () => {

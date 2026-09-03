@@ -761,6 +761,7 @@ def get_public_settings_endpoint():
         "custom_logo_url": settings.get("custom_logo_url", ""),
         "welcome_headline": settings.get("welcome_headline", "مرحباً بك في المنصة الأكاديمية الذكية"),
         "welcome_description": settings.get("welcome_description", "بيئة تعليمية وبحثية جامعية مدعومة بالذكاء الاصطناعي للمذاكرة التفاعلية وتوليد خرائط المفاهيم والاختبارات."),
+        "google_client_id": settings.get("google_client_id", ""),
         "maintenance_mode": settings.get("maintenance_mode", False),
         "registration_enabled": settings.get("registration_enabled", True)
     }
