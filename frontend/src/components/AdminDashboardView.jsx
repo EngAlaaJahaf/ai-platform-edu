@@ -114,6 +114,8 @@ export default function AdminDashboardView({
 
   useEffect(() => {
     loadAdminData();
+    const id = setInterval(() => loadAdminData(), 30000);
+    return () => clearInterval(id);
   }, []);
 
   const handleSaveSettings = async () => {
