@@ -53,15 +53,19 @@ jobs:
           echo "PY_OK=$PY_OK" >> $GITHUB_OUTPUT
           echo "" >> review_body.md
           
-          # 3. فحص أسرار مكشوفة - دقيق
+          # 3. فحص أسرار مكشوفة - دقيق (pipefail)
           echo "**فحص الأسرار:**" >> review_body.md
-          if grep -r -E "sk-[a-zA-Z0-9]{20,}|AIza[0-9A-Za-z_-]{30,}" backend/ frontend/src/ 2>/dev/null | grep -v ".git" | head -5; then
+          set +e
+          grep -r -E "sk-[a-zA-Z0-9]{20,}|AIza[0-9A-Za-z_-]{30,}" backend/ frontend/src/ 2>/dev/null | grep -v ".git" | head -5 > /tmp/secrets_found.txt
+          if [ -s /tmp/secrets_found.txt ]; then
             echo "⚠️ وُجدت مفاتيح محتملة مكشوفة - راجعها!" >> review_body.md
+            cat /tmp/secrets_found.txt >> review_body.md
             echo "SECRET_FOUND=true" >> $GITHUB_OUTPUT
           else
             echo "✅ لا أسرار مكشوفة" >> review_body.md
             echo "SECRET_FOUND=false" >> $GITHUB_OUTPUT
           fi
+          set -e
           echo "" >> review_body.md
           
           # 4. حجم التغيير

@@ -1,8 +1,9 @@
+import os
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from backend.routes.api import router as api_router
-from backend.config import PORT
+from backend.config import PORT, ALLOWED_ORIGINS
 from backend.services.ai_service import use_base_rules_var
 
 app = FastAPI(
@@ -11,10 +12,10 @@ app = FastAPI(
     version="2.1.0"
 )
 
-# CORS middleware for seamless local and production frontend integration
+# CORS middleware - restricted origins (env ALLOWED_ORIGINS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

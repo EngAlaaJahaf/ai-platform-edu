@@ -2,7 +2,7 @@ import os
 import shutil
 import uuid
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Header, Response
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Header, Response, Depends
 from pydantic import BaseModel
 
 from backend.config import UPLOAD_DIR
@@ -26,6 +26,7 @@ from backend.database import (
     register_user,
     login_user,
     list_all_users,
+    get_user_by_id,
     admin_create_user,
     admin_update_user,
     admin_reset_user_password,
@@ -42,6 +43,20 @@ from backend.database import (
 )
 
 router = APIRouter(prefix="/api")
+
+# --- Auth helpers ---
+def _get_current_user(x_user_id: Optional[str] = Header(None)):
+    if not x_user_id:
+        raise HTTPException(status_code=401, detail="غير مصرح - يلزم تسجيل الدخول (X-User-Id مفقود)")
+    user = get_user_by_id(x_user_id)
+    if not user:
+        raise HTTPException(status_code=401, detail="المستخدم غير موجود أو الجلسة منتهية")
+    return user
+
+def _require_admin(current_user: dict = Depends(_get_current_user)):
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="صلاحيات المدير مطلوبة (Admin only)")
+    return current_user
 
 class AdminLoginRequest(BaseModel):
     admin_key: str
@@ -733,31 +748,31 @@ def get_public_settings_endpoint():
     }
 
 @router.get("/admin/stats")
-def get_admin_stats_endpoint():
+def get_admin_stats_endpoint(current_admin: dict = Depends(_require_admin)):
     """Get live metrics, counts, database size, and system health."""
     metrics = get_admin_metrics()
     return metrics
 
 @router.get("/admin/settings")
-def get_admin_settings_endpoint():
+def get_admin_settings_endpoint(current_admin: dict = Depends(_require_admin)):
     """Get platform configuration policies and AI defaults."""
     settings = get_system_settings()
     return {"settings": settings}
 
 @router.post("/admin/settings")
-def update_admin_settings_endpoint(req: UpdateSettingsRequest):
+def update_admin_settings_endpoint(req: UpdateSettingsRequest, current_admin: dict = Depends(_require_admin)):
     """Update platform configuration policies and AI defaults."""
     update_system_settings(req.settings)
     return {"success": True, "message": "تم حفظ وتطبيق الإعدادات بنجاح"}
 
 @router.get("/admin/users")
-def get_admin_users_endpoint():
+def get_admin_users_endpoint(current_admin: dict = Depends(_require_admin)):
     """Get all registered users and their roles, quotas, and stats."""
     users = list_all_users()
     return {"users": users, "total": len(users)}
 
 @router.post("/admin/users")
-def create_admin_user_endpoint(req: AdminCreateUserRequest):
+def create_admin_user_endpoint(req: AdminCreateUserRequest, current_admin: dict = Depends(_require_admin)):
     """Create a new user account with specified role and quota."""
     res = admin_create_user(
         name=req.name,
@@ -773,7 +788,7 @@ def create_admin_user_endpoint(req: AdminCreateUserRequest):
     return res
 
 @router.patch("/admin/users/{user_id}")
-def update_admin_user_endpoint(user_id: str, req: AdminUpdateUserRequest):
+def update_admin_user_endpoint(user_id: str, req: AdminUpdateUserRequest, current_admin: dict = Depends(_require_admin)):
     """Update user profile, role, tier, or token limit."""
     res = admin_update_user(
         user_id=user_id,
@@ -789,7 +804,7 @@ def update_admin_user_endpoint(user_id: str, req: AdminUpdateUserRequest):
     return res
 
 @router.patch("/admin/users/{user_id}/reset-password")
-def reset_admin_user_password_endpoint(user_id: str, req: AdminResetPasswordRequest):
+def reset_admin_user_password_endpoint(user_id: str, req: AdminResetPasswordRequest, current_admin: dict = Depends(_require_admin)):
     """Reset a user's password."""
     res = admin_reset_user_password(user_id, req.new_password)
     if not res["success"]:
@@ -797,7 +812,7 @@ def reset_admin_user_password_endpoint(user_id: str, req: AdminResetPasswordRequ
     return res
 
 @router.delete("/admin/users/{user_id}")
-def delete_admin_user_endpoint(user_id: str):
+def delete_admin_user_endpoint(user_id: str, current_admin: dict = Depends(_require_admin)):
     """Delete a user account and all their documents."""
     res = admin_delete_user(user_id)
     if not res["success"]:
@@ -805,19 +820,19 @@ def delete_admin_user_endpoint(user_id: str):
     return res
 
 @router.get("/admin/logs")
-def get_admin_logs_endpoint(limit: Optional[int] = 50):
+def get_admin_logs_endpoint(limit: Optional[int] = 50, current_admin: dict = Depends(_require_admin)):
     """Get platform activity and audit logs."""
     logs = get_activity_logs(limit=limit or 50)
     return {"logs": logs}
 
 @router.delete("/admin/logs")
-def clear_admin_logs_endpoint():
+def clear_admin_logs_endpoint(current_admin: dict = Depends(_require_admin)):
     """Clear all audit logs."""
     clear_activity_logs()
     return {"success": True, "message": "تم مسح سجلات النشاط بنجاح"}
 
 @router.post("/admin/clear-cache")
-def clear_cache_endpoint():
+def clear_cache_endpoint(current_admin: dict = Depends(_require_admin)):
     """Clear temporary upload buffers and compact database."""
     log_activity("clear_cache", "تم تنفيذ تنظيف الذاكرة المؤقتة وضغط قاعدة البيانات", "info")
     return {"success": True, "message": "تم تنظيف الذاكرة المؤقتة بنجاح"}
