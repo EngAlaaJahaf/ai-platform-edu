@@ -1,0 +1,134 @@
+name: Auto Review (Muse Spark)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  checks: write
+
+jobs:
+  auto-review:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Analyze changes
+        id: analyze
+        run: |
+          echo "### تحليل PR" > review_body.md
+          echo "" >> review_body.md
+          # 1. الملفات المتغيرة
+          echo "**الملفات المتغيرة:**" >> review_body.md
+          git diff --name-only origin/${{ github.base_ref }}...HEAD | head -50 >> review_body.md || git diff --name-only HEAD~1 | head -50 >> review_body.md
+          echo "" >> review_body.md
+          
+          # 2. فحص Python
+          echo "**فحص Python:**" >> review_body.md
+          PY_OK=true
+          if ls backend/*.py backend/**/*.py 2>/dev/null | head -20 | xargs -I{} python -m py_compile {} 2>py_err.txt; then
+            echo "✅ لا أخطاء تركيبية" >> review_body.md
+          else
+            echo "❌ أخطاء تركيبية:" >> review_body.md
+            cat py_err.txt >> review_body.md
+            PY_OK=false
+          fi
+          echo "PY_OK=$PY_OK" >> $GITHUB_OUTPUT
+          echo "" >> review_body.md
+          
+          # 3. فحص أسرار مكشوفة
+          echo "**فحص الأسرار:**" >> review_body.md
+          if grep -r -i "GEMINI_API_KEY.*sk-\|password.*=\|secret.*=" backend/ frontend/src/ 2>/dev/null | grep -v ".git" | head -5; then
+            echo "⚠️ وُجدت مفاتيح محتملة مكشوفة - راجعها!" >> review_body.md
+            echo "SECRET_FOUND=true" >> $GITHUB_OUTPUT
+          else
+            echo "✅ لا أسرار مكشوفة" >> review_body.md
+            echo "SECRET_FOUND=false" >> $GITHUB_OUTPUT
+          fi
+          echo "" >> review_body.md
+          
+          # 4. حجم التغيير
+          ADDED=$(git diff --stat origin/${{ github.base_ref }}...HEAD 2>/dev/null | tail -1 || git diff --stat HEAD~1 | tail -1)
+          echo "**حجم التغيير:** $ADDED" >> review_body.md
+          echo "" >> review_body.md
+          
+          cat review_body.md
+
+      - name: Comment review result
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('review_body.md', 'utf8');
+            const pyOk = '${{ steps.analyze.outputs.PY_OK }}' === 'true';
+            const secretFound = '${{ steps.analyze.outputs.SECRET_FOUND }}' === 'true';
+            
+            let verdict = '';
+            let event = 'COMMENT';
+            if (secretFound) {
+              verdict = '\n\n### ❌ طلب تعديلات\nيوجد أسرار مكشوفة - يجب نقلها إلى `.env` وإزالتها من الكود.';
+              event = 'REQUEST_CHANGES';
+            } else if (!pyOk) {
+              verdict = '\n\n### ❌ طلب تعديلات\nيوجد أخطاء تركيبية يجب إصلاحها قبل الدمج.';
+              event = 'REQUEST_CHANGES';
+            } else {
+              verdict = '\n\n### ✅ جاهز للمراجعة النهائية\nالفحوصات التلقائية نجحت. بانتظار موافقة المالك `@EngAlaaJahaf`.';
+              event = 'COMMENT';
+            }
+            
+            const fullBody = `## 🤖 مراجعة تلقائية - Muse Spark\n\n${body}${verdict}\n\n---\n*سيتم إشعار المالك \`@EngAlaaJahaf\` تلقائياً عبر GitHub Notifications + Email.*\n*التاريخ: ${new Date().toISOString()}*`;
+            
+            // تعليق
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: fullBody
+            });
+            
+            // محاولة مراجعة (APPROVE / REQUEST_CHANGES) - قد لا تفي بشرط CODEOWNERS لكنها تسجل
+            try {
+              await github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                event: event,
+                body: event === 'REQUEST_CHANGES' ? 'يجب إصلاح الملاحظات أعلاه.' : 'الفحوصات التلقائية نجحت ✅'
+              });
+              core.info(`Review event ${event} posted`);
+            } catch(e) {
+              core.warning(`Review failed: ${e.message}`);
+            }
+
+      - name: Notify owner via assignee
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // إضافة المالك كـ assignee و label لضمان الإشعار
+            try {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                assignees: ['EngAlaaJahaf']
+              });
+            } catch(e) { core.warning(e.message); }
