@@ -1054,28 +1054,6 @@
     <!-- TAB 2: PRODUCTION-GRADE QUIZ STUDIO -->
     <section id="view-quiz" class="tab-view">
       <div class="quiz-layout">
-        
-        <div class="quiz-navigator-bar">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <span style="font-size:13px;font-weight:800;color:var(--text-muted);">فهرس الأسئلة:</span>
-            <div class="q-pills">
-              <button class="q-pill active" onclick="jumpQuizQuestion(1)">1</button>
-              <button class="q-pill answered" onclick="jumpQuizQuestion(2)">2</button>
-              <button class="q-pill" onclick="jumpQuizQuestion(3)">3</button>
-              <button class="q-pill" onclick="jumpQuizQuestion(4)">4</button>
-              <button class="q-pill" onclick="jumpQuizQuestion(5)">5</button>
-            </div>
-          </div>
-
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span style="font-size:12px;font-weight:700;color:#F59E0B;background:rgba(245,158,11,0.12);padding:4px 10px;border-radius:8px;">
-              امتحان نهائي (Final Exam)
-            </span>
-            <span style="font-size:13px;font-family:var(--font-mono);font-weight:700;color:var(--text-muted);">
-              18:45
-            </span>
-          </div>
-        </div>
 
         <div class="quiz-card">
           <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-main);padding-bottom:14px;">
@@ -1083,7 +1061,12 @@
               <i data-lucide="help-circle" style="width:16px;height:16px;"></i>
               <span id="quizQuestionNumLabel">السؤال رقم 1 من 5</span>
             </div>
-            <span style="font-size:12px;font-weight:700;color:var(--text-muted);">الدرجة: 2.0 درجات</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:12px;font-weight:700;color:#F59E0B;background:rgba(245,158,11,0.12);padding:4px 10px;border-radius:8px;">
+                امتحان نهائي (Final Exam)
+              </span>
+              <span style="font-size:12px;font-weight:700;color:var(--text-muted);">الدرجة: 2.0 درجات</span>
+            </div>
           </div>
 
           <div>
