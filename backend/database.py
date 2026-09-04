@@ -878,6 +878,8 @@ def get_admin_metrics() -> Dict[str, Any]:
         "total_documents": total_docs,
         "total_pages": total_pages,
         "total_words": total_words,
+        "total_users": total_users,
+        "total_tokens": total_tokens,
         "total_prompts": total_prompts,
         "total_activities": total_activities,
         "database_size_kb": db_size_kb,
