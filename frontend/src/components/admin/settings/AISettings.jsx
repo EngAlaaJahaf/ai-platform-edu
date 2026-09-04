@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Cpu, Server, Key, Terminal, RefreshCw, Zap, Check } from 'lucide-react';
 
 export default function AISettings({
@@ -48,7 +48,7 @@ export default function AISettings({
                   className={`p-3 rounded-2xl border text-xs font-black transition-all cursor-pointer ${
                     provider === 'gemini' 
                       ? 'bg-blue-500/20 border-blue-500/50 text-blue-500 shadow-md' 
-                      : 'theme-card-inner border hover:border-indigo-500 theme-text-secondary'
+                      : 'theme-card-inner border hover:border-emerald-500 theme-text-secondary'
                   }`}
                 >
                   Google Gemini
@@ -59,7 +59,7 @@ export default function AISettings({
                   className={`p-3 rounded-2xl border text-xs font-black transition-all cursor-pointer ${
                     provider === 'openai' 
                       ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500 shadow-md' 
-                      : 'theme-card-inner border hover:border-indigo-500 theme-text-secondary'
+                      : 'theme-card-inner border hover:border-emerald-500 theme-text-secondary'
                   }`}
                 >
                   OpenAI / Custom API
@@ -76,7 +76,7 @@ export default function AISettings({
                   placeholder="إذا تُرك فارغاً سيُطلب من الطلاب..."
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  className="w-full pl-4 pr-10 py-2.5 rounded-2xl theme-card-inner border text-xs font-mono font-bold theme-text-primary focus:border-indigo-500 transition shadow-inner"
+                  className="w-full pl-4 pr-10 py-2.5 rounded-2xl theme-card-inner border text-xs font-mono font-bold theme-text-primary focus:border-emerald-500 transition shadow-inner"
                 />
               </div>
             </div>
@@ -90,7 +90,7 @@ export default function AISettings({
                   placeholder="https://api.openai.com/v1"
                   value={baseUrl}
                   onChange={(e) => setBaseUrl(e.target.value)}
-                  className="w-full pl-4 pr-10 py-2.5 rounded-2xl theme-card-inner border text-xs font-mono font-bold theme-text-primary focus:border-indigo-500 transition shadow-inner"
+                  className="w-full pl-4 pr-10 py-2.5 rounded-2xl theme-card-inner border text-xs font-mono font-bold theme-text-primary focus:border-emerald-500 transition shadow-inner"
                   dir="ltr"
                 />
               </div>
@@ -105,7 +105,7 @@ export default function AISettings({
                   placeholder="1234567890-xxxx.apps.googleusercontent.com"
                   value={googleClientId || ''}
                   onChange={(e) => setGoogleClientId(e.target.value)}
-                  className="w-full pl-4 pr-10 py-2.5 rounded-2xl theme-card-inner border text-xs font-mono font-bold theme-text-primary focus:border-indigo-500 transition shadow-inner"
+                  className="w-full pl-4 pr-10 py-2.5 rounded-2xl theme-card-inner border text-xs font-mono font-bold theme-text-primary focus:border-emerald-500 transition shadow-inner"
                   dir="ltr"
                 />
               </div>
@@ -119,7 +119,7 @@ export default function AISettings({
                 disabled={validating}
                 className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm font-bold text-white transition flex items-center gap-2"
               >
-                {validating ? <RefreshCw className="w-4 h-4 animate-spin text-indigo-400" /> : <Zap className="w-4 h-4 text-amber-400" />}
+                {validating ? <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" /> : <Zap className="w-4 h-4 text-amber-400" />}
                 اختبار الاتصال
               </button>
               
@@ -135,7 +135,7 @@ export default function AISettings({
 
         <div className="theme-bg-card p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
           <h3 className="text-sm font-black theme-text-primary border-b border-slate-200 dark:border-slate-800 pb-2 mb-4 flex items-center gap-2">
-            <Cpu className="w-4 h-4 text-indigo-500" />
+            <Cpu className="w-4 h-4 text-emerald-500" />
             النموذج الافتراضي (Default Model)
           </h3>
           
@@ -145,9 +145,9 @@ export default function AISettings({
               <button
                 type="button"
                 onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-                className="w-full theme-card-inner border rounded-2xl px-4 py-2.5 text-xs font-bold theme-text-primary flex justify-between items-center focus:border-indigo-500 transition cursor-pointer"
+                className="w-full theme-card-inner border rounded-2xl px-4 py-2.5 text-xs font-bold theme-text-primary flex justify-between items-center focus:border-emerald-500 transition cursor-pointer"
               >
-                <span className="font-mono text-indigo-500">{selectedModel || 'Gemini 1.5 Flash'}</span>
+                <span className="font-mono text-emerald-500">{selectedModel || 'Gemini 1.5 Flash'}</span>
                 <span className="text-[11px] theme-text-muted font-black">تغيير ▼</span>
               </button>
               
@@ -165,7 +165,7 @@ export default function AISettings({
                     <button
                       onClick={handleFetchModels}
                       disabled={fetchingModels}
-                      className="p-1.5 hover:bg-slate-500/10 rounded-lg theme-text-muted hover:text-indigo-500 transition cursor-pointer"
+                      className="p-1.5 hover:bg-slate-500/10 rounded-lg theme-text-muted hover:text-emerald-500 transition cursor-pointer"
                       title="جلب النماذج من الخادم"
                     >
                       <RefreshCw className={`w-4 h-4 ${fetchingModels ? 'animate-spin' : ''}`} />
@@ -180,7 +180,7 @@ export default function AISettings({
                           setIsModelDropdownOpen(false);
                           setSearchModelQuery('');
                         }}
-                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-mono transition text-indigo-500 hover:bg-indigo-500/10 border border-indigo-500/30 border-dashed mb-2 cursor-pointer"
+                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-mono transition text-emerald-500 hover:bg-emerald-500/10 border border-emerald-500/30 border-dashed mb-2 cursor-pointer"
                       >
                         + استخدام النموذج المخصص: <span className="font-bold">{searchModelQuery}</span>
                       </button>
@@ -197,7 +197,7 @@ export default function AISettings({
                           }}
                           className={`w-full text-left px-3 py-2 rounded-xl text-xs font-mono transition cursor-pointer ${
                             selectedModel === model 
-                              ? 'bg-indigo-500/20 text-indigo-500 font-bold border border-indigo-500/30' 
+                              ? 'bg-emerald-500/20 text-emerald-500 font-bold border border-emerald-500/30' 
                               : 'theme-text-secondary hover:bg-slate-500/10'
                           }`}
                         >

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { 
   Languages, 
   BrainCircuit, 
@@ -320,7 +320,7 @@ export default function Header({
                 }}
                 className="w-full text-right p-2 rounded-xl theme-card-inner hover:bg-white/10 transition flex items-center gap-2 theme-text-primary cursor-pointer"
               >
-                <User className="w-4 h-4 text-cyan-500" />
+                <User className="w-4 h-4 text-teal-500" />
                 <span>إدارة الحساب وتسجيل الخروج</span>
               </button>
             </div>

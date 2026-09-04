@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { 
   X, 
   UploadCloud, 
@@ -95,7 +95,7 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess }) {
     if (ext === 'docx' || ext === 'doc') return <FileText className="w-8 h-8 text-blue-500" />;
     if (ext === 'pptx' || ext === 'ppt') return <Presentation className="w-8 h-8 text-amber-500" />;
     if (ext === 'xlsx' || ext === 'csv' || ext === 'xls') return <FileSpreadsheet className="w-8 h-8 text-emerald-500" />;
-    return <FileCode className="w-8 h-8 text-cyan-500" />;
+    return <FileCode className="w-8 h-8 text-teal-500" />;
   };
 
   return (
@@ -112,7 +112,7 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess }) {
 
         {/* Modal Header */}
         <div className="text-center space-y-1.5">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-500 mx-auto flex items-center justify-center text-white shadow-lg shadow-indigo-500/25">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 mx-auto flex items-center justify-center text-white shadow-lg shadow-emerald-500/25">
             <UploadCloud className="w-6 h-6" />
           </div>
           <h3 className="text-xl font-black theme-text-primary">رفع المادة التعليمية أو المحاضرة</h3>
@@ -126,7 +126,7 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess }) {
           <span className="px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500">PDF</span>
           <span className="px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-500">Word .docx</span>
           <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500">PowerPoint .pptx</span>
-          <span className="px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-500">نص .txt / .md</span>
+          <span className="px-2.5 py-1 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-500">نص .txt / .md</span>
           <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">Excel / CSV</span>
         </div>
 
@@ -139,10 +139,10 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess }) {
           onClick={() => fileInputRef.current?.click()}
           className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-3 ${
             dragActive 
-              ? 'border-cyan-400 bg-cyan-500/10 scale-[1.01]' 
+              ? 'border-teal-400 bg-teal-500/10 scale-[1.01]' 
               : file 
-              ? 'border-indigo-500/60 bg-indigo-500/10' 
-              : 'theme-card-inner border hover:border-indigo-400'
+              ? 'border-emerald-500/60 bg-emerald-500/10' 
+              : 'theme-card-inner border hover:border-emerald-400'
           }`}
         >
           <input
@@ -162,14 +162,14 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess }) {
                 <p className="text-sm font-extrabold theme-text-primary max-w-[280px] truncate">{file.name}</p>
                 <p className="text-xs theme-text-secondary">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
               </div>
-              <span className="text-[11px] font-bold text-cyan-600 dark:text-cyan-300 bg-cyan-500/10 px-3 py-1 rounded-full inline-block">
+              <span className="text-[11px] font-bold text-teal-600 dark:text-teal-300 bg-teal-500/10 px-3 py-1 rounded-full inline-block">
                 جاهز للمعالجة والاستخراج
               </span>
             </div>
           ) : (
             <>
               <div className="w-12 h-12 rounded-full theme-card-inner flex items-center justify-center text-slate-400">
-                <BookOpen className="w-6 h-6 text-indigo-500" />
+                <BookOpen className="w-6 h-6 text-emerald-500" />
               </div>
               <div>
                 <p className="text-sm font-extrabold theme-text-primary">اسحب الملف هنا أو انقر للاختيار</p>
@@ -200,7 +200,7 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess }) {
           <button
             onClick={handleUpload}
             disabled={!file || uploading}
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-extrabold text-xs shadow-lg shadow-indigo-600/25 transition flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed border border-white/20"
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/25 transition flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed border border-white/20"
           >
             {uploading ? (
               <>

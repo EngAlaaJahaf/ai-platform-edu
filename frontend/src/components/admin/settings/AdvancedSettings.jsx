@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Sliders, Thermometer, Layers, FileType, Mail, Info, Type } from 'lucide-react';
 
 const ALL_FORMATS = [".pdf", ".docx", ".pptx", ".txt", ".md", ".xlsx", ".csv", ".ppt", ".doc", ".rtf"];
@@ -34,7 +34,7 @@ export default function AdvancedSettings({ settings, setSettings }) {
           </h3>
           <div>
             <label className="block text-xs font-black theme-text-muted mb-1">الحرارة (Temperature) — {settings.temperature ?? 0.3}</label>
-            <input type="range" name="temperature" min="0" max="1" step="0.05" value={settings.temperature ?? 0.3} onChange={handleChange} className="w-full accent-indigo-600" />
+            <input type="range" name="temperature" min="0" max="1" step="0.05" value={settings.temperature ?? 0.3} onChange={handleChange} className="w-full accent-emerald-600" />
             <div className="flex justify-between text-[10px] theme-text-muted font-bold"><span>دقيق 0</span><span>متوازن 0.5</span><span>مبدع 1</span></div>
             <p className="text-[11px] theme-text-muted mt-1">يُمرر إلى `AIService.execute_chat_completion` كـ `temperature`.</p>
           </div>
@@ -43,14 +43,14 @@ export default function AdvancedSettings({ settings, setSettings }) {
             <input type="number" name="auto_rag_chunks" min="1" max="20" value={settings.auto_rag_chunks ?? 4} onChange={handleChange} className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-mono theme-text-primary" />
             <p className="text-[11px] theme-text-muted mt-1">يُستخدم في `RAGService.search_relevant_chunks(top_k)`.</p>
           </div>
-          <label className="flex items-center justify-between p-3 rounded-xl theme-card-inner border cursor-pointer hover:border-indigo-500/30 transition">
+          <label className="flex items-center justify-between p-3 rounded-xl theme-card-inner border cursor-pointer hover:border-emerald-500/30 transition">
             <div>
               <span className="block text-xs font-black theme-text-primary">قواعد الصياغة الأساسية</span>
               <span className="text-[11px] theme-text-muted font-bold">تُضاف لكل برومبت (~300 توكن) — عطّلها لتوفير التوكن</span>
             </div>
             <div className="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" name="enable_base_rules" checked={settings.enable_base_rules !== false} onChange={handleChange} className="sr-only peer" />
-              <div className="w-11 h-6 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
+              <div className="w-11 h-6 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
             </div>
           </label>
         </div>
@@ -58,7 +58,7 @@ export default function AdvancedSettings({ settings, setSettings }) {
         {/* Formats & Limits */}
         <div className="theme-bg-card p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
           <h3 className="text-sm font-black theme-text-primary border-b border-slate-200 dark:border-slate-800 pb-2 mb-4 flex items-center gap-2">
-            <FileType className="w-4 h-4 text-cyan-500" /> الصيغ والحدود
+            <FileType className="w-4 h-4 text-teal-500" /> الصيغ والحدود
           </h3>
           <div>
             <label className="block text-xs font-black theme-text-muted mb-2">الصيغ المسموحة (allowed_formats)</label>
@@ -66,7 +66,7 @@ export default function AdvancedSettings({ settings, setSettings }) {
               {ALL_FORMATS.map(fmt => {
                 const active = (settings.allowed_formats || ALL_FORMATS.slice(0,7)).includes(fmt);
                 return (
-                  <button key={fmt} type="button" onClick={() => toggleFormat(fmt)} className={`px-2 py-1.5 rounded-xl text-xs font-mono font-bold border transition ${active ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-500' : 'theme-card-inner border theme-text-muted'}`}>{fmt}</button>
+                  <button key={fmt} type="button" onClick={() => toggleFormat(fmt)} className={`px-2 py-1.5 rounded-xl text-xs font-mono font-bold border transition ${active ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-500' : 'theme-card-inner border theme-text-muted'}`}>{fmt}</button>
                 );
               })}
             </div>
@@ -80,7 +80,7 @@ export default function AdvancedSettings({ settings, setSettings }) {
         {/* Branding extended */}
         <div className="theme-bg-card p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-4 md:col-span-2">
           <h3 className="text-sm font-black theme-text-primary border-b border-slate-200 dark:border-slate-800 pb-2 mb-4 flex items-center gap-2">
-            <Type className="w-4 h-4 text-indigo-500" /> هوية إضافية
+            <Type className="w-4 h-4 text-emerald-500" /> هوية إضافية
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -96,8 +96,8 @@ export default function AdvancedSettings({ settings, setSettings }) {
               <input name="footer_text" value={settings.footer_text || ''} onChange={handleChange} placeholder="المنصة الأكاديمية الذكية المتقدمة" className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary" />
             </div>
           </div>
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs theme-text-muted">
-            <Info className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs theme-text-muted">
+            <Info className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
             <span>هذه الحقول تُحفظ عبر <code>POST /api/admin/settings</code> وتُقرأ من `get_system_settings()` وتظهر فوراً في الهيدر والفوتر.</span>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+﻿import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { 
   ZoomIn, 
   ZoomOut, 
@@ -41,7 +41,7 @@ function estimateTextWidth(text, fontSize = 17) {
 // Color Palettes matching Google NotebookLM
 const DEPTH_PALETTES = [
   {
-    // Depth 0 (Root - Soft Lilac / Purple)
+    // Depth 0 (Root - Soft Lilac / emerald)
     rectFill: '#DDD6FE', // violet-200
     rectStroke: '#8B5CF6',
     circleFill: '#C4B5FD',
@@ -57,8 +57,8 @@ const DEPTH_PALETTES = [
     symbolColor: '#0369A1',
   },
   {
-    // Depth 2 (Sub-branches - Indigo / Periwinkle)
-    rectFill: '#E0E7FF', // indigo-100
+    // Depth 2 (Sub-branches - emerald / Periwinkle)
+    rectFill: '#E0E7FF', // emerald-100
     rectStroke: '#818CF8',
     circleFill: '#C7D2FE',
     textColor: '#1E1B4B',
@@ -358,13 +358,13 @@ export default function NotebookLMMindMap({ mindmapData, defaultTitle, language 
       {/* Interactive Controls Bar */}
       <div className="glass-card rounded-2xl p-3.5 border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500 flex items-center justify-center text-white shadow-md">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 via-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-md">
             <Network className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h4 className="text-sm font-black theme-text-primary">الخريطة الذهنية التفاعلية (Google NotebookLM)</h4>
-              <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-600 dark:text-cyan-400 font-bold text-[10px]">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-teal-400 font-bold text-[10px]">
                 {direction === 'rtl' ? 'اتجاه عربي (يمين ← يسار)' : 'LTR Direction (Left → Right)'}
               </span>
             </div>
@@ -390,10 +390,10 @@ export default function NotebookLMMindMap({ mindmapData, defaultTitle, language 
           {/* Direction Toggle (RTL / LTR) */}
           <button
             onClick={toggleDirection}
-            className="px-2.5 py-1.5 rounded-xl theme-card-inner border text-xs font-bold theme-text-primary hover:border-cyan-500 transition flex items-center gap-1.5"
+            className="px-2.5 py-1.5 rounded-xl theme-card-inner border text-xs font-bold theme-text-primary hover:border-teal-500 transition flex items-center gap-1.5"
             title="تبديل اتجاه الشجرة (عربي / إنجليزي)"
           >
-            <ArrowLeftRight className="w-3.5 h-3.5 text-cyan-500" />
+            <ArrowLeftRight className="w-3.5 h-3.5 text-teal-500" />
             <span className="text-[11px]">{direction === 'rtl' ? 'RTL' : 'LTR'}</span>
           </button>
 
@@ -401,14 +401,14 @@ export default function NotebookLMMindMap({ mindmapData, defaultTitle, language 
           <div className="flex items-center p-1 rounded-xl theme-card-inner border">
             <button
               onClick={handleExpandAll}
-              className="p-1.5 rounded-lg theme-header-btn hover:text-indigo-600 transition"
+              className="p-1.5 rounded-lg theme-header-btn hover:text-emerald-600 transition"
               title="توسيع كافة الفروع"
             >
               <FolderPlus className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={handleCollapseAll}
-              className="p-1.5 rounded-lg theme-header-btn hover:text-indigo-600 transition"
+              className="p-1.5 rounded-lg theme-header-btn hover:text-emerald-600 transition"
               title="طي كافة الفروع"
             >
               <FolderMinus className="w-3.5 h-3.5" />
@@ -419,7 +419,7 @@ export default function NotebookLMMindMap({ mindmapData, defaultTitle, language 
           <div className="flex items-center p-1 rounded-xl theme-card-inner border">
             <button
               onClick={() => setZoom((z) => Math.min(2.5, z + 0.15))}
-              className="p-1.5 rounded-lg theme-header-btn hover:text-cyan-500 transition"
+              className="p-1.5 rounded-lg theme-header-btn hover:text-teal-500 transition"
               title="تكبير (+)"
             >
               <ZoomIn className="w-3.5 h-3.5" />
@@ -429,14 +429,14 @@ export default function NotebookLMMindMap({ mindmapData, defaultTitle, language 
             </span>
             <button
               onClick={() => setZoom((z) => Math.max(0.4, z - 0.15))}
-              className="p-1.5 rounded-lg theme-header-btn hover:text-cyan-500 transition"
+              className="p-1.5 rounded-lg theme-header-btn hover:text-teal-500 transition"
               title="تصغير (-)"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={handleResetView}
-              className="p-1.5 rounded-lg theme-header-btn hover:text-cyan-500 transition"
+              className="p-1.5 rounded-lg theme-header-btn hover:text-teal-500 transition"
               title="إعادة ضبط الموقع"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -446,17 +446,17 @@ export default function NotebookLMMindMap({ mindmapData, defaultTitle, language 
           {/* Export Interactive HTML */}
           <button
             onClick={() => exportInteractiveMindMapHTML(rootNode, defaultTitle || rootNode.label, language)}
-            className="p-2 rounded-xl bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-600 dark:text-cyan-400 border border-indigo-500/30 transition flex items-center gap-1 font-bold text-xs shadow-sm"
+            className="p-2 rounded-xl bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-600 dark:text-teal-400 border border-emerald-500/30 transition flex items-center gap-1 font-bold text-xs shadow-sm"
             title="تصدير كصفحة HTML تفاعلية قابلة للطي والفرد"
           >
-            <Globe className="w-4 h-4 text-indigo-500 dark:text-cyan-400" />
+            <Globe className="w-4 h-4 text-emerald-500 dark:text-teal-400" />
             <span className="text-[11px] font-black">HTML تفاعلي</span>
           </button>
 
           {/* Export PNG */}
           <button
             onClick={handleExportPNG}
-            className="p-2 rounded-xl theme-card-inner border theme-text-primary hover:border-cyan-500 transition flex items-center gap-1"
+            className="p-2 rounded-xl theme-card-inner border theme-text-primary hover:border-teal-500 transition flex items-center gap-1"
             title="تصدير الخريطة كصورة PNG عالية الدقة"
           >
             <ImageIcon className="w-4 h-4 text-emerald-500" />
@@ -466,17 +466,17 @@ export default function NotebookLMMindMap({ mindmapData, defaultTitle, language 
           {/* Export SVG */}
           <button
             onClick={handleExportSVG}
-            className="p-2 rounded-xl theme-card-inner border theme-text-primary hover:border-cyan-500 transition flex items-center gap-1"
+            className="p-2 rounded-xl theme-card-inner border theme-text-primary hover:border-teal-500 transition flex items-center gap-1"
             title="تصدير الخريطة بصيغة SVG فيكتور"
           >
-            <Download className="w-4 h-4 text-cyan-500" />
+            <Download className="w-4 h-4 text-teal-500" />
             <span className="text-[10px] font-bold hidden md:inline">SVG</span>
           </button>
 
           {/* Fullscreen Toggle */}
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="p-2 rounded-xl theme-card-inner border theme-text-primary hover:border-cyan-500 transition"
+            className="p-2 rounded-xl theme-card-inner border theme-text-primary hover:border-teal-500 transition"
             title={isFullscreen ? "تصغير الشاشة" : "عرض ملء الشاشة"}
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -505,7 +505,7 @@ export default function NotebookLMMindMap({ mindmapData, defaultTitle, language 
       >
         {/* Helper Navigation Floating Pill */}
         <div className="absolute top-4 left-4 z-20 pointer-events-none px-3 py-1.5 rounded-full bg-slate-900/70 backdrop-blur-md border border-white/10 text-[10px] font-bold text-slate-200 flex items-center gap-1.5">
-          <Sparkles className="w-3 h-3 text-cyan-400" />
+          <Sparkles className="w-3 h-3 text-teal-400" />
           <span>اسحب للتجول • انقر على المفاتيح &lt; و &gt; للطي والتوسيع</span>
         </div>
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { MoreHorizontal, Folder, FolderOpen, Clock, Trash2, Edit3, Plus, ChevronDown, ChevronLeft, FileText, FileDown, X, FolderPlus, ArrowRightLeft } from 'lucide-react';
 
 const PROJECTS_KEY = 'eduai_projects';
@@ -147,7 +147,7 @@ export default function ChatSidebar({
           )}
           {docList.map((doc, i) => (
             <div key={i} className="flex items-center rounded-[10px] h-[36px] gap-[8px] ps-[8px] pe-[2px] hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer group">
-              <FileText size={15} className="text-cyan-500 shrink-0" />
+              <FileText size={15} className="text-teal-500 shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm theme-text-primary truncate">{doc.name}</div>
                 <div className="text-xs theme-text-muted">{doc.date}</div>

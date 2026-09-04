@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, CheckCircle2, Clock, Award, Target } from 'lucide-react';
 import { fetchDocuments, fetchQuizProgress } from '../services/api';
 
@@ -68,14 +68,14 @@ export default function StudentAnalytics() {
           <div className="text-xs theme-text-muted font-bold">اختبارات مكتملة</div>
         </div>
         <div className="theme-bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xl text-center">
-          <Target className="w-6 h-6 mx-auto text-indigo-500 mb-2" />
+          <Target className="w-6 h-6 mx-auto text-emerald-500 mb-2" />
           <div className="text-2xl font-black theme-text-primary">{totalScore}</div>
           <div className="text-xs theme-text-muted font-bold">مجموع النقاط</div>
         </div>
       </div>
 
       <div className="theme-bg-card border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl">
-        <h3 className="text-sm font-black theme-text-primary mb-4 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-indigo-500" /> تقدمك حسب المادة (progress_json)</h3>
+        <h3 className="text-sm font-black theme-text-primary mb-4 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-500" /> تقدمك حسب المادة (progress_json)</h3>
         <div className="space-y-3">
           {perDoc.map(item => (
             <div key={item.docId} className="space-y-1">
@@ -84,7 +84,7 @@ export default function StudentAnalytics() {
                 <span className="font-mono">{item.pct.toFixed(0)}%</span>
               </div>
               <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                <div className={`h-full transition-all ${item.pct>=80?'bg-emerald-500': item.pct>=50?'bg-amber-500':'bg-indigo-500'}`} style={{width: `${Math.min(100,item.pct)}%`}}></div>
+                <div className={`h-full transition-all ${item.pct>=80?'bg-emerald-500': item.pct>=50?'bg-amber-500':'bg-emerald-500'}`} style={{width: `${Math.min(100,item.pct)}%`}}></div>
               </div>
             </div>
           ))}

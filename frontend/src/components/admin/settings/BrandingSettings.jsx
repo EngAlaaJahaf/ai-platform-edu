@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Palette, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
 
 export default function BrandingSettings({ settings, setSettings }) {
@@ -17,7 +17,7 @@ export default function BrandingSettings({ settings, setSettings }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="theme-bg-card p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
           <h3 className="text-sm font-black theme-text-primary border-b border-slate-200 dark:border-slate-800 pb-2 mb-4 flex items-center gap-2">
-            <Palette className="w-4 h-4 text-indigo-400" />
+            <Palette className="w-4 h-4 text-emerald-400" />
             النصوص الأساسية
           </h3>
           
@@ -29,7 +29,7 @@ export default function BrandingSettings({ settings, setSettings }) {
                 name="platform_name"
                 value={settings.platform_name || ''} 
                 onChange={handleChange}
-                className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-indigo-500 transition" 
+                className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-emerald-500 transition" 
               />
             </div>
             <div>
@@ -39,7 +39,7 @@ export default function BrandingSettings({ settings, setSettings }) {
                 name="platform_subtitle"
                 value={settings.platform_subtitle || ''} 
                 onChange={handleChange}
-                className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-indigo-500 transition" 
+                className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-emerald-500 transition" 
               />
             </div>
             <div>
@@ -49,7 +49,7 @@ export default function BrandingSettings({ settings, setSettings }) {
                 name="university_name"
                 value={settings.university_name || ''} 
                 onChange={handleChange}
-                className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-indigo-500 transition" 
+                className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-emerald-500 transition" 
               />
             </div>
             <div>
@@ -59,7 +59,7 @@ export default function BrandingSettings({ settings, setSettings }) {
                 name="faculty_name"
                 value={settings.faculty_name || ''} 
                 onChange={handleChange}
-                className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-indigo-500 transition" 
+                className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-emerald-500 transition" 
               />
             </div>
           </div>
@@ -68,7 +68,7 @@ export default function BrandingSettings({ settings, setSettings }) {
         <div className="space-y-6">
           <div className="theme-bg-card p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
             <h3 className="text-sm font-black theme-text-primary border-b border-slate-200 dark:border-slate-800 pb-2 mb-4 flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-cyan-400" />
+              <ImageIcon className="w-4 h-4 text-teal-400" />
               الترحيب والشعارات
             </h3>
             
@@ -80,7 +80,7 @@ export default function BrandingSettings({ settings, setSettings }) {
                   name="welcome_headline"
                   value={settings.welcome_headline || ''} 
                   onChange={handleChange}
-                  className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-indigo-500 transition" 
+                  className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-emerald-500 transition" 
                 />
               </div>
               <div>
@@ -90,7 +90,7 @@ export default function BrandingSettings({ settings, setSettings }) {
                   value={settings.welcome_description || ''} 
                   onChange={handleChange}
                   rows={3}
-                  className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-indigo-500 transition resize-none" 
+                  className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-emerald-500 transition resize-none" 
                 />
               </div>
               <div>
@@ -101,7 +101,7 @@ export default function BrandingSettings({ settings, setSettings }) {
                   placeholder="https://..."
                   value={settings.custom_logo_url || ''} 
                   onChange={handleChange}
-                  className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-indigo-500 transition font-mono" 
+                  className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-emerald-500 transition font-mono" 
                 />
               </div>
             </div>

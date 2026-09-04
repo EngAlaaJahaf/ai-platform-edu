@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { 
   X, 
   Settings, 
@@ -420,7 +420,7 @@ export default function AdminDashboardModal({
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-cyan-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-600/30">
               <Settings className="w-6 h-6" />
             </div>
             <div>
@@ -446,7 +446,7 @@ export default function AdminDashboardModal({
             <button
               onClick={handleSaveSettings}
               disabled={saving}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5 border border-white/20 disabled:opacity-50"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5 border border-white/20 disabled:opacity-50"
             >
               <Save className="w-3.5 h-3.5" />
               <span>{saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}</span>
@@ -472,8 +472,8 @@ export default function AdminDashboardModal({
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
                   isSelected
-                    ? 'bg-indigo-600 text-white shadow-md'
-                    : 'theme-card-inner border hover:border-indigo-400/40 theme-text-secondary'
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'theme-card-inner border hover:border-emerald-400/40 theme-text-secondary'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -494,7 +494,7 @@ export default function AdminDashboardModal({
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
                 <div className="p-4 rounded-2xl theme-card-inner border space-y-1.5">
                   <span className="text-[11px] theme-text-muted flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-cyan-500" /> إجمالي المستندات
+                    <FileText className="w-3.5 h-3.5 text-teal-500" /> إجمالي المستندات
                   </span>
                   <div className="text-2xl font-black theme-text-primary">{stats?.total_documents || 0}</div>
                   <span className="text-[10px] theme-text-muted">{stats?.total_pages || 0} صفحة مفهرسة</span>
@@ -518,7 +518,7 @@ export default function AdminDashboardModal({
 
                 <div className="p-4 rounded-2xl theme-card-inner border space-y-1.5">
                   <span className="text-[11px] theme-text-muted flex items-center gap-1.5">
-                    <Database className="w-3.5 h-3.5 text-indigo-500" /> سعة قاعدة البيانات
+                    <Database className="w-3.5 h-3.5 text-emerald-500" /> سعة قاعدة البيانات
                   </span>
                   <div className="text-2xl font-black theme-text-primary">{stats?.database_size_kb || 0} KB</div>
                   <span className="text-[10px] text-emerald-500 font-bold">SQLite نشط وسريع ✓</span>
@@ -529,7 +529,7 @@ export default function AdminDashboardModal({
               <div className="glass-card rounded-2xl p-6 border space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-black theme-text-primary flex items-center gap-2">
-                    <Server className="w-4 h-4 text-cyan-500" />
+                    <Server className="w-4 h-4 text-teal-500" />
                     <span>حالة خوادم ومحركات المنصة الحالية</span>
                   </h4>
                   <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-black flex items-center gap-1.5">
@@ -594,8 +594,8 @@ export default function AdminDashboardModal({
                         <td className="px                {/* Provider & Key Configuration */}
                 <div className="glass-card rounded-2xl p-5 border space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-black uppercase text-indigo-500 dark:text-cyan-300 flex items-center gap-1.5">
-                      <KeyRound className="w-4 h-4 text-cyan-500" /> إعداد المزود والمفاتيح
+                    <h4 className="text-xs font-black uppercase text-emerald-500 dark:text-teal-300 flex items-center gap-1.5">
+                      <KeyRound className="w-4 h-4 text-teal-500" /> إعداد المزود والمفاتيح
                     </h4>
                     <span className="text-[10px] text-emerald-500 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full">
                       {dynamicModels.length > 0 ? `${dynamicModels.length} نموذج متاح` : 'جاهز للربط'}
@@ -618,17 +618,17 @@ export default function AdminDashboardModal({
                             onClick={() => handleProviderSelect(p.id)}
                             className={`p-2.5 rounded-xl border text-right transition-all flex flex-col justify-between h-18 ${
                               isSelected
-                                ? 'border-cyan-500 bg-cyan-500/10 shadow-md ring-2 ring-cyan-500/30'
+                                ? 'border-teal-500 bg-teal-500/10 shadow-md ring-2 ring-teal-500/30'
                                 : 'theme-card-inner border-transparent hover:border-slate-300 dark:hover:border-slate-700'
                             }`}
                           >
                             <div className="flex items-center justify-between w-full">
-                              <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-cyan-500' : 'theme-text-muted'}`} />
-                              <span className={`text-[8px] font-bold px-1 py-0.5 rounded ${isSelected ? 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-300' : 'theme-text-muted'}`}>
+                              <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-teal-500' : 'theme-text-muted'}`} />
+                              <span className={`text-[8px] font-bold px-1 py-0.5 rounded ${isSelected ? 'bg-teal-500/20 text-teal-700 dark:text-teal-300' : 'theme-text-muted'}`}>
                                 {p.tag}
                               </span>
                             </div>
-                            <span className={`text-xs font-bold ${isSelected ? 'text-cyan-600 dark:text-cyan-400 font-black' : 'theme-text-primary'}`}>
+                            <span className={`text-xs font-bold ${isSelected ? 'text-teal-600 dark:text-teal-400 font-black' : 'theme-text-primary'}`}>
                               {p.name}
                             </span>
                           </button>
@@ -658,7 +658,7 @@ export default function AdminDashboardModal({
                             type="button"
                             onClick={() => handleFetchModels(provider, baseUrl, apiKey)}
                             disabled={fetchingModels}
-                            className="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shrink-0 transition flex items-center gap-1.5 shadow-md disabled:opacity-50"
+                            className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shrink-0 transition flex items-center gap-1.5 shadow-md disabled:opacity-50"
                             title="جلب وتحديث النماذج المثبتة من هذا الرابط"
                           >
                             <RefreshCw className={`w-3.5 h-3.5 ${fetchingModels ? 'animate-spin' : ''}`} />
@@ -677,7 +677,7 @@ export default function AdminDashboardModal({
                             href="https://aistudio.google.com/app/apikey" 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-[11px] text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-1 font-bold"
+                            className="text-[11px] text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1 font-bold"
                           >
                             <span>الحصول على مفتاح مجاني</span>
                             <ExternalLink className="w-3 h-3" />
@@ -709,7 +709,7 @@ export default function AdminDashboardModal({
                       {/* Model Input / Trigger */}
                       <div 
                         onClick={() => setIsModelDropdownOpen(true)}
-                        className="w-full theme-card-inner border focus-within:border-cyan-500 rounded-xl px-3 py-2 text-xs flex items-center justify-between cursor-pointer"
+                        className="w-full theme-card-inner border focus-within:border-teal-500 rounded-xl px-3 py-2 text-xs flex items-center justify-between cursor-pointer"
                       >
                         <div className="flex items-center gap-2 flex-1 overflow-hidden">
                           <Search className="w-3.5 h-3.5 theme-text-muted shrink-0" />
@@ -743,10 +743,10 @@ export default function AdminDashboardModal({
                                 setSelectedModel(searchModelQuery.trim());
                                 setIsModelDropdownOpen(false);
                               }}
-                              className="w-full text-right p-2 rounded-xl bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 hover:bg-cyan-500/25 transition flex items-center justify-between"
+                              className="w-full text-right p-2 rounded-xl bg-teal-500/15 text-teal-600 dark:text-teal-300 hover:bg-teal-500/25 transition flex items-center justify-between"
                             >
                               <span>استخدام النموذج المخصص: <span className="font-mono">{searchModelQuery}</span></span>
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 font-normal">مخصص</span>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/20 font-normal">مخصص</span>
                             </button>
                           )}
 
@@ -762,13 +762,13 @@ export default function AdminDashboardModal({
                                 }}
                                 className={`w-full text-right p-2 rounded-xl transition flex items-center justify-between ${
                                   isCurrent 
-                                    ? 'bg-indigo-600 text-white font-black' 
+                                    ? 'bg-emerald-600 text-white font-black' 
                                     : 'theme-card-inner hover:bg-white/10 theme-text-primary'
                                 }`}
                               >
                                 <div className="space-y-0.5">
                                   <span className="block font-mono text-xs">{m.id}</span>
-                                  {m.name && <span className={`text-[10px] block ${isCurrent ? 'text-indigo-100' : 'theme-text-muted'}`}>{m.name}</span>}
+                                  {m.name && <span className={`text-[10px] block ${isCurrent ? 'text-emerald-100' : 'theme-text-muted'}`}>{m.name}</span>}
                                 </div>
                                 {isCurrent && <Check className="w-4 h-4 text-white shrink-0" />}
                               </button>
@@ -789,7 +789,7 @@ export default function AdminDashboardModal({
                       type="button"
                       onClick={handleValidateConnection}
                       disabled={validating}
-                      className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition flex items-center justify-center gap-2 shadow-md shadow-indigo-600/25 disabled:opacity-50 mt-1"
+                      className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition flex items-center justify-center gap-2 shadow-md shadow-emerald-600/25 disabled:opacity-50 mt-1"
                     >
                       <Zap className={`w-4 h-4 ${validating ? 'animate-spin' : ''}`} />
                       <span>{validating ? 'جاري فحص الاتصال بالمحرك...' : 'اختبار الاتصال والمفتاح الآن'}</span>
@@ -818,7 +818,7 @@ export default function AdminDashboardModal({
                       type="button"
                       onClick={handleValidateConnection}
                       disabled={validating}
-                      className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition flex items-center justify-center gap-2"
+                      className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition flex items-center justify-center gap-2"
                     >
                       <Zap className={`w-4 h-4 ${validating ? 'animate-spin' : ''}`} />
                       <span>{validating ? 'جاري فحص الاتصال بالمحرك...' : 'اختبار الاتصال والمفتاح الآن'}</span>
@@ -839,8 +839,8 @@ export default function AdminDashboardModal({
 
                 {/* Hyperparameters & AI Tuning */}
                 <div className="glass-card rounded-2xl p-5 border space-y-4">
-                  <h4 className="text-xs font-black uppercase text-indigo-500 dark:text-cyan-300 flex items-center gap-1.5">
-                    <Sliders className="w-4 h-4 text-cyan-500" /> ضبط معايير التوليد (Hyperparameters)
+                  <h4 className="text-xs font-black uppercase text-emerald-500 dark:text-teal-300 flex items-center gap-1.5">
+                    <Sliders className="w-4 h-4 text-teal-500" /> ضبط معايير التوليد (Hyperparameters)
                   </h4>
 
                   <div className="space-y-4 text-xs">
@@ -856,7 +856,7 @@ export default function AdminDashboardModal({
                         step="0.05"
                         value={settings.temperature ?? 0.3}
                         onChange={(e) => setSettings({ ...settings, temperature: parseFloat(e.target.value) })}
-                        className="w-full accent-indigo-600"
+                        className="w-full accent-emerald-600"
                       />
                       <span className="text-[10px] theme-text-muted block mt-1">القيمة 0.2 - 0.4 مثالية للدقة الأكاديمية الصارمة</span>
                     </div>
@@ -873,11 +873,11 @@ export default function AdminDashboardModal({
                         step="1"
                         value={settings.auto_rag_chunks ?? 4}
                         onChange={(e) => setSettings({ ...settings, auto_rag_chunks: parseInt(e.target.value) })}
-                        className="w-full accent-indigo-600"
+                        className="w-full accent-emerald-600"
                       />
                     </div>
 
-                    <div className="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs theme-text-primary leading-relaxed">
+                    <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs theme-text-primary leading-relaxed">
                       💡 <b>نصيحة إدارية:</b> محرك <b>Gemini 1.5 Flash</b> يمتاز بنافذة سياق ضخمة وسرعة استجابة فائقة، وهو مهيأ تلقائياً للتعامل مع ملفات الكتب والمحاضرات الجامعية.
                     </div>
                   </div>
@@ -905,7 +905,7 @@ export default function AdminDashboardModal({
                       <div key={p.id} className="p-3 rounded-2xl theme-card-inner border space-y-1.5">
                         <div className="flex items-center justify-between">
                           <b className="text-xs font-black theme-text-primary">{p.title}</b>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-600 dark:text-cyan-400">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-teal-400">
                             {p.category}
                           </span>
                         </div>
@@ -928,12 +928,12 @@ export default function AdminDashboardModal({
 
                 {/* Create New Prompt Form & AI Generator */}
                 <div className="md:col-span-7 glass-card rounded-2xl p-5 border space-y-4">
-                  <h4 className="text-xs font-black uppercase text-indigo-500 dark:text-cyan-300 flex items-center gap-1.5">
-                    <Plus className="w-4 h-4 text-cyan-500" /> إضافة أو توليد قالب توجيه جديد
+                  <h4 className="text-xs font-black uppercase text-emerald-500 dark:text-teal-300 flex items-center gap-1.5">
+                    <Plus className="w-4 h-4 text-teal-500" /> إضافة أو توليد قالب توجيه جديد
                   </h4>
 
                   {/* AI Prompt Generator Box */}
-                  <div className="p-3.5 rounded-xl bg-gradient-to-r from-indigo-500/10 to-cyan-500/10 border border-indigo-500/20 space-y-2">
+                  <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 space-y-2">
                     <span className="text-xs font-bold theme-text-primary flex items-center gap-1.5">
                       <Wand2 className="w-3.5 h-3.5 text-amber-400" /> مولد البرومبتات الذكي
                     </span>
@@ -943,13 +943,13 @@ export default function AdminDashboardModal({
                         value={aiPromptGoal}
                         onChange={(e) => setAiPromptGoal(e.target.value)}
                         placeholder="مثال: اجعل الاختبار يركز على أسئلة الحالات السريرية المعقدة..."
-                        className="w-full p-2 rounded-xl theme-card-inner border text-xs theme-text-primary outline-none focus:border-cyan-500"
+                        className="w-full p-2 rounded-xl theme-card-inner border text-xs theme-text-primary outline-none focus:border-teal-500"
                       />
                       <button
                         type="button"
                         onClick={handleGeneratePromptWithAI}
                         disabled={isGeneratingPrompt || !aiPromptGoal.trim()}
-                        className="px-3 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs shrink-0 disabled:opacity-50"
+                        className="px-3 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs shrink-0 disabled:opacity-50"
                       >
                         {isGeneratingPrompt ? 'توليد...' : 'توليد ✨'}
                       </button>
@@ -979,7 +979,7 @@ export default function AdminDashboardModal({
                           value={promptTitle}
                           onChange={(e) => setPromptTitle(e.target.value)}
                           placeholder="مثال: أسئلة امتحانات بورد طبية"
-                          className="w-full p-2.5 rounded-xl theme-card-inner border theme-text-primary outline-none focus:border-cyan-500"
+                          className="w-full p-2.5 rounded-xl theme-card-inner border theme-text-primary outline-none focus:border-teal-500"
                           required
                         />
                       </div>
@@ -992,14 +992,14 @@ export default function AdminDashboardModal({
                         onChange={(e) => setPromptText(e.target.value)}
                         placeholder="أنت أستاذ جامعي معتمد..."
                         rows={5}
-                        className="w-full p-3 rounded-xl theme-card-inner border theme-text-primary outline-none focus:border-cyan-500 leading-relaxed font-mono text-[11px]"
+                        className="w-full p-3 rounded-xl theme-card-inner border theme-text-primary outline-none focus:border-teal-500 leading-relaxed font-mono text-[11px]"
                         required
                       />
                     </div>
 
                     <button
                       type="submit"
-                      className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-bold text-xs shadow-md transition"
+                      className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs shadow-md transition"
                     >
                       حفظ القالب في بنك البرومبتات
                     </button>
@@ -1020,8 +1020,8 @@ export default function AdminDashboardModal({
                 
                 {/* Feature Toggles */}
                 <div className="glass-card rounded-2xl p-5 border space-y-4">
-                  <h4 className="text-xs font-black uppercase text-indigo-500 dark:text-cyan-300 flex items-center gap-1.5">
-                    <ShieldAlert className="w-4 h-4 text-cyan-500" /> تفعيل / تعطيل أقسام المنصة
+                  <h4 className="text-xs font-black uppercase text-emerald-500 dark:text-teal-300 flex items-center gap-1.5">
+                    <ShieldAlert className="w-4 h-4 text-teal-500" /> تفعيل / تعطيل أقسام المنصة
                   </h4>
 
                   <div className="space-y-3">
@@ -1037,7 +1037,7 @@ export default function AdminDashboardModal({
                           type="checkbox"
                           checked={settings[feat.key] ?? true}
                           onChange={(e) => setSettings({ ...settings, [feat.key]: e.target.checked })}
-                          className="w-4 h-4 accent-indigo-600 rounded cursor-pointer"
+                          className="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
                         />
                       </div>
                     ))}
@@ -1046,8 +1046,8 @@ export default function AdminDashboardModal({
 
                 {/* Upload & Storage Limits */}
                 <div className="glass-card rounded-2xl p-5 border space-y-4">
-                  <h4 className="text-xs font-black uppercase text-indigo-500 dark:text-cyan-300 flex items-center gap-1.5">
-                    <Sliders className="w-4 h-4 text-cyan-500" /> حدود الرفع والملفات
+                  <h4 className="text-xs font-black uppercase text-emerald-500 dark:text-teal-300 flex items-center gap-1.5">
+                    <Sliders className="w-4 h-4 text-teal-500" /> حدود الرفع والملفات
                   </h4>
 
                   <div className="space-y-3">
@@ -1059,7 +1059,7 @@ export default function AdminDashboardModal({
                         max="200"
                         value={settings.max_upload_size_mb ?? 50}
                         onChange={(e) => setSettings({ ...settings, max_upload_size_mb: parseInt(e.target.value) })}
-                        className="w-full p-2.5 rounded-xl theme-card-inner border theme-text-primary outline-none focus:border-cyan-500 font-mono"
+                        className="w-full p-2.5 rounded-xl theme-card-inner border theme-text-primary outline-none focus:border-teal-500 font-mono"
                       />
                     </div>
 
@@ -1069,7 +1069,7 @@ export default function AdminDashboardModal({
                         type="text"
                         value={settings.system_notice || ''}
                         onChange={(e) => setSettings({ ...settings, system_notice: e.target.value })}
-                        className="w-full p-2.5 rounded-xl theme-card-inner border theme-text-primary outline-none focus:border-cyan-500"
+                        className="w-full p-2.5 rounded-xl theme-card-inner border theme-text-primary outline-none focus:border-teal-500"
                       />
                     </div>
                   </div>
@@ -1087,7 +1087,7 @@ export default function AdminDashboardModal({
                 <h4 className="text-sm font-black theme-text-primary">سجل العمليات والأحداث الحية ({logs.length})</h4>
                 <button
                   onClick={loadAllData}
-                  className="text-xs text-cyan-500 hover:underline font-bold flex items-center gap-1"
+                  className="text-xs text-teal-500 hover:underline font-bold flex items-center gap-1"
                 >
                   <RefreshCw className="w-3 h-3" /> تحديث السجل
                 </button>
@@ -1100,7 +1100,7 @@ export default function AdminDashboardModal({
                       <span className={`w-2 h-2 rounded-full shrink-0 ${
                         log.level === 'success' ? 'bg-emerald-500' :
                         log.level === 'warn' ? 'bg-amber-500' :
-                        log.level === 'error' ? 'bg-rose-500' : 'bg-cyan-500'
+                        log.level === 'error' ? 'bg-rose-500' : 'bg-teal-500'
                       }`}></span>
                       <div>
                         <b className="theme-text-primary block">{log.details || log.action}</b>

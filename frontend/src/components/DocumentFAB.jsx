@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { 
   Plus, 
   FolderOpen, 
@@ -50,7 +50,7 @@ export default function DocumentFAB({
               </div>
             </div>
             {activeDoc && (
-              <span className="text-[10px] px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-500 dark:text-cyan-400 font-bold shrink-0">
+              <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-500 dark:text-teal-400 font-bold shrink-0">
                 {activeDoc.pages_count || 1} صفحة
               </span>
             )}
@@ -62,7 +62,7 @@ export default function DocumentFAB({
               setIsOpen(false);
               onOpenUpload();
             }}
-            className="w-full text-right p-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-black transition flex items-center justify-between shadow-md shadow-indigo-600/20"
+            className="w-full text-right p-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black transition flex items-center justify-between shadow-md shadow-emerald-600/20"
           >
             <div className="flex items-center gap-2">
               <Plus className="w-4 h-4 text-white" />
@@ -77,10 +77,10 @@ export default function DocumentFAB({
               setIsOpen(false);
               onOpenDocumentLibrary();
             }}
-            className="w-full text-right p-2.5 rounded-xl theme-card-inner hover:border-cyan-500 hover:text-cyan-600 dark:hover:text-cyan-400 transition flex items-center justify-between theme-text-primary"
+            className="w-full text-right p-2.5 rounded-xl theme-card-inner hover:border-teal-500 hover:text-teal-600 dark:hover:text-teal-400 transition flex items-center justify-between theme-text-primary"
           >
             <div className="flex items-center gap-2">
-              <FolderOpen className="w-4 h-4 text-cyan-500" />
+              <FolderOpen className="w-4 h-4 text-teal-500" />
               <span>استعراض مكتبة المقررات المحفوظة</span>
             </div>
             <ArrowUpDown className="w-3.5 h-3.5 theme-text-muted" />
@@ -91,7 +91,7 @@ export default function DocumentFAB({
       {/* Main Floating Capsule Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="glass-panel group relative flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border shadow-xl hover:shadow-indigo-500/20 hover:border-indigo-500/50 transition-all transform hover:scale-[1.03] active:scale-95"
+        className="glass-panel group relative flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border shadow-xl hover:shadow-emerald-500/20 hover:border-emerald-500/50 transition-all transform hover:scale-[1.03] active:scale-95"
         title="إدارة المقررات ورفع المستندات (انقر للاستعراض)"
       >
         {activeDoc ? (
@@ -102,7 +102,7 @@ export default function DocumentFAB({
             </span>
 
             <div className="flex items-center gap-2 max-w-[200px] sm:max-w-[260px]">
-              <BookOpen className="w-4 h-4 text-indigo-500 dark:text-cyan-400 shrink-0" />
+              <BookOpen className="w-4 h-4 text-emerald-500 dark:text-teal-400 shrink-0" />
               <span className="font-black text-xs theme-text-primary truncate">
                 {activeDoc.filename}
               </span>
@@ -111,13 +111,13 @@ export default function DocumentFAB({
               </span>
             </div>
 
-            <div className="p-1 rounded-lg bg-indigo-600 text-white shadow-sm group-hover:rotate-180 transition-transform duration-300">
+            <div className="p-1 rounded-lg bg-emerald-600 text-white shadow-sm group-hover:rotate-180 transition-transform duration-300">
               <ChevronUp className={`w-3.5 h-3.5 ${isOpen ? 'rotate-180' : ''}`} />
             </div>
           </>
         ) : (
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-r from-indigo-600 to-cyan-600 flex items-center justify-center text-white shadow-sm">
+            <div className="w-6 h-6 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 flex items-center justify-center text-white shadow-sm">
               <Plus className="w-4 h-4" />
             </div>
             <span className="font-black text-xs theme-text-primary">اختر أو ارفع مادة</span>

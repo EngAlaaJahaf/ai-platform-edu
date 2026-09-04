@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { 
   X, 
   FolderOpen, 
@@ -137,13 +137,13 @@ export default function DocumentLibraryModal({
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25">
               <FolderOpen className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-xl font-black theme-text-primary">مكتبة المستندات والمقررات</h3>
-                <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 font-bold text-xs">
+                <span className="px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-600 dark:text-teal-400 font-bold text-xs">
                   {documents.length} مستندات
                 </span>
               </div>
@@ -159,7 +159,7 @@ export default function DocumentLibraryModal({
                 onClose();
                 onOpenUpload();
               }}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5 border border-white/20"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5 border border-white/20"
             >
               <Upload className="w-3.5 h-3.5" />
               <span>رفع مادة جديدة</span>
@@ -183,7 +183,7 @@ export default function DocumentLibraryModal({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="ابحث في أسماء أو نصوص الملفات..."
-              className="w-full pr-9 pl-3 py-2 rounded-xl theme-card-inner border text-xs theme-text-primary placeholder-slate-400 outline-none focus:border-cyan-500 font-['Tajawal']"
+              className="w-full pr-9 pl-3 py-2 rounded-xl theme-card-inner border text-xs theme-text-primary placeholder-slate-400 outline-none focus:border-teal-500 font-['Tajawal']"
             />
           </div>
 
@@ -191,7 +191,7 @@ export default function DocumentLibraryModal({
             <button
               onClick={loadDocs}
               disabled={loading}
-              className="p-2 rounded-xl theme-header-btn border hover:text-cyan-500 transition"
+              className="p-2 rounded-xl theme-header-btn border hover:text-teal-500 transition"
               title="تحديث القائمة"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -204,12 +204,12 @@ export default function DocumentLibraryModal({
         <div className="flex-1 overflow-y-auto pr-1 space-y-3 min-h-[300px]">
           {loading ? (
             <div className="py-20 text-center space-y-3 animate-pulse">
-              <RefreshCw className="w-8 h-8 animate-spin text-cyan-500 mx-auto" />
+              <RefreshCw className="w-8 h-8 animate-spin text-teal-500 mx-auto" />
               <p className="text-xs theme-text-muted">جاري تحميل مكتبة المستندات...</p>
             </div>
           ) : filteredDocs.length === 0 ? (
             <div className="py-20 text-center space-y-3 glass-card rounded-2xl p-8 border">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-500 mx-auto flex items-center justify-center">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 mx-auto flex items-center justify-center">
                 <FileText className="w-6 h-6" />
               </div>
               <h4 className="text-sm font-bold theme-text-primary">
@@ -223,7 +223,7 @@ export default function DocumentLibraryModal({
                   onClose();
                   onOpenUpload();
                 }}
-                className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md transition inline-flex items-center gap-2"
+                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md transition inline-flex items-center gap-2"
               >
                 <Upload className="w-4 h-4" />
                 <span>رفع مستند الآن</span>
@@ -240,15 +240,15 @@ export default function DocumentLibraryModal({
                     key={doc.id}
                     className={`p-4 rounded-2xl border transition-all duration-200 flex flex-col justify-between space-y-3 ${
                       isActive
-                        ? 'bg-gradient-to-br from-indigo-50 to-cyan-50/50 dark:from-indigo-950/70 dark:to-cyan-950/40 border-cyan-500 shadow-md ring-2 ring-cyan-500/20'
-                        : 'theme-card-inner border hover:border-indigo-400/40'
+                        ? 'bg-gradient-to-br from-emerald-50 to-teal-50/50 dark:from-emerald-950/70 dark:to-teal-950/40 border-teal-500 shadow-md ring-2 ring-teal-500/20'
+                        : 'theme-card-inner border hover:border-emerald-400/40'
                     }`}
                   >
                     
                     {/* Top Row: File Name & Active Badge */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-start gap-2.5 flex-1 overflow-hidden">
-                        <span className={`p-2 rounded-xl shrink-0 mt-0.5 ${isActive ? 'bg-cyan-500 text-white' : 'bg-indigo-500/15 text-indigo-600 dark:text-cyan-400'}`}>
+                        <span className={`p-2 rounded-xl shrink-0 mt-0.5 ${isActive ? 'bg-teal-500 text-white' : 'bg-emerald-500/15 text-emerald-600 dark:text-teal-400'}`}>
                           <FileText className="w-4 h-4" />
                         </span>
 
@@ -259,7 +259,7 @@ export default function DocumentLibraryModal({
                                 type="text"
                                 value={editTitle}
                                 onChange={(e) => setEditTitle(e.target.value)}
-                                className="px-2.5 py-1 rounded-lg border theme-card-inner text-xs font-bold theme-text-primary outline-none focus:border-cyan-500 w-full"
+                                className="px-2.5 py-1 rounded-lg border theme-card-inner text-xs font-bold theme-text-primary outline-none focus:border-teal-500 w-full"
                                 autoFocus
                               />
                               <button
@@ -285,7 +285,7 @@ export default function DocumentLibraryModal({
                                 </b>
                                 <button
                                   onClick={() => handleStartEdit(doc)}
-                                  className="theme-text-muted hover:text-cyan-500 transition"
+                                  className="theme-text-muted hover:text-teal-500 transition"
                                   title="تعديل اسم المستند"
                                 >
                                   <Edit3 className="w-3 h-3" />
@@ -300,7 +300,7 @@ export default function DocumentLibraryModal({
                       </div>
 
                       {isActive ? (
-                        <span className="px-2.5 py-0.5 rounded-full bg-cyan-500 text-white text-[10px] font-black shrink-0 shadow-sm flex items-center gap-1">
+                        <span className="px-2.5 py-0.5 rounded-full bg-teal-500 text-white text-[10px] font-black shrink-0 shadow-sm flex items-center gap-1">
                           <Check className="w-3 h-3" /> نشط حالياً
                         </span>
                       ) : (
@@ -308,7 +308,7 @@ export default function DocumentLibraryModal({
                           onClick={() => {
                             onSelectDoc(doc);
                           }}
-                          className="px-2.5 py-1 rounded-xl theme-header-btn border text-[11px] font-bold shrink-0 hover:border-cyan-500 hover:text-cyan-600 transition"
+                          className="px-2.5 py-1 rounded-xl theme-header-btn border text-[11px] font-bold shrink-0 hover:border-teal-500 hover:text-teal-600 transition"
                           title="تعيين كملف نشط للمنصة"
                         >
                           تفعيل الآن
@@ -329,16 +329,16 @@ export default function DocumentLibraryModal({
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => handleAction(doc, 'summary')}
-                          className="px-2 py-1 rounded-lg text-[10px] font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-500/25 transition flex items-center gap-1"
+                          className="px-2 py-1 rounded-lg text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 transition flex items-center gap-1"
                           title="الانتقال للملخص"
                         >
-                          <BookMarked className="w-3 h-3 text-cyan-500" />
+                          <BookMarked className="w-3 h-3 text-teal-500" />
                           <span>تلخيص</span>
                         </button>
 
                         <button
                           onClick={() => handleAction(doc, 'quiz')}
-                          className="px-2 py-1 rounded-lg text-[10px] font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-500/25 transition flex items-center gap-1"
+                          className="px-2 py-1 rounded-lg text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 transition flex items-center gap-1"
                           title="الانتقال للاختبار"
                         >
                           <Sparkles className="w-3 h-3 text-amber-400" />
@@ -347,10 +347,10 @@ export default function DocumentLibraryModal({
 
                         <button
                           onClick={() => handleAction(doc, 'chat')}
-                          className="px-2 py-1 rounded-lg text-[10px] font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-500/25 transition flex items-center gap-1"
+                          className="px-2 py-1 rounded-lg text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 transition flex items-center gap-1"
                           title="الانتقال للمحادثة"
                         >
-                          <MessageSquare className="w-3 h-3 text-indigo-400" />
+                          <MessageSquare className="w-3 h-3 text-emerald-400" />
                           <span>محادثة</span>
                         </button>
                       </div>
@@ -359,7 +359,7 @@ export default function DocumentLibraryModal({
                       <div className="flex items-center gap-1">
                         <button
                           onClick={(e) => handlePreview(doc.id, e)}
-                          className="p-1.5 rounded-lg theme-header-btn border hover:text-cyan-500 transition"
+                          className="p-1.5 rounded-lg theme-header-btn border hover:text-teal-500 transition"
                           title="معاينة محتوى المستند"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -389,7 +389,7 @@ export default function DocumentLibraryModal({
             <div className="relative w-full max-w-3xl glass-panel rounded-3xl p-6 border shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
               <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
                 <div className="flex items-center gap-2.5">
-                  <FileText className="w-5 h-5 text-cyan-500" />
+                  <FileText className="w-5 h-5 text-teal-500" />
                   <div>
                     <h4 className="text-sm font-black theme-text-primary">{previewDoc.filename}</h4>
                     <p className="text-[11px] theme-text-muted">
@@ -416,7 +416,7 @@ export default function DocumentLibraryModal({
                     setPreviewDoc(null);
                     onClose();
                   }}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-bold text-xs"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs"
                 >
                   تعيين كمستند نشط وبدء الدراسة
                 </button>

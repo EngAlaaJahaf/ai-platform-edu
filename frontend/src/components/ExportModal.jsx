@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { 
   X, 
   Download, 
@@ -97,7 +97,7 @@ export default function ExportModal({
       desc: 'ملف ويب متكامل بتنسيق أكاديمي أنيق يعمل دون إنترنت مع خطوط مدمجة وفهرس تنقل',
       icon: FileCode,
       badge: 'تفاعلي 🌐',
-      badgeColor: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border-cyan-500/30'
+      badgeColor: 'bg-teal-500/15 text-teal-600 dark:text-teal-300 border-teal-500/30'
     },
     {
       id: 'md',
@@ -105,7 +105,7 @@ export default function ExportModal({
       desc: 'مناسب لبرامج تدوين الملاحظات مثل Obsidian و Notion مع جداول منسقة',
       icon: FileText,
       badge: 'للملاحظات 📝',
-      badgeColor: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border-indigo-500/30'
+      badgeColor: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-500/30'
     },
     {
       id: 'txt',
@@ -178,7 +178,7 @@ export default function ExportModal({
 
         {/* Modal Header */}
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25">
             <Download className="w-6 h-6" />
           </div>
           <div>
@@ -195,7 +195,7 @@ export default function ExportModal({
             <label className="text-xs font-black theme-text-primary block">
               1. حدد القسم أو العنصر المطلوب تصديره بدقة:
             </label>
-            <span className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded-full">
               {currentScopeOptions.find(o => o.id === scope)?.label || 'محدد'}
             </span>
           </div>
@@ -210,16 +210,16 @@ export default function ExportModal({
                   onClick={() => setScope(opt.id)}
                   className={`p-3 rounded-2xl border text-right transition flex items-center justify-between gap-2.5 ${
                     isSelected
-                      ? 'bg-indigo-50 dark:bg-indigo-950/60 border-cyan-500 shadow-md ring-2 ring-cyan-500/20'
-                      : 'theme-card-inner border hover:border-indigo-400/40'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 border-teal-500 shadow-md ring-2 ring-teal-500/20'
+                      : 'theme-card-inner border hover:border-emerald-400/40'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className={`p-2 rounded-xl shrink-0 ${isSelected ? 'bg-cyan-500 text-white' : 'bg-indigo-500/15 text-indigo-600 dark:text-cyan-400'}`}>
+                    <div className={`p-2 rounded-xl shrink-0 ${isSelected ? 'bg-teal-500 text-white' : 'bg-emerald-500/15 text-emerald-600 dark:text-teal-400'}`}>
                       <Icon className="w-3.5 h-3.5" />
                     </div>
                     <div className="min-w-0">
-                      <b className={`text-xs font-black block truncate ${isSelected ? 'text-cyan-600 dark:text-cyan-400' : 'theme-text-primary'}`}>
+                      <b className={`text-xs font-black block truncate ${isSelected ? 'text-teal-600 dark:text-teal-400' : 'theme-text-primary'}`}>
                         {opt.label}
                       </b>
                       <span className="text-[10px] theme-text-muted block truncate mt-0.5">
@@ -228,7 +228,7 @@ export default function ExportModal({
                     </div>
                   </div>
 
-                  {isSelected && <span className="w-2 h-2 rounded-full bg-cyan-500 shrink-0"></span>}
+                  {isSelected && <span className="w-2 h-2 rounded-full bg-teal-500 shrink-0"></span>}
                 </button>
               );
             })}
@@ -250,17 +250,17 @@ export default function ExportModal({
                   onClick={() => setFormat(f.id)}
                   className={`p-3 rounded-2xl border text-right transition-all flex items-center justify-between ${
                     isSelected
-                      ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 shadow-md ring-2 ring-indigo-500/20'
-                      : 'theme-card-inner border hover:border-indigo-400/40'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 shadow-md ring-2 ring-emerald-500/20'
+                      : 'theme-card-inner border hover:border-emerald-400/40'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className={`p-2 rounded-xl ${isSelected ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-200 dark:bg-slate-800 theme-text-secondary'}`}>
+                    <div className={`p-2 rounded-xl ${isSelected ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-200 dark:bg-slate-800 theme-text-secondary'}`}>
                       <Icon className="w-3.5 h-3.5" />
                     </div>
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <b className={`text-xs font-black ${isSelected ? 'text-indigo-700 dark:text-cyan-300' : 'theme-text-primary'}`}>
+                        <b className={`text-xs font-black ${isSelected ? 'text-emerald-700 dark:text-teal-300' : 'theme-text-primary'}`}>
                           {f.name.split('(')[0]}
                         </b>
                       </div>
@@ -270,7 +270,7 @@ export default function ExportModal({
                     </div>
                   </div>
 
-                  {isSelected && <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0"></span>}
+                  {isSelected && <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>}
                 </button>
               );
             })}
@@ -289,7 +289,7 @@ export default function ExportModal({
           <button
             onClick={handleExecuteExport}
             disabled={exporting}
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-black text-xs shadow-lg shadow-indigo-600/25 transition flex items-center gap-2 border border-white/20"
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-lg shadow-emerald-600/25 transition flex items-center gap-2 border border-white/20"
           >
             <Download className="w-4 h-4" />
             <span>تصدير {currentScopeOptions.find(o => o.id === scope)?.badge || 'الملف'} الآن</span>

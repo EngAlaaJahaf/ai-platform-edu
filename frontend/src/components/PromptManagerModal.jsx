@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { 
   Wand2, 
   Plus, 
@@ -128,7 +128,7 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25">
               <Sparkles className="w-6 h-6" />
             </div>
             <div>
@@ -149,7 +149,7 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
                 onClick={() => handleTabChange(cat.id)}
                 className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
                   isSelected
-                    ? 'bg-indigo-600 text-white shadow-md'
+                    ? 'bg-emerald-600 text-white shadow-md'
                     : 'theme-text-secondary hover:bg-white/10'
                 }`}
               >
@@ -166,7 +166,7 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
             <button
               onClick={() => setMode('list')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                mode === 'list' ? 'bg-indigo-600 text-white' : 'theme-text-muted hover:theme-text-primary'
+                mode === 'list' ? 'bg-emerald-600 text-white' : 'theme-text-muted hover:theme-text-primary'
               }`}
             >
               القوالب المتاحة ({prompts.length})
@@ -174,7 +174,7 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
             <button
               onClick={() => setMode('generate')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                mode === 'generate' ? 'bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30' : 'theme-text-muted hover:text-cyan-400'
+                mode === 'generate' ? 'bg-teal-500/20 text-teal-600 dark:text-teal-300 border border-teal-500/30' : 'theme-text-muted hover:text-teal-400'
               }`}
             >
               <Wand2 className="w-3.5 h-3.5" />
@@ -184,7 +184,7 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
 
           <button
             onClick={() => setMode('create')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-md"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-md"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>إضافة برومبت يدوي</span>
@@ -196,21 +196,21 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
           <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
             {loading ? (
               <div className="text-center py-12 text-xs theme-text-muted flex items-center justify-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin text-cyan-500" />
+                <Loader2 className="w-4 h-4 animate-spin text-teal-500" />
                 <span>جاري تحميل قوالب البرومبت...</span>
               </div>
             ) : prompts.length > 0 ? (
               prompts.map((p) => (
                 <div
                   key={p.id}
-                  className="p-4 rounded-2xl theme-card-inner border hover:border-indigo-500/40 transition space-y-2 flex flex-col justify-between"
+                  className="p-4 rounded-2xl theme-card-inner border hover:border-emerald-500/40 transition space-y-2 flex flex-col justify-between"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
                         <b className="text-sm font-black theme-text-primary">{p.title}</b>
                         {p.is_default === 1 && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-600 dark:text-indigo-300">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300">
                             أساسي معتمد
                           </span>
                         )}
@@ -261,9 +261,9 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
 
         {/* Mode 2: AI Prompt Generator */}
         {mode === 'generate' && (
-          <div className="p-5 rounded-2xl theme-card-inner border border-cyan-500/30 space-y-4 animate-fade-in">
+          <div className="p-5 rounded-2xl theme-card-inner border border-teal-500/30 space-y-4 animate-fade-in">
             <div className="flex items-center gap-2">
-              <Wand2 className="w-5 h-5 text-cyan-500" />
+              <Wand2 className="w-5 h-5 text-teal-500" />
               <h4 className="text-sm font-black theme-text-primary">مولد البرومبتات الأكاديمي الذكي</h4>
             </div>
 
@@ -277,12 +277,12 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
                 value={taskGoal}
                 onChange={(e) => setTaskGoal(e.target.value)}
                 placeholder="صف أسلوب الأسئلة أو التلخيص الذي تريده في هذا القالب..."
-                className="w-full theme-card-inner border border-indigo-500/30 focus:border-cyan-500 rounded-xl px-4 py-3 text-xs theme-text-primary outline-none"
+                className="w-full theme-card-inner border border-emerald-500/30 focus:border-teal-500 rounded-xl px-4 py-3 text-xs theme-text-primary outline-none"
               />
               <button
                 onClick={handleGenerateAI}
                 disabled={generatingPrompt || !taskGoal.trim()}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold text-xs shadow-lg shadow-teal-500/20 transition flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {generatingPrompt ? (
                   <>
@@ -299,9 +299,9 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
             </div>
 
             {generatedPromptData && (
-              <div className="p-4 rounded-2xl theme-card-inner border border-cyan-500/40 space-y-3 animate-fade-in">
+              <div className="p-4 rounded-2xl theme-card-inner border border-teal-500/40 space-y-3 animate-fade-in">
                 <div className="flex items-center justify-between">
-                  <b className="text-xs font-black text-cyan-600 dark:text-cyan-300">{generatedPromptData.title}</b>
+                  <b className="text-xs font-black text-teal-600 dark:text-teal-300">{generatedPromptData.title}</b>
                   <span className="text-[10px] theme-text-muted">{generatedPromptData.description}</span>
                 </div>
                 <textarea
@@ -325,7 +325,7 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
 
         {/* Mode 3: Manual Create Prompt */}
         {mode === 'create' && (
-          <div className="p-5 rounded-2xl theme-card-inner border border-indigo-500/30 space-y-3 animate-fade-in">
+          <div className="p-5 rounded-2xl theme-card-inner border border-emerald-500/30 space-y-3 animate-fade-in">
             <h4 className="text-sm font-black theme-text-primary">إضافة قالب برومبت مخصص يدوياً</h4>
             
             <div className="space-y-3">
@@ -371,7 +371,7 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
                 <button
                   onClick={handleSaveNewPrompt}
                   disabled={!newTitle.trim() || !newSystemPrompt.trim()}
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-xs font-bold text-white shadow-md shadow-indigo-600/30 font-['Tajawal']"
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-xs font-bold text-white shadow-md shadow-emerald-600/30 font-['Tajawal']"
                 >
                   حفظ القالب
                 </button>

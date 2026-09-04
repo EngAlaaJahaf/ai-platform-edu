@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Users, Shield, Edit3, Trash2, Key, Search, UserPlus, CheckCircle2, X, RotateCcw, BarChart3 } from 'lucide-react';
 
 export default function UserSettings({ 
@@ -76,7 +76,7 @@ export default function UserSettings({
         </div>
         <button
           onClick={() => setIsAddUserOpen(true)}
-          className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 theme-text-primary text-xs font-black shadow-lg shadow-indigo-600/20 transition flex items-center gap-2 cursor-pointer"
+          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 theme-text-primary text-xs font-black shadow-lg shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer"
         >
           <UserPlus className="w-4 h-4" />
           مستخدم جديد +
@@ -85,19 +85,19 @@ export default function UserSettings({
 
       <div className="flex flex-col md:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-500" />
+          <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
           <input
             type="text"
             placeholder="ابحث بالاسم أو البريد الإلكتروني..."
             value={searchUserQuery}
             onChange={(e) => setSearchUserQuery(e.target.value)}
-            className="w-full pl-4 pr-10 py-2.5 rounded-2xl theme-card-inner border text-xs font-bold theme-text-primary focus:border-indigo-500 transition shadow-inner"
+            className="w-full pl-4 pr-10 py-2.5 rounded-2xl theme-card-inner border text-xs font-bold theme-text-primary focus:border-emerald-500 transition shadow-inner"
           />
         </div>
         <select
           value={userRoleFilter}
           onChange={(e) => setUserRoleFilter(e.target.value)}
-          className="w-full md:w-48 px-4 py-2.5 rounded-2xl theme-card-inner border text-xs font-bold theme-text-primary focus:border-indigo-500 transition"
+          className="w-full md:w-48 px-4 py-2.5 rounded-2xl theme-card-inner border text-xs font-bold theme-text-primary focus:border-emerald-500 transition"
         >
           <option value="all">كل الرتب</option>
           <option value="admin">مدير (Admin)</option>
@@ -133,7 +133,7 @@ export default function UserSettings({
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black border ${
                       user.role === 'admin' 
                         ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' 
-                        : 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20'
+                        : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                     }`}>
                       {user.role === 'admin' ? <Shield className="w-3 h-3" /> : <Users className="w-3 h-3" />}
                       {user.role === 'admin' ? 'مدير' : 'طالب'}
@@ -148,7 +148,7 @@ export default function UserSettings({
                     {(() => {
                       const pct = Math.min(100, ((user.tokens_used || 0) / (user.tokens_limit || 500000)) * 100);
                       const color = pct >= 90 ? 'text-rose-500' : pct >= 70 ? 'text-amber-500' : 'theme-text-primary';
-                      const barColor = pct >= 90 ? 'bg-rose-500' : pct >= 70 ? 'bg-amber-500' : 'bg-indigo-500';
+                      const barColor = pct >= 90 ? 'bg-rose-500' : pct >= 70 ? 'bg-amber-500' : 'bg-emerald-500';
                       return (
                         <>
                           <div className="font-mono text-[11px] font-bold">
@@ -174,7 +174,7 @@ export default function UserSettings({
                           } catch(e) {}
                           setEditingUser({ ...user, permissions: parsedPerms });
                         }}
-                        className="p-1.5 rounded-xl theme-header-btn border hover:text-indigo-500 transition cursor-pointer"
+                        className="p-1.5 rounded-xl theme-header-btn border hover:text-emerald-500 transition cursor-pointer"
                         title="تعديل المستخدم والصلاحيات"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
@@ -222,7 +222,7 @@ export default function UserSettings({
           <div className="theme-bg-card w-full max-w-2xl rounded-3xl border border-slate-200 dark:border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-100/50 dark:theme-card-inner/50">
               <h3 className="text-lg font-black theme-text-primary flex items-center gap-2">
-                <Edit3 className="w-5 h-5 text-indigo-400" />
+                <Edit3 className="w-5 h-5 text-emerald-400" />
                 تعديل الصلاحيات المتقدمة ({editingUser.name})
               </h3>
               <button onClick={() => setEditingUser(null)} className="p-2 theme-text-muted hover:theme-text-primary hover:bg-slate-500/10 rounded-xl transition">
@@ -240,7 +240,7 @@ export default function UserSettings({
                       required
                       value={editingUser.name}
                       onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
-                      className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-indigo-500 font-bold transition"
+                      className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-emerald-500 font-bold transition"
                     />
                   </div>
                   <div>
@@ -250,7 +250,7 @@ export default function UserSettings({
                       required
                       value={editingUser.email}
                       onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
-                      className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-indigo-500 font-bold transition font-mono"
+                      className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-emerald-500 font-bold transition font-mono"
                     />
                   </div>
                   <div>
@@ -258,7 +258,7 @@ export default function UserSettings({
                     <select
                       value={editingUser.role}
                       onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
-                      className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-indigo-500 font-bold transition"
+                      className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-emerald-500 font-bold transition"
                     >
                       <option value="student">طالب/باحث</option>
                       <option value="admin">مدير نظام</option>
@@ -270,7 +270,7 @@ export default function UserSettings({
                       type="number"
                       value={editingUser.tokens_used ?? 0}
                       onChange={(e) => setEditingUser({ ...editingUser, tokens_used: parseInt(e.target.value) || 0 })}
-                      className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-indigo-500 font-bold transition font-mono"
+                      className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-emerald-500 font-bold transition font-mono"
                     />
                   </div>
                   <div>
@@ -280,19 +280,19 @@ export default function UserSettings({
                       required
                       value={editingUser.tokens_limit}
                       onChange={(e) => setEditingUser({ ...editingUser, tokens_limit: parseInt(e.target.value) || 0 })}
-                      className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-indigo-500 font-bold transition font-mono"
+                      className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-emerald-500 font-bold transition font-mono"
                     />
                   </div>
                 </div>
                 <div className="p-3 rounded-xl theme-card-inner border flex flex-col sm:flex-row items-center justify-between gap-2">
                   <div className="flex items-center gap-2 text-xs font-bold">
-                    <BarChart3 className="w-4 h-4 text-indigo-500" />
+                    <BarChart3 className="w-4 h-4 text-emerald-500" />
                     <span className="theme-text-primary">النسبة: {Math.min(100, ((editingUser.tokens_used||0)/(editingUser.tokens_limit||1)*100)).toFixed(1)}% مستخدم</span>
                     <span className="theme-text-muted">({(editingUser.tokens_used||0).toLocaleString()} / {(editingUser.tokens_limit||0).toLocaleString()})</span>
                   </div>
                   <div className="flex gap-1.5">
                     <button type="button" onClick={() => setEditingUser(prev=>({...prev, tokens_used:0}))} className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[11px] font-black hover:bg-emerald-500/20 transition flex items-center gap-1"><RotateCcw className="w-3 h-3" /> تصفير محلي</button>
-                    <button type="button" onClick={async()=>{ await handleSetTokens(editingUser.id, 0, editingUser.tokens_limit); setEditingUser(prev=>({...prev, tokens_used:0})); }} className="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-[11px] font-black hover:bg-indigo-700 transition">حفظ التصفير بالخادم</button>
+                    <button type="button" onClick={async()=>{ await handleSetTokens(editingUser.id, 0, editingUser.tokens_limit); setEditingUser(prev=>({...prev, tokens_used:0})); }} className="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-[11px] font-black hover:bg-emerald-700 transition">حفظ التصفير بالخادم</button>
                   </div>
                 </div>
 
@@ -305,7 +305,7 @@ export default function UserSettings({
                           type="checkbox" 
                           checked={hasPermission(editingUser, opt.key)}
                           onChange={(e) => handlePermissionToggle(e, opt.key)}
-                          className="w-4 h-4 rounded theme-card-inner border-white/20 text-indigo-500 focus:ring-indigo-500/50"
+                          className="w-4 h-4 rounded theme-card-inner border-white/20 text-emerald-500 focus:ring-emerald-500/50"
                         />
                         <span className="text-sm theme-text-primary font-bold">{opt.label}</span>
                       </label>
@@ -319,7 +319,7 @@ export default function UserSettings({
               <button onClick={() => setEditingUser(null)} type="button" className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-200 dark:border-slate-800 theme-text-primary hover:bg-slate-100/50 dark:theme-card-inner/50 text-sm font-bold transition">
                 إلغاء
               </button>
-              <button type="submit" form="edit-user-form" className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 theme-text-primary text-sm font-bold shadow-lg shadow-indigo-600/20 transition flex items-center gap-2">
+              <button type="submit" form="edit-user-form" className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 theme-text-primary text-sm font-bold shadow-lg shadow-emerald-600/20 transition flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
                 حفظ التعديلات
               </button>
@@ -334,7 +334,7 @@ export default function UserSettings({
           <div className="theme-bg-card border border-slate-200 dark:border-slate-200 dark:border-slate-800 w-full max-w-md rounded-3xl border shadow-2xl overflow-hidden flex flex-col">
             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-100/50 dark:theme-card-inner/50">
               <h3 className="text-lg font-black theme-text-primary flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-indigo-400" />
+                <UserPlus className="w-5 h-5 text-emerald-400" />
                 مستخدم جديد
               </h3>
               <button onClick={() => setIsAddUserOpen(false)} className="p-2 theme-text-muted hover:theme-text-primary hover:bg-slate-500/10 rounded-xl transition">
@@ -351,7 +351,7 @@ export default function UserSettings({
                     required
                     value={newUserData.name}
                     onChange={(e) => setNewUserData({ ...newUserData, name: e.target.value })}
-                    className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-indigo-500 font-bold transition"
+                    className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-emerald-500 font-bold transition"
                   />
                 </div>
                 <div>
@@ -361,7 +361,7 @@ export default function UserSettings({
                     required
                     value={newUserData.email}
                     onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })}
-                    className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-indigo-500 font-bold transition font-mono"
+                    className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-emerald-500 font-bold transition font-mono"
                   />
                 </div>
                 <div>
@@ -371,7 +371,7 @@ export default function UserSettings({
                     required
                     value={newUserData.password}
                     onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
-                    className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-indigo-500 font-bold transition font-mono"
+                    className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-emerald-500 font-bold transition font-mono"
                   />
                 </div>
                 <div>
@@ -379,7 +379,7 @@ export default function UserSettings({
                   <select
                     value={newUserData.role}
                     onChange={(e) => setNewUserData({ ...newUserData, role: e.target.value })}
-                    className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-indigo-500 font-bold transition"
+                    className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm theme-text-primary focus:border-emerald-500 font-bold transition"
                   >
                     <option value="student">طالب/باحث</option>
                     <option value="admin">مدير نظام</option>
@@ -392,7 +392,7 @@ export default function UserSettings({
               <button onClick={() => setIsAddUserOpen(false)} type="button" className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-200 dark:border-slate-800 theme-text-primary hover:bg-slate-100/50 dark:theme-card-inner/50 text-sm font-bold transition">
                 إلغاء
               </button>
-              <button type="submit" form="add-user-form" className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 theme-text-primary text-sm font-bold shadow-lg shadow-indigo-600/20 transition flex items-center gap-2">
+              <button type="submit" form="add-user-form" className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 theme-text-primary text-sm font-bold shadow-lg shadow-emerald-600/20 transition flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
                 إنشاء حساب
               </button>

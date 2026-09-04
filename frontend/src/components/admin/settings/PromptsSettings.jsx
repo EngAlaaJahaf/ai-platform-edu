@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Wand2, Plus, MessageSquare, Trash2, Check, X } from 'lucide-react';
 
 export default function PromptsSettings({ prompts, setPrompts, handleSaveCustomPrompt, handleDeletePrompt, handleGeneratePromptWithAI }) {
@@ -50,7 +50,7 @@ export default function PromptsSettings({ prompts, setPrompts, handleSaveCustomP
         </div>
         <button
           onClick={() => setIsAdding(true)}
-          className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-black shadow-lg shadow-indigo-600/20 transition flex items-center gap-2"
+          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-black shadow-lg shadow-emerald-600/20 transition flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           قالب جديد
@@ -64,7 +64,7 @@ export default function PromptsSettings({ prompts, setPrompts, handleSaveCustomP
           </button>
           
           <h3 className="text-sm font-black theme-text-primary border-b border-slate-200 dark:border-slate-800 pb-2 mb-4 flex items-center gap-2">
-            <Wand2 className="w-4 h-4 text-purple-500" />
+            <Wand2 className="w-4 h-4 text-emerald-500" />
             إنشاء قالب توجيه
           </h3>
           
@@ -77,7 +77,7 @@ export default function PromptsSettings({ prompts, setPrompts, handleSaveCustomP
                   required
                   value={newPrompt.title}
                   onChange={(e) => setNewPrompt({ ...newPrompt, title: e.target.value })}
-                  className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-indigo-500 transition"
+                  className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-emerald-500 transition"
                 />
               </div>
               <div>
@@ -85,7 +85,7 @@ export default function PromptsSettings({ prompts, setPrompts, handleSaveCustomP
                 <select
                   value={newPrompt.category}
                   onChange={(e) => setNewPrompt({ ...newPrompt, category: e.target.value })}
-                  className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-indigo-500 transition"
+                  className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-emerald-500 transition"
                 >
                   {Object.entries(categories).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
@@ -99,26 +99,26 @@ export default function PromptsSettings({ prompts, setPrompts, handleSaveCustomP
                 rows={5}
                 value={newPrompt.system_prompt}
                 onChange={(e) => setNewPrompt({ ...newPrompt, system_prompt: e.target.value })}
-                className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-indigo-500 transition font-mono leading-relaxed"
+                className="w-full theme-card-inner border rounded-xl px-4 py-2.5 text-sm font-bold theme-text-primary focus:border-emerald-500 transition font-mono leading-relaxed"
                 dir="auto"
               />
             </div>
             
-            <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
-              <label className="block text-xs font-black text-indigo-500 mb-2">توليد التوجيه بالذكاء الاصطناعي 🪄</label>
+            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+              <label className="block text-xs font-black text-emerald-500 mb-2">توليد التوجيه بالذكاء الاصطناعي 🪄</label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   placeholder="مثال: أريد توجيه يصيغ أسئلة اختبار صعبة جداً لطلاب الطب..."
                   value={aiGoal}
                   onChange={(e) => setAiGoal(e.target.value)}
-                  className="flex-1 theme-card-inner border border-indigo-500/30 rounded-xl px-4 py-2 text-sm font-bold theme-text-primary focus:border-indigo-400 transition"
+                  className="flex-1 theme-card-inner border border-emerald-500/30 rounded-xl px-4 py-2 text-sm font-bold theme-text-primary focus:border-emerald-400 transition"
                 />
                 <button
                   type="button"
                   onClick={handleGenerateAI}
                   disabled={generating}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition flex items-center gap-1"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition flex items-center gap-1"
                 >
                   {generating ? "يتم التوليد..." : "توليد"}
                 </button>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { 
   FolderOpen, 
   Search, 
@@ -132,13 +132,13 @@ export default function DocumentLibraryView({
       {/* Header Banner */}
       <div className="glass-card rounded-3xl p-6 border shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-lg shadow-cyan-500/25">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 via-emerald-600 to-emerald-700 flex items-center justify-center text-white shadow-lg shadow-teal-500/25">
             <FolderOpen className="w-7 h-7" />
           </div>
           <div>
             <div className="flex items-center gap-2.5">
               <h2 className="text-2xl font-black theme-text-primary">مكتبة المقررات والمستندات</h2>
-              <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 font-black text-xs">
+              <span className="px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-600 dark:text-teal-400 font-black text-xs">
                 {documents.length} مستندات محفوظة
               </span>
             </div>
@@ -151,7 +151,7 @@ export default function DocumentLibraryView({
         <div className="flex items-center gap-2.5 self-end md:self-auto">
           <button
             onClick={onOpenUpload}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-black text-xs shadow-md shadow-indigo-600/25 transition flex items-center gap-2 border border-white/20"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-md shadow-emerald-600/25 transition flex items-center gap-2 border border-white/20"
           >
             <Plus className="w-4 h-4" />
             <span>رفع مقرر جديد</span>
@@ -160,7 +160,7 @@ export default function DocumentLibraryView({
           <button
             onClick={loadDocs}
             disabled={loading}
-            className="p-2.5 rounded-xl theme-header-btn border hover:text-cyan-500 transition"
+            className="p-2.5 rounded-xl theme-header-btn border hover:text-teal-500 transition"
             title="تحديث القائمة"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -177,7 +177,7 @@ export default function DocumentLibraryView({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="ابحث في أسماء أو نصوص المقررات المحفوظة..."
-            className="w-full pr-9 pl-3 py-2.5 rounded-xl theme-card-inner border text-xs theme-text-primary placeholder-slate-400 outline-none focus:border-cyan-500 font-['Tajawal']"
+            className="w-full pr-9 pl-3 py-2.5 rounded-xl theme-card-inner border text-xs theme-text-primary placeholder-slate-400 outline-none focus:border-teal-500 font-['Tajawal']"
           />
         </div>
 
@@ -189,14 +189,14 @@ export default function DocumentLibraryView({
           <div className="flex items-center gap-1 p-1 rounded-xl theme-card-inner border">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-lg transition ${viewMode === 'grid' ? 'bg-indigo-600 text-white' : 'theme-text-muted'}`}
+              className={`p-1.5 rounded-lg transition ${viewMode === 'grid' ? 'bg-emerald-600 text-white' : 'theme-text-muted'}`}
               title="عرض شبكي"
             >
               <LayoutGrid className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded-lg transition ${viewMode === 'list' ? 'bg-indigo-600 text-white' : 'theme-text-muted'}`}
+              className={`p-1.5 rounded-lg transition ${viewMode === 'list' ? 'bg-emerald-600 text-white' : 'theme-text-muted'}`}
               title="عرض جدولي"
             >
               <List className="w-3.5 h-3.5" />
@@ -208,12 +208,12 @@ export default function DocumentLibraryView({
       {/* Main Document Content */}
       {loading ? (
         <div className="py-24 text-center space-y-3 glass-card rounded-3xl p-8 border animate-pulse">
-          <RefreshCw className="w-8 h-8 animate-spin text-cyan-500 mx-auto" />
+          <RefreshCw className="w-8 h-8 animate-spin text-teal-500 mx-auto" />
           <p className="text-xs theme-text-muted">جاري قراءة واسترجاع ملفاتك من قاعدة البيانات...</p>
         </div>
       ) : filteredDocs.length === 0 ? (
         <div className="py-24 text-center space-y-4 glass-card rounded-3xl p-8 border">
-          <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-500 mx-auto flex items-center justify-center">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-500 mx-auto flex items-center justify-center">
             <FileText className="w-7 h-7" />
           </div>
           <h3 className="text-base font-bold theme-text-primary">
@@ -224,7 +224,7 @@ export default function DocumentLibraryView({
           </p>
           <button
             onClick={onOpenUpload}
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 text-white text-xs font-bold shadow-md shadow-indigo-600/25 transition inline-flex items-center gap-2"
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-bold shadow-md shadow-emerald-600/25 transition inline-flex items-center gap-2"
           >
             <Upload className="w-4 h-4" />
             <span>رفع أول مقرر الآن</span>
@@ -241,15 +241,15 @@ export default function DocumentLibraryView({
                 key={doc.id}
                 className={`glass-card rounded-3xl p-5 border transition-all duration-200 flex flex-col justify-between space-y-4 hover:shadow-xl ${
                   isActive
-                    ? 'ring-2 ring-cyan-500/40 border-cyan-500 shadow-cyan-500/10 bg-gradient-to-br from-indigo-50/50 to-cyan-50/40 dark:from-indigo-950/70 dark:to-cyan-950/40'
-                    : 'hover:border-indigo-400/40'
+                    ? 'ring-2 ring-teal-500/40 border-teal-500 shadow-teal-500/10 bg-gradient-to-br from-emerald-50/50 to-teal-50/40 dark:from-emerald-950/70 dark:to-teal-950/40'
+                    : 'hover:border-emerald-400/40'
                 }`}
               >
                 
                 {/* Card Header */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 flex-1 overflow-hidden">
-                    <span className={`p-2.5 rounded-2xl shrink-0 ${isActive ? 'bg-cyan-500 text-white shadow-md' : 'bg-indigo-500/15 text-indigo-600 dark:text-cyan-400'}`}>
+                    <span className={`p-2.5 rounded-2xl shrink-0 ${isActive ? 'bg-teal-500 text-white shadow-md' : 'bg-emerald-500/15 text-emerald-600 dark:text-teal-400'}`}>
                       <FileText className="w-5 h-5" />
                     </span>
 
@@ -260,7 +260,7 @@ export default function DocumentLibraryView({
                             type="text"
                             value={editTitle}
                             onChange={(e) => setEditTitle(e.target.value)}
-                            className="px-2.5 py-1 rounded-lg border theme-card-inner text-xs font-bold theme-text-primary outline-none focus:border-cyan-500 w-full"
+                            className="px-2.5 py-1 rounded-lg border theme-card-inner text-xs font-bold theme-text-primary outline-none focus:border-teal-500 w-full"
                             autoFocus
                           />
                           <button
@@ -286,7 +286,7 @@ export default function DocumentLibraryView({
                             </b>
                             <button
                               onClick={() => handleStartEdit(doc)}
-                              className="theme-text-muted hover:text-cyan-500 transition shrink-0"
+                              className="theme-text-muted hover:text-teal-500 transition shrink-0"
                               title="تعديل اسم المستند"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
@@ -301,13 +301,13 @@ export default function DocumentLibraryView({
                   </div>
 
                   {isActive ? (
-                    <span className="px-2.5 py-0.5 rounded-full bg-cyan-500 text-white text-[10px] font-black shrink-0 shadow-sm flex items-center gap-1">
+                    <span className="px-2.5 py-0.5 rounded-full bg-teal-500 text-white text-[10px] font-black shrink-0 shadow-sm flex items-center gap-1">
                       <Check className="w-3 h-3" /> نشط
                     </span>
                   ) : (
                     <button
                       onClick={() => onSelectDoc(doc)}
-                      className="px-3 py-1 rounded-xl theme-header-btn border text-xs font-bold shrink-0 hover:border-cyan-500 hover:text-cyan-600 transition"
+                      className="px-3 py-1 rounded-xl theme-header-btn border text-xs font-bold shrink-0 hover:border-teal-500 hover:text-teal-600 transition"
                       title="تفعيل كملف نشط للمنصة"
                     >
                       تفعيل
@@ -327,16 +327,16 @@ export default function DocumentLibraryView({
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => handleAction(doc, 'summary')}
-                      className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-500/25 transition flex items-center gap-1"
+                      className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 transition flex items-center gap-1"
                       title="الانتقال للملخص"
                     >
-                      <BookMarked className="w-3.5 h-3.5 text-cyan-500" />
+                      <BookMarked className="w-3.5 h-3.5 text-teal-500" />
                       <span>تلخيص</span>
                     </button>
 
                     <button
                       onClick={() => handleAction(doc, 'quiz')}
-                      className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-500/25 transition flex items-center gap-1"
+                      className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 transition flex items-center gap-1"
                       title="الانتقال للاختبار"
                     >
                       <Sparkles className="w-3.5 h-3.5 text-amber-400" />
@@ -345,10 +345,10 @@ export default function DocumentLibraryView({
 
                     <button
                       onClick={() => handleAction(doc, 'chat')}
-                      className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-500/25 transition flex items-center gap-1"
+                      className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 transition flex items-center gap-1"
                       title="الانتقال للمحادثة"
                     >
-                      <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
+                      <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
                       <span>محادثة</span>
                     </button>
                   </div>
@@ -356,7 +356,7 @@ export default function DocumentLibraryView({
                   <div className="flex items-center gap-1">
                     <button
                       onClick={(e) => handlePreview(doc.id, e)}
-                      className="p-2 rounded-xl theme-header-btn border hover:text-cyan-500 transition"
+                      className="p-2 rounded-xl theme-header-btn border hover:text-teal-500 transition"
                       title="معاينة النص المستخلص"
                     >
                       <Eye className="w-4 h-4" />
@@ -397,7 +397,7 @@ export default function DocumentLibraryView({
                   <tr key={doc.id} className="hover:bg-white/5 transition">
                     <td className="px-5 py-4 font-bold theme-text-primary max-w-sm truncate">
                       <div className="flex items-center gap-2.5">
-                        <FileText className="w-4 h-4 text-indigo-500 shrink-0" />
+                        <FileText className="w-4 h-4 text-emerald-500 shrink-0" />
                         <span className="truncate">{doc.filename}</span>
                       </div>
                     </td>
@@ -406,7 +406,7 @@ export default function DocumentLibraryView({
                     <td className="px-5 py-4 theme-text-muted">{doc.created_at ? new Date(doc.created_at).toLocaleDateString('ar-EG') : '-'}</td>
                     <td className="px-5 py-4 text-center">
                       {isActive ? (
-                        <span className="px-2.5 py-0.5 rounded-full bg-cyan-500 text-white font-black text-[10px]">
+                        <span className="px-2.5 py-0.5 rounded-full bg-teal-500 text-white font-black text-[10px]">
                           نشط حالياً
                         </span>
                       ) : (
@@ -422,7 +422,7 @@ export default function DocumentLibraryView({
                       <div className="flex items-center justify-center gap-1.5">
                         <button
                           onClick={() => handleAction(doc, 'summary')}
-                          className="p-1.5 rounded-lg theme-header-btn border hover:text-cyan-500"
+                          className="p-1.5 rounded-lg theme-header-btn border hover:text-teal-500"
                           title="تلخيص"
                         >
                           <BookMarked className="w-3.5 h-3.5" />
@@ -436,7 +436,7 @@ export default function DocumentLibraryView({
                         </button>
                         <button
                           onClick={(e) => handlePreview(doc.id, e)}
-                          className="p-1.5 rounded-lg theme-header-btn border hover:text-indigo-500"
+                          className="p-1.5 rounded-lg theme-header-btn border hover:text-emerald-500"
                           title="معاينة"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -464,7 +464,7 @@ export default function DocumentLibraryView({
           <div className="relative w-full max-w-4xl glass-panel rounded-3xl p-6 border shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-500 flex items-center justify-center">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
@@ -492,7 +492,7 @@ export default function DocumentLibraryView({
                   onSelectDoc(previewDoc);
                   setPreviewDoc(null);
                 }}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-bold text-xs shadow-md"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs shadow-md"
               >
                 تعيين كمستند نشط للمنصة
               </button>

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Activity, Trash2, Clock, AlertTriangle, Info, CheckCircle2 } from 'lucide-react';
 
 export default function ActivityLogs({ logs, handleClearLogs }) {
@@ -7,7 +7,7 @@ export default function ActivityLogs({ logs, handleClearLogs }) {
       case 'error': return <AlertTriangle className="w-4 h-4 text-rose-500" />;
       case 'success': return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
       case 'warn': return <AlertTriangle className="w-4 h-4 text-amber-500" />;
-      default: return <Info className="w-4 h-4 text-indigo-500" />;
+      default: return <Info className="w-4 h-4 text-emerald-500" />;
     }
   };
 
@@ -16,7 +16,7 @@ export default function ActivityLogs({ logs, handleClearLogs }) {
       case 'error': return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
       case 'success': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
       case 'warn': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-      default: return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
+      default: return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
     }
   };
 

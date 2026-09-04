@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Palette, Users, Cpu, Settings, MessageSquare, Save, Server, Shield, Activity, HardDrive, RefreshCw, Layers, Sliders } from 'lucide-react';
 
 export default function AdminSidebar({ activeSection, setActiveSection, stats, onSave, saving, saveSuccess, loading, onRefresh }) {
@@ -30,11 +30,11 @@ export default function AdminSidebar({ activeSection, setActiveSection, stats, o
                 onClick={() => setActiveSection(section.id)}
                 className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-600/30 border border-indigo-500/30'
+                    ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-lg shadow-emerald-600/30 border border-emerald-500/30'
                     : 'theme-text-secondary hover:theme-text-primary hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent'
                 }`}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-cyan-300' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-teal-300' : 'text-slate-400'}`} />
                 <span className="truncate">{section.label}</span>
               </button>
             );
@@ -60,7 +60,7 @@ export default function AdminSidebar({ activeSection, setActiveSection, stats, o
                         <span className="font-mono font-bold theme-text-primary">{stats.total_users || 0} <span className="text-[10px] theme-text-muted">({usersPct.toFixed(0)}%)</span></span>
                       </div>
                       <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-500 transition-all duration-700" style={{width: `${usersPct}%`}}></div>
+                        <div className="h-full bg-emerald-500 transition-all duration-700" style={{width: `${usersPct}%`}}></div>
                       </div>
                     </div>
                     <div>
@@ -69,7 +69,7 @@ export default function AdminSidebar({ activeSection, setActiveSection, stats, o
                         <span className="font-mono font-bold theme-text-primary">{stats.total_documents || 0} <span className="text-[10px] theme-text-muted">({docsPct.toFixed(0)}%)</span></span>
                       </div>
                       <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-cyan-500 transition-all duration-700" style={{width: `${docsPct}%`}}></div>
+                        <div className="h-full bg-teal-500 transition-all duration-700" style={{width: `${docsPct}%`}}></div>
                       </div>
                       <div className="text-[10px] theme-text-muted mt-1 flex justify-between"><span>{stats.total_pages || 0} صفحة</span><span>{(stats.total_words || 0).toLocaleString()} كلمة</span></div>
                     </div>

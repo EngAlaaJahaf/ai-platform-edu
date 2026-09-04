@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { 
   Sparkles, 
   MessageSquareText, 
@@ -26,27 +26,27 @@ export default function DashboardView({
       title: 'محادثة ذكية RAG',
       desc: 'اسأل كتابك بالعربية ويجيبك برقم الصفحة مع منع الهلوسة',
       icon: MessageSquareText,
-      gradient: 'from-indigo-600 to-indigo-700',
+      gradient: 'from-emerald-600 to-emerald-700',
       badge: 'موثق بالمصادر',
-      badgeColor: 'bg-indigo-500/15 text-indigo-500 border-indigo-500/30'
+      badgeColor: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30'
     },
     {
       id: 'summary',
       title: 'تلخيص + خريطة ذهنية',
       desc: 'تحويل 20 صفحة إلى 4 نقاط مفتاحية وخريطة تفاعلية',
       icon: FileText,
-      gradient: 'from-cyan-600 to-teal-700',
+      gradient: 'from-teal-600 to-teal-700',
       badge: '3 مستويات',
-      badgeColor: 'bg-cyan-500/15 text-cyan-500 border-cyan-500/30'
+      badgeColor: 'bg-teal-500/15 text-teal-500 border-teal-500/30'
     },
     {
       id: 'quiz',
       title: 'استوديو الاختبارات والتنبؤ',
       desc: 'توليد أسئلة MCQ وشروحات ثنائية وتنبؤ بالدرجة',
       icon: BrainCircuit,
-      gradient: 'from-violet-600 to-purple-700',
+      gradient: 'from-violet-600 to-emerald-700',
       badge: 'تنبؤ ذكي',
-      badgeColor: 'bg-purple-500/15 text-purple-500 border-purple-500/30'
+      badgeColor: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30'
     },
     {
       id: 'proofread',
@@ -64,17 +64,17 @@ export default function DashboardView({
       
       {/* Hero Welcome Banner */}
       <div className="relative rounded-3xl p-8 overflow-hidden glass-panel">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-indigo-500/15 via-cyan-500/10 to-transparent blur-3xl -z-10"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-transparent blur-3xl -z-10"></div>
         
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-xs font-black">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>منصة المساعد الأكاديمي الذكي — الإصدار 2.1</span>
             </div>
             
             <h1 className="text-2xl md:text-4xl font-black leading-tight font-['IBM_Plex_Sans_Arabic'] theme-text-primary">
-              ذكاؤك الأكاديمي... <span className="bg-gradient-to-r from-indigo-500 via-cyan-400 to-amber-400 bg-clip-text text-transparent">يتكلم العربية.</span>
+              ذكاؤك الأكاديمي... <span className="bg-gradient-to-r from-emerald-500 via-teal-400 to-amber-400 bg-clip-text text-transparent">يتكلم العربية.</span>
             </h1>
             
             <p className="text-sm theme-text-secondary leading-relaxed font-['Tajawal']">
@@ -86,7 +86,7 @@ export default function DashboardView({
           <div className="flex flex-col sm:flex-row gap-3 shrink-0">
             <button
               onClick={onOpenUpload}
-              className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 hover:scale-[1.02] text-white font-black text-sm flex items-center justify-center gap-2.5 shadow-xl shadow-indigo-600/30 border border-white/20 transition"
+              className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-600 hover:scale-[1.02] text-white font-black text-sm flex items-center justify-center gap-2.5 shadow-xl shadow-emerald-600/30 border border-white/20 transition"
             >
               <Upload className="w-4 h-4 text-white" />
               <span className="text-white font-extrabold">رفع مادة تعليمية جديدة</span>
@@ -101,7 +101,7 @@ export default function DashboardView({
             <p className="text-xs theme-text-muted font-bold mt-0.5">ملخص أكاديمي</p>
           </div>
           <div className="p-4 rounded-2xl theme-card-inner text-center">
-            <b className="text-xl font-black text-cyan-400 font-['JetBrains_Mono']">98%</b>
+            <b className="text-xl font-black text-teal-400 font-['JetBrains_Mono']">98%</b>
             <p className="text-xs theme-text-muted font-bold mt-0.5">دقة RAG بالصفحات</p>
           </div>
           <div className="p-4 rounded-2xl theme-card-inner text-center">
@@ -136,7 +136,7 @@ export default function DashboardView({
                   }
                 }}
                 tabIndex={0}
-                className="glass-card rounded-2xl p-6 hover:scale-[1.02] focus-visible:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer transition-all duration-300 flex flex-col justify-between group"
+                className="glass-card rounded-2xl p-6 hover:scale-[1.02] focus-visible:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer transition-all duration-300 flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -148,7 +148,7 @@ export default function DashboardView({
                     </span>
                   </div>
 
-                  <h4 className="font-extrabold text-base theme-text-primary mb-1.5 group-hover:text-cyan-400 transition">
+                  <h4 className="font-extrabold text-base theme-text-primary mb-1.5 group-hover:text-teal-400 transition">
                     {action.title}
                   </h4>
                   <p className="text-xs theme-text-secondary leading-relaxed">
@@ -156,7 +156,7 @@ export default function DashboardView({
                   </p>
                 </div>
 
-                <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-xs font-bold text-indigo-400 group-hover:translate-x-[-3px] transition-transform">
+                <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-xs font-bold text-emerald-400 group-hover:translate-x-[-3px] transition-transform">
                   <span>فتح الأداة</span>
                   <ArrowLeft className="w-4 h-4" />
                 </div>
@@ -173,7 +173,7 @@ export default function DashboardView({
         <div className="lg:col-span-8 glass-card rounded-2xl p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-indigo-400" />
+              <Calendar className="w-5 h-5 text-emerald-400" />
               <h4 className="font-extrabold text-base theme-text-primary">خطة المراجعة الذكية المقترحة (3 أيام)</h4>
             </div>
             <span className="text-xs font-bold theme-text-muted">
@@ -183,7 +183,7 @@ export default function DashboardView({
 
           <div className="space-y-3">
             <div className="p-4 rounded-xl theme-card-inner flex items-start gap-4">
-              <span className="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">
+              <span className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
                 يوم 1
               </span>
               <div>
@@ -195,7 +195,7 @@ export default function DashboardView({
             </div>
 
             <div className="p-4 rounded-xl theme-card-inner flex items-start gap-4">
-              <span className="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center font-bold text-xs shrink-0">
+              <span className="w-8 h-8 rounded-lg bg-teal-500/20 border border-teal-500/40 text-teal-400 flex items-center justify-center font-bold text-xs shrink-0">
                 يوم 2
               </span>
               <div>

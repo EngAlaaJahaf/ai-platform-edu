@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { 
   X, 
   KeyRound, 
@@ -266,7 +266,7 @@ export default function ApiKeyModal({ isOpen, onClose, onKeyUpdated }) {
 
         {/* Header */}
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25">
             <KeyRound className="w-6 h-6" />
           </div>
           <div>
@@ -288,13 +288,13 @@ export default function ApiKeyModal({ isOpen, onClose, onKeyUpdated }) {
                   onClick={() => handleProviderChange(p.id)}
                   className={`p-3 rounded-2xl border text-right transition-all flex flex-col justify-between ${
                     isSelected
-                      ? 'bg-indigo-50 dark:bg-indigo-950/60 border-cyan-500 text-indigo-900 dark:text-cyan-300 shadow-md ring-2 ring-cyan-500/30'
-                      : 'theme-card-inner hover:border-indigo-400/50 theme-text-primary'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 border-teal-500 text-emerald-900 dark:text-teal-300 shadow-md ring-2 ring-teal-500/30'
+                      : 'theme-card-inner hover:border-emerald-400/50 theme-text-primary'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <Icon className={`w-4 h-4 ${isSelected ? 'text-cyan-500' : 'theme-text-muted'}`} />
-                    {isSelected && <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></span>}
+                    <Icon className={`w-4 h-4 ${isSelected ? 'text-teal-500' : 'theme-text-muted'}`} />
+                    {isSelected && <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>}
                   </div>
                   <div>
                     <b className="text-xs font-bold block">{p.name}</b>
@@ -327,7 +327,7 @@ export default function ApiKeyModal({ isOpen, onClose, onKeyUpdated }) {
                   type="button"
                   onClick={() => handleFetchModels(provider, baseUrl, apiKey)}
                   disabled={fetchingModels}
-                  className="px-3 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shrink-0 transition flex items-center gap-1.5 shadow-md"
+                  className="px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shrink-0 transition flex items-center gap-1.5 shadow-md"
                   title="جلب وتحديث النماذج المثبتة من هذا الرابط"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${fetchingModels ? 'animate-spin' : ''}`} />
@@ -346,7 +346,7 @@ export default function ApiKeyModal({ isOpen, onClose, onKeyUpdated }) {
                   href="https://aistudio.google.com/app/apikey" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-[11px] text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-1 font-bold"
+                  className="text-[11px] text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1 font-bold"
                 >
                   <span>الحصول على مفتاح مجاني</span>
                   <ExternalLink className="w-3 h-3" />
@@ -378,7 +378,7 @@ export default function ApiKeyModal({ isOpen, onClose, onKeyUpdated }) {
             {/* Model Input / Trigger */}
             <div 
               onClick={() => setIsDropdownOpen(true)}
-              className="w-full theme-card-inner border focus-within:border-cyan-500 rounded-xl px-3.5 py-2 text-xs flex items-center justify-between cursor-pointer"
+              className="w-full theme-card-inner border focus-within:border-teal-500 rounded-xl px-3.5 py-2 text-xs flex items-center justify-between cursor-pointer"
             >
               <div className="flex items-center gap-2 flex-1 overflow-hidden">
                 <Search className="w-3.5 h-3.5 theme-text-muted shrink-0" />
@@ -411,10 +411,10 @@ export default function ApiKeyModal({ isOpen, onClose, onKeyUpdated }) {
                       setModelState(searchQuery.trim());
                       setIsDropdownOpen(false);
                     }}
-                    className="w-full text-right p-2 rounded-xl bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 hover:bg-cyan-500/25 transition flex items-center justify-between"
+                    className="w-full text-right p-2 rounded-xl bg-teal-500/15 text-teal-600 dark:text-teal-300 hover:bg-teal-500/25 transition flex items-center justify-between"
                   >
                     <span>استخدام النموذج المخصص: <span className="font-mono">{searchQuery}</span></span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 font-normal">مخصص</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/20 font-normal">مخصص</span>
                   </button>
                 )}
 
@@ -429,13 +429,13 @@ export default function ApiKeyModal({ isOpen, onClose, onKeyUpdated }) {
                       }}
                       className={`w-full text-right p-2.5 rounded-xl transition flex items-center justify-between ${
                         isCurrent 
-                          ? 'bg-indigo-600 text-white font-black' 
+                          ? 'bg-emerald-600 text-white font-black' 
                           : 'theme-card-inner hover:bg-white/10 theme-text-primary'
                       }`}
                     >
                       <div className="space-y-0.5">
                         <span className="block font-mono text-xs">{m.id}</span>
-                        {m.name && <span className={`text-[10px] block ${isCurrent ? 'text-indigo-100' : 'theme-text-muted'}`}>{m.name}</span>}
+                        {m.name && <span className={`text-[10px] block ${isCurrent ? 'text-emerald-100' : 'theme-text-muted'}`}>{m.name}</span>}
                       </div>
                       {isCurrent && <Check className="w-4 h-4 text-white shrink-0" />}
                     </button>
@@ -461,7 +461,7 @@ export default function ApiKeyModal({ isOpen, onClose, onKeyUpdated }) {
         <div className="p-4 rounded-2xl theme-card-inner border space-y-3.5">
           <label className="flex items-start justify-between gap-4 cursor-pointer group">
             <div className="space-y-1">
-              <span className="text-xs font-black theme-text-primary flex items-center gap-1.5 group-hover:text-cyan-500 transition">
+              <span className="text-xs font-black theme-text-primary flex items-center gap-1.5 group-hover:text-teal-500 transition">
                 📝 تطبيق قواعد الكتابة الأكاديمية الصارمة
               </span>
               <p className="text-[10px] theme-text-secondary leading-relaxed max-w-[380px]">
@@ -480,7 +480,7 @@ export default function ApiKeyModal({ isOpen, onClose, onKeyUpdated }) {
                 }}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-slate-350 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+              <div className="w-11 h-6 bg-slate-350 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
             </div>
           </label>
         </div>
@@ -532,7 +532,7 @@ export default function ApiKeyModal({ isOpen, onClose, onKeyUpdated }) {
             <button
               onClick={handleValidateAndSave}
               disabled={validating}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-extrabold text-xs shadow-lg shadow-indigo-600/25 transition flex items-center gap-2 disabled:opacity-50 border border-white/20"
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/25 transition flex items-center gap-2 disabled:opacity-50 border border-white/20"
             >
               {validating ? (
                 <>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -320,7 +320,7 @@ export default function SummaryView({
   if (!activeDoc) {
     return (
       <div className="glass-panel rounded-3xl p-16 text-center max-w-2xl mx-auto space-y-6 shadow-2xl">
-        <div className="w-16 h-16 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 mx-auto flex items-center justify-center text-cyan-400">
+        <div className="w-16 h-16 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 mx-auto flex items-center justify-center text-teal-400">
           <Upload className="w-8 h-8" />
         </div>
         <div className="space-y-2">
@@ -332,7 +332,7 @@ export default function SummaryView({
         <div className="flex items-center justify-center gap-3">
           <button
             onClick={onOpenUpload}
-            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-black text-xs shadow-lg shadow-indigo-600/25 transition flex items-center gap-2 border border-white/20"
+            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-lg shadow-emerald-600/25 transition flex items-center gap-2 border border-white/20"
           >
             <Upload className="w-4 h-4 text-white" />
             <span>رفع مادة تعليمية الآن</span>
@@ -349,7 +349,7 @@ export default function SummaryView({
         <div className="glass-panel rounded-3xl p-8 border shadow-xl space-y-6">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1.5">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-500 text-xs font-black">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-500 text-xs font-black">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 <span>استوديو التلخيص ورسم الخرائط الذهنية الأكاديمي</span>
               </div>
@@ -363,7 +363,7 @@ export default function SummaryView({
 
             <button
               onClick={onOpenUpload}
-              className="text-xs font-bold text-cyan-500 hover:underline shrink-0"
+              className="text-xs font-bold text-teal-500 hover:underline shrink-0"
             >
               تبديل الملف
             </button>
@@ -382,15 +382,15 @@ export default function SummaryView({
                   onClick={() => setLevel(lvl.id)}
                   className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between ${
                     isSelected
-                      ? 'bg-indigo-50 dark:bg-indigo-950/60 border-cyan-500 shadow-md theme-text-primary ring-2 ring-cyan-500/20'
-                      : 'theme-card-inner border hover:border-indigo-400/40'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 border-teal-500 shadow-md theme-text-primary ring-2 ring-teal-500/20'
+                      : 'theme-card-inner border hover:border-emerald-400/40'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`text-xs font-black ${isSelected ? 'text-cyan-600 dark:text-cyan-400' : 'theme-text-primary'}`}>
+                    <span className={`text-xs font-black ${isSelected ? 'text-teal-600 dark:text-teal-400' : 'theme-text-primary'}`}>
                       {lvl.label}
                     </span>
-                    {isSelected && <span className="w-2 h-2 rounded-full bg-cyan-500"></span>}
+                    {isSelected && <span className="w-2 h-2 rounded-full bg-teal-500"></span>}
                   </div>
                   <p className="text-[11px] theme-text-muted leading-relaxed">
                     {lvl.desc}
@@ -415,15 +415,15 @@ export default function SummaryView({
                   onClick={() => setLanguage(l.id)}
                   className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between ${
                     isSelected
-                      ? 'bg-indigo-50 dark:bg-indigo-950/60 border-cyan-500 shadow-md theme-text-primary ring-2 ring-cyan-500/20'
-                      : 'theme-card-inner border hover:border-indigo-400/40'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 border-teal-500 shadow-md theme-text-primary ring-2 ring-teal-500/20'
+                      : 'theme-card-inner border hover:border-emerald-400/40'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`text-xs font-black ${isSelected ? 'text-cyan-600 dark:text-cyan-400' : 'theme-text-primary'}`}>
+                    <span className={`text-xs font-black ${isSelected ? 'text-teal-600 dark:text-teal-400' : 'theme-text-primary'}`}>
                       {l.label}
                     </span>
-                    {isSelected && <span className="w-2 h-2 rounded-full bg-cyan-500"></span>}
+                    {isSelected && <span className="w-2 h-2 rounded-full bg-teal-500"></span>}
                   </div>
                   <p className="text-[11px] theme-text-muted leading-relaxed">
                     {l.desc}
@@ -436,13 +436,13 @@ export default function SummaryView({
 
         <div className="p-3.5 rounded-2xl theme-card-inner flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs">
-            <Wand2 className="w-4 h-4 text-cyan-500" />
+            <Wand2 className="w-4 h-4 text-teal-500" />
             <span className="theme-text-muted">قالب البرومبت:</span>
             <span className="font-bold theme-text-primary">{activePrompt?.title || 'الافتراضي المعتمد'}</span>
           </div>
           <button
             onClick={onOpenPromptManager}
-            className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+            className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
           >
             اختيار قالب آخر
           </button>
@@ -459,7 +459,7 @@ export default function SummaryView({
           <button
             onClick={() => handleGenerateSummary(level, language)}
             disabled={loading}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 hover:scale-[1.01] text-white font-black text-sm flex items-center justify-center gap-3 shadow-xl shadow-indigo-600/25 border border-white/20 transition cursor-pointer disabled:opacity-50"
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-600 hover:scale-[1.01] text-white font-black text-sm flex items-center justify-center gap-3 shadow-xl shadow-emerald-600/25 border border-white/20 transition cursor-pointer disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -487,7 +487,7 @@ export default function SummaryView({
       <div className="glass-panel rounded-2xl p-6 border shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="p-1.5 rounded-lg bg-cyan-500/20 text-cyan-400">
+            <span className="p-1.5 rounded-lg bg-teal-500/20 text-teal-400">
               <FileText className="w-5 h-5" />
             </span>
             <h2 className="text-xl font-black theme-text-primary">
@@ -513,7 +513,7 @@ export default function SummaryView({
                 disabled={loading}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                   level === lvl.id
-                    ? 'bg-indigo-600 text-white shadow-sm'
+                    ? 'bg-emerald-600 text-white shadow-sm'
                     : 'theme-text-muted hover:theme-text-primary'
                 }`}
               >
@@ -534,7 +534,7 @@ export default function SummaryView({
                 disabled={loading}
                 className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition ${
                   language === l.id
-                    ? 'bg-cyan-600 text-white shadow-sm'
+                    ? 'bg-teal-600 text-white shadow-sm'
                     : 'theme-text-muted hover:theme-text-primary'
                 }`}
               >
@@ -546,7 +546,7 @@ export default function SummaryView({
           <button
             onClick={() => handleGenerateSummary(level, language)}
             disabled={loading}
-            className="p-2.5 rounded-xl theme-header-btn border hover:text-cyan-500 transition"
+            className="p-2.5 rounded-xl theme-header-btn border hover:text-teal-500 transition"
             title="إعادة التوليد"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -554,7 +554,7 @@ export default function SummaryView({
 
           <button
             onClick={() => setIsExportModalOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-xs font-extrabold shadow-md shadow-indigo-600/25 transition flex items-center gap-1.5 border border-white/20 hover:scale-[1.02]"
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-extrabold shadow-md shadow-emerald-600/25 transition flex items-center gap-1.5 border border-white/20 hover:scale-[1.02]"
             title="تصدير وطباعة التقرير (PDF, HTML, MD, TXT)"
           >
             <Download className="w-3.5 h-3.5 text-white" />
@@ -563,7 +563,7 @@ export default function SummaryView({
 
           <button
             onClick={onSwitchToQuiz}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs shadow-md shadow-indigo-600/25 transition flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md shadow-emerald-600/25 transition flex items-center gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
             <span>اختبرني في هذا الملخص 🎯</span>
@@ -574,7 +574,7 @@ export default function SummaryView({
       {/* Loading Overlay */}
       {loading && (
         <div className="glass-panel rounded-3xl p-16 text-center space-y-4 border animate-pulse">
-          <RefreshCw className="w-10 h-10 animate-spin text-cyan-400 mx-auto" />
+          <RefreshCw className="w-10 h-10 animate-spin text-teal-400 mx-auto" />
           <h3 className="text-lg font-black theme-text-primary">الذكاء الاصطناعي يحلل المحاضرة بعمق ويستخرج الملخص الأكاديمي...</h3>
           <p className="text-xs theme-text-muted">يتم استخلاص المحاور، والمقارنات، ومصائد الامتحانات، وشجرة المفاهيم</p>
         </div>
@@ -587,7 +587,7 @@ export default function SummaryView({
           {/* Executive Overview Card */}
           <div className="glass-card rounded-2xl p-6 border space-y-3">
             <h3 className="text-sm font-black theme-text-primary flex items-center gap-2">
-              <BookMarked className="w-4 h-4 text-cyan-500" />
+              <BookMarked className="w-4 h-4 text-teal-500" />
               <span>نظرة عامة جوهرية (Executive Overview)</span>
             </h3>
             <p className="text-sm theme-text-secondary leading-relaxed font-['Tajawal'] whitespace-pre-wrap">
@@ -697,10 +697,10 @@ export default function SummaryView({
                       <div key={tIdx} className="glass-card rounded-2xl p-6 border space-y-4 shadow-sm animate-fade-in">
                         <div className="flex items-center justify-between">
                           <h4 className="text-sm font-black theme-text-primary flex items-center gap-2 font-['Tajawal']">
-                            <Scale className="w-4 h-4 text-cyan-400" />
+                            <Scale className="w-4 h-4 text-teal-400" />
                             <span>{tbl.title || `مقارنة ${tIdx + 1}`}</span>
                           </h4>
-                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-bold font-mono">
+                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-400 font-bold font-mono">
                             {tbl.rows?.length || 0} أوجه مقارنة • {tbl.items?.length || 2} أطراف
                           </span>
                         </div>
@@ -709,7 +709,7 @@ export default function SummaryView({
                           <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-xs text-right font-['Tajawal']">
                             <thead className="bg-slate-100 dark:bg-slate-900 font-black theme-text-primary">
                               <tr>
-                                <th className="px-4 py-3.5 text-indigo-600 dark:text-cyan-400 whitespace-nowrap min-w-[140px]">
+                                <th className="px-4 py-3.5 text-emerald-600 dark:text-teal-400 whitespace-nowrap min-w-[140px]">
                                   وجه المقارنة
                                 </th>
                                 {(tbl.items || ['الطرف الأول', 'الطرف الثاني']).map((item, iIdx) => (
@@ -722,7 +722,7 @@ export default function SummaryView({
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 font-medium">
                               {(tbl.rows || []).map((r, rIdx) => (
                                 <tr key={rIdx} className="hover:bg-white/5 transition">
-                                  <td className="px-4 py-3.5 font-black text-indigo-600 dark:text-cyan-400 align-top whitespace-nowrap">
+                                  <td className="px-4 py-3.5 font-black text-emerald-600 dark:text-teal-400 align-top whitespace-nowrap">
                                     {r.aspect}
                                   </td>
                                   {(r.values || [r.item_a_val, r.item_b_val]).map((val, vIdx) => (
@@ -782,15 +782,15 @@ export default function SummaryView({
             {activeTab === 'rules' && (
               <div className="glass-card rounded-2xl p-6 border space-y-4">
                 <h4 className="text-sm font-black theme-text-primary flex items-center gap-2">
-                  <Calculator className="w-4 h-4 text-indigo-400" />
+                  <Calculator className="w-4 h-4 text-emerald-400" />
                   <span>القوانين والمعادلات والخوارزميات</span>
                 </h4>
                 {summaryData.formulas_rules && summaryData.formulas_rules.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {summaryData.formulas_rules.map((rule, idx) => (
                       <div key={idx} className="p-4 rounded-2xl theme-card-inner border space-y-2">
-                        <b className="text-xs font-black text-indigo-500 dark:text-cyan-300 block">{rule.name}</b>
-                        <div className="p-2.5 rounded-xl bg-slate-950 text-cyan-400 font-mono text-xs text-left dir-ltr overflow-x-auto">
+                        <b className="text-xs font-black text-emerald-500 dark:text-teal-300 block">{rule.name}</b>
+                        <div className="p-2.5 rounded-xl bg-slate-950 text-teal-400 font-mono text-xs text-left dir-ltr overflow-x-auto">
                           {rule.rule}
                         </div>
                         <p className="text-[11px] theme-text-secondary leading-relaxed">{rule.explanation}</p>
@@ -814,7 +814,7 @@ export default function SummaryView({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     {summaryData.definitions.map((item, idx) => (
                       <div key={idx} className="p-4 rounded-xl theme-card-inner border space-y-1.5">
-                        <b className="text-xs font-black text-indigo-600 dark:text-cyan-300 block">{item.term}</b>
+                        <b className="text-xs font-black text-emerald-600 dark:text-teal-300 block">{item.term}</b>
                         <p className="text-xs theme-text-primary leading-relaxed font-medium">{item.meaning}</p>
                         {item.example && (
                           <span className="text-[10px] theme-text-muted block pt-1 border-t border-white/5">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { 
   LogIn, 
   UserPlus, 
@@ -143,23 +143,23 @@ export default function AuthGateView({ onAuthSuccess }) {
     <div className="min-h-screen w-full flex items-center justify-center p-4 md:p-8 bg-slate-950 font-['Tajawal'] relative overflow-hidden">
       
       {/* Dynamic Background Effects */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-emerald-600/20 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
+      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-teal-600/20 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-8 z-10 items-center">
         
         {/* Left Side: Educational Brand & Feature Highlights */}
         <div className="lg:col-span-5 text-right space-y-6 hidden lg:block pr-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 flex items-center justify-center shadow-xl shadow-indigo-600/30 border border-white/20">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-600 to-teal-400 flex items-center justify-center shadow-xl shadow-emerald-600/30 border border-white/20">
               <GraduationCap className="w-7 h-7 text-white" />
             </div>
             <div>
               <h1 className="text-2xl font-black text-white font-['IBM_Plex_Sans_Arabic']">
-                ذكاء <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-300 bg-clip-text text-transparent">EduAI</span>
+                ذكاء <span className="bg-gradient-to-r from-emerald-400 via-emerald-400 to-teal-300 bg-clip-text text-transparent">EduAI</span>
               </h1>
-              <span className="text-[11px] font-bold text-indigo-300">المنصة الأكاديمية الذكية المتكاملة</span>
+              <span className="text-[11px] font-bold text-emerald-300">المنصة الأكاديمية الذكية المتكاملة</span>
             </div>
           </div>
 
@@ -169,21 +169,21 @@ export default function AuthGateView({ onAuthSuccess }) {
 
           <div className="space-y-3 pt-2">
             <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 text-xs text-slate-200">
-              <span className="p-2 rounded-xl bg-indigo-600/30 text-indigo-400">
+              <span className="p-2 rounded-xl bg-emerald-600/30 text-emerald-400">
                 <BrainCircuit className="w-4 h-4" />
               </span>
               <span>خوارزميات RAG لفهم وتلخيص أوراق PDF والمحاضرات</span>
             </div>
 
             <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 text-xs text-slate-200">
-              <span className="p-2 rounded-xl bg-purple-600/30 text-purple-400">
+              <span className="p-2 rounded-xl bg-emerald-600/30 text-emerald-400">
                 <FileText className="w-4 h-4" />
               </span>
               <span>خرائط ذهنية شجرية بتصميم Google NotebookLM</span>
             </div>
 
             <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 text-xs text-slate-200">
-              <span className="p-2 rounded-xl bg-cyan-600/30 text-cyan-400">
+              <span className="p-2 rounded-xl bg-teal-600/30 text-teal-400">
                 <Languages className="w-4 h-4" />
               </span>
               <span>ترجمة المقررات العلمية بنمط ورق A4 الأكاديمي</span>
@@ -205,7 +205,7 @@ export default function AuthGateView({ onAuthSuccess }) {
                 onClick={() => { setAuthMode('login'); setError(null); setSuccess(null); }}
                 className={`flex-1 py-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 ${
                   authMode === 'login'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -217,7 +217,7 @@ export default function AuthGateView({ onAuthSuccess }) {
                 onClick={() => { setAuthMode('register'); setError(null); setSuccess(null); }}
                 className={`flex-1 py-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 ${
                   authMode === 'register'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -258,7 +258,7 @@ export default function AuthGateView({ onAuthSuccess }) {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="yourname@gmail.com أو اسم المستخدم"
-                        className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500 font-mono pr-9"
+                        className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-500 font-mono pr-9"
                       />
                       <Mail className="w-4 h-4 text-slate-400 absolute top-3 right-3" />
                     </div>
@@ -272,7 +272,7 @@ export default function AuthGateView({ onAuthSuccess }) {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500 font-mono pr-9 pl-9"
+                        className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-500 font-mono pr-9 pl-9"
                       />
                       <Lock className="w-4 h-4 text-slate-400 absolute top-3 right-3" />
                       <button
@@ -289,7 +289,7 @@ export default function AuthGateView({ onAuthSuccess }) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-black text-sm shadow-xl shadow-indigo-600/25 transition flex items-center justify-center gap-2 border border-white/20"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm shadow-xl shadow-emerald-600/25 transition flex items-center justify-center gap-2 border border-white/20"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
                   <span>دخول إلى المنصة</span>
@@ -338,7 +338,7 @@ export default function AuthGateView({ onAuthSuccess }) {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="الاسم الكامل"
-                        className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500 pr-9"
+                        className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-500 pr-9"
                       />
                       <User className="w-4 h-4 text-slate-400 absolute top-3 right-3" />
                     </div>
@@ -352,7 +352,7 @@ export default function AuthGateView({ onAuthSuccess }) {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="yourname@gmail.com أو student@univ.edu"
-                        className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500 font-mono pr-9"
+                        className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-500 font-mono pr-9"
                       />
                       <Mail className="w-4 h-4 text-slate-400 absolute top-3 right-3" />
                     </div>
@@ -366,7 +366,7 @@ export default function AuthGateView({ onAuthSuccess }) {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="اختر كلمة مرور قوية"
-                        className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500 font-mono pr-9"
+                        className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-500 font-mono pr-9"
                       />
                       <Lock className="w-4 h-4 text-slate-400 absolute top-3 right-3" />
                     </div>
@@ -376,7 +376,7 @@ export default function AuthGateView({ onAuthSuccess }) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-sm shadow-xl shadow-indigo-600/25 transition flex items-center justify-center gap-2 border border-white/20"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-600 hover:from-emerald-500 hover:to-emerald-500 text-white font-black text-sm shadow-xl shadow-emerald-600/25 transition flex items-center justify-center gap-2 border border-white/20"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
                   <span>إنشاء الحساب والبدء فوراً</span>
@@ -390,7 +390,7 @@ export default function AuthGateView({ onAuthSuccess }) {
               <button
                 type="button"
                 onClick={handleQuickDemoStudent}
-                className="px-3 py-1 rounded-lg bg-indigo-950/60 hover:bg-indigo-900 border border-indigo-700/50 text-indigo-300 font-bold text-[11px] transition"
+                className="px-3 py-1 rounded-lg bg-emerald-950/60 hover:bg-emerald-900 border border-emerald-700/50 text-emerald-300 font-bold text-[11px] transition"
               >
                 🎓 تجربة المنصة بحساب طالب
               </button>

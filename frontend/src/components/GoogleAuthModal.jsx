@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { 
   X, 
   LogIn, 
@@ -167,7 +167,7 @@ export default function GoogleAuthModal({ isOpen, onClose, user, onUserUpdated }
               <img
                 src={user.picture}
                 alt={user.name}
-                className="w-20 h-20 rounded-full mx-auto border-2 border-indigo-500 shadow-xl bg-indigo-950 object-cover"
+                className="w-20 h-20 rounded-full mx-auto border-2 border-emerald-500 shadow-xl bg-emerald-950 object-cover"
               />
               <span className={`absolute bottom-0 right-0 p-1 rounded-full text-white shadow-md ${isAdmin ? 'bg-amber-500' : 'bg-emerald-500'}`}>
                 {isAdmin ? <Crown className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
@@ -192,7 +192,7 @@ export default function GoogleAuthModal({ isOpen, onClose, user, onUserUpdated }
                   <span>{isAdmin ? 'مدير النظام (Admin)' : 'حساب طالب (Student)'}</span>
                 </span>
 
-                <span className="px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-500 dark:text-indigo-300 text-xs font-bold">
+                <span className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 dark:text-emerald-300 text-xs font-bold">
                   {user.tier || 'Pro Academic 🌟'}
                 </span>
               </div>
@@ -204,12 +204,12 @@ export default function GoogleAuthModal({ isOpen, onClose, user, onUserUpdated }
             <div className="p-4 rounded-2xl theme-card-inner border text-right space-y-2 text-xs">
               <div className="flex items-center justify-between font-bold">
                 <span className="theme-text-secondary">استهلاك التوكنز الشهري:</span>
-                <span className="text-cyan-600 dark:text-cyan-300 font-mono font-black">
+                <span className="text-teal-600 dark:text-teal-300 font-mono font-black">
                   {(user.tokens_used || 14200).toLocaleString()} / {(user.tokens_limit || 500000).toLocaleString()}
                 </span>
               </div>
               <div className="w-full bg-slate-200 dark:bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-300 dark:border-white/5">
-                <div className="bg-gradient-to-r from-indigo-500 to-cyan-400 h-full w-[15%] rounded-full"></div>
+                <div className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full w-[15%] rounded-full"></div>
               </div>
             </div>
 
@@ -224,7 +224,7 @@ export default function GoogleAuthModal({ isOpen, onClose, user, onUserUpdated }
 
               <button
                 onClick={onClose}
-                className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-md shadow-indigo-600/20"
+                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-md shadow-emerald-600/20"
               >
                 إغلاق
               </button>
@@ -240,7 +240,7 @@ export default function GoogleAuthModal({ isOpen, onClose, user, onUserUpdated }
                 onClick={() => { setAuthTab('student'); setAuthError(null); }}
                 className={`flex-1 py-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 ${
                   authTab === 'student'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
                     : 'theme-text-secondary hover:bg-white/5'
                 }`}
               >
@@ -308,7 +308,7 @@ export default function GoogleAuthModal({ isOpen, onClose, user, onUserUpdated }
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-black text-xs shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2"
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-black text-xs shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-2"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
                     <span>دخول فوري كطالب</span>
@@ -392,7 +392,7 @@ export default function GoogleAuthModal({ isOpen, onClose, user, onUserUpdated }
               <button
                 type="button"
                 onClick={() => setIsEditingClientId(!isEditingClientId)}
-                className="w-full text-right text-xs font-bold theme-text-secondary hover:text-cyan-500 flex items-center justify-between"
+                className="w-full text-right text-xs font-bold theme-text-secondary hover:text-teal-500 flex items-center justify-between"
               >
                 <span className="flex items-center gap-1.5">
                   <Settings className="w-3.5 h-3.5" />
@@ -420,7 +420,7 @@ export default function GoogleAuthModal({ isOpen, onClose, user, onUserUpdated }
                     <button
                       type="button"
                       onClick={handleSaveClientId}
-                      className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs"
+                      className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs"
                     >
                       حفظ وتطبيق
                     </button>
