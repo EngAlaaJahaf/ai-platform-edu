@@ -6,6 +6,7 @@ import hashlib
 import secrets
 import hmac
 import re
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
@@ -154,6 +155,20 @@ def init_db():
 
     try:
         cursor.execute("ALTER TABLE users ADD COLUMN permissions_json TEXT DEFAULT '{}';")
+    except sqlite3.OperationalError:
+        pass
+
+    # Token period tracking for automatic monthly reset (YYYY-MM)
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN token_period TEXT;")
+    except sqlite3.OperationalError:
+        pass
+    # Backfill current month so existing usage is NOT wiped on first run
+    try:
+        cursor.execute(
+            "UPDATE users SET token_period = ? WHERE token_period IS NULL",
+            (_current_token_period(),),
+        )
     except sqlite3.OperationalError:
         pass
 
@@ -337,7 +352,57 @@ def login_user(email_or_username: str, password: str) -> Dict[str, Any]:
     log_activity("login_user", f"تسجيل دخول: {user_dict.get('name')} ({user_dict.get('email')})", "info")
     return {"success": True, "user": user_dict}
 
+def _current_token_period(now: Optional[datetime] = None) -> str:
+    """Returns the current token reset period as YYYY-MM."""
+    if now is None:
+        now = datetime.utcnow()
+    return now.strftime("%Y-%m")
+
+def sync_token_period(user_id: str) -> None:
+    """If the user's token period differs from the current month, reset tokens_used
+    to 0 and update token_period so usage starts fresh each month."""
+    if not user_id:
+        return
+    current_period = _current_token_period()
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT token_period FROM users WHERE id = ?", (user_id,))
+        row = cur.fetchone()
+        if row is None:
+            conn.close()
+            return
+        stored_period = row["token_period"] if row else None
+        if stored_period != current_period:
+            cur.execute(
+                "UPDATE users SET token_period = ?, tokens_used = 0 WHERE id = ?",
+                (current_period, user_id),
+            )
+            conn.commit()
+            if stored_period is not None:
+                log_activity(
+                    "token_period_reset",
+                    f"تصفير رصيد التوكنز الشهري للمستخدم {user_id} (الفترة {stored_period} → {current_period})",
+                    "info",
+                )
+        conn.close()
+    except Exception:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
 def list_all_users() -> List[Dict[str, Any]]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, google_id, email, name, picture, role, subscription_tier, tokens_used, tokens_limit, token_period, created_at, permissions_json FROM users ORDER BY created_at DESC")
+    rows = cursor.fetchall()
+    users = [dict(r) for r in rows]
+    conn.close()
+    # Apply monthly reset for each user so admin view reflects fresh periods
+    for u in users:
+        sync_token_period(u["id"])
+    # Re-read after possible resets
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT id, google_id, email, name, picture, role, subscription_tier, tokens_used, tokens_limit, created_at, permissions_json FROM users ORDER BY created_at DESC")
@@ -348,6 +413,8 @@ def list_all_users() -> List[Dict[str, Any]]:
 def get_user_by_id(user_id: str) -> Optional[Dict[str, Any]]:
     if not user_id:
         return None
+    # Auto-reset if a new month has started
+    sync_token_period(user_id)
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
@@ -359,6 +426,8 @@ def increment_user_tokens(user_id: Optional[str], delta: int):
     if not user_id or not delta or delta <= 0:
         return
     try:
+        # Reset usage first if a new month has started
+        sync_token_period(user_id)
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("UPDATE users SET tokens_used = COALESCE(tokens_used,0) + ? WHERE id = ?", (int(delta), user_id))
