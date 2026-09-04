@@ -1027,10 +1027,10 @@ export default function ChatView({
       <div className={`flex flex-col glass-panel overflow-hidden shadow-xl h-full min-h-[500px] ${isChatFullscreen ? 'lg:col-span-9 xl:col-span-9 col-span-1 rounded-none' : 'lg:col-span-9 xl:col-span-9 col-span-1 rounded-2xl'}`}>
         
         {/* Minimal Header */}
-        <div className="px-4 py-1.5 border-b border-white/10 theme-nav flex items-center justify-between shrink-0 font-['Tajawal']">
+        <div className="px-4 py-2 border-b border-slate-200 dark:border-slate-800 theme-nav flex items-center justify-between shrink-0 font-['Tajawal']">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-md">
-              <Bot className="w-3.5 h-3.5" />
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 shrink-0">
+              <Bot className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -1038,16 +1038,16 @@ export default function ChatView({
                   {sessions.find(s => s.id === activeSessionId)?.title || 'المحادثة الأكاديمية التفاعلية RAG'}
                 </h3>
                 {activePrompt && (
-                  <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
                     <Wand2 className="w-3 h-3" /> {activePrompt.title}
                   </span>
                 )}
               </div>
-              <p className="text-[11px] theme-text-muted truncate max-w-sm">
+              <p className="text-xs theme-text-muted truncate max-w-sm">
                 {activeDoc ? `المستند: ${activeDoc.filename} (${activeDoc.pages_count} صفحة)` : 'إجابات أكاديمية عامة'}
               </p>
               <div className="relative mt-1" ref={modelDropdownRef}>
-                <button onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)} className="flex items-center gap-1.5 text-[11px] font-bold theme-text-muted hover:theme-text-primary transition">
+                <button onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)} className="flex items-center gap-1.5 text-xs font-bold theme-text-muted hover:theme-text-primary transition cursor-pointer">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                   <span className="font-mono">{chatModel}</span>
                   <ChevronDown className={`w-3 h-3 transition ${isModelDropdownOpen ? 'rotate-180' : ''}`} />
@@ -1056,7 +1056,7 @@ export default function ChatView({
                   <div className="absolute top-full right-0 mt-1.5 w-64 theme-bg-card border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden">
                     <div className="p-2 max-h-60 overflow-y-auto space-y-1">
                       {chatModels.length ? chatModels.map(m => (
-                        <button key={m} onClick={() => { setChatModel(m); setSelectedModel(m); setIsModelDropdownOpen(false); }} className={`w-full text-right px-3 py-2 rounded-xl text-xs font-mono transition ${chatModel===m ? 'bg-indigo-500/20 text-indigo-500 border border-indigo-500/30' : 'theme-text-secondary hover:bg-slate-500/10'}`}>{m}</button>
+                        <button key={m} onClick={() => { setChatModel(m); setSelectedModel(m); setIsModelDropdownOpen(false); }} className={`w-full text-right px-3 py-2 rounded-xl text-xs font-mono transition cursor-pointer ${chatModel===m ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 font-bold' : 'theme-text-secondary hover:bg-slate-500/10'}`}>{m}</button>
                       )) : <div className="text-xs theme-text-muted p-3 text-center">{fetchingChatModels ? 'جاري الجلب...' : 'لا توجد نماذج'}</div>}
                     </div>
                   </div>
@@ -1068,31 +1068,31 @@ export default function ChatView({
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => handleCreateNewSession()}
-              className="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-sm transition flex items-center gap-1"
+              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition flex items-center gap-1 cursor-pointer"
               title="محادثة جديدة"
             >
-              <Plus className="w-3 h-3" />
+              <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">جديد</span>
             </button>
             <button
               onClick={() => setIsSessionsModalOpen(true)}
-              className="px-2.5 py-1.5 rounded-lg theme-header-btn border text-xs font-bold transition flex items-center gap-1"
+              className="px-3 py-1.5 rounded-lg theme-header-btn border text-xs font-bold transition flex items-center gap-1 cursor-pointer"
               title="المحادثات"
             >
-              <MessageSquare className="w-3 h-3 text-cyan-500" />
+              <MessageSquare className="w-3.5 h-3.5 text-emerald-500" />
               <span className="hidden sm:inline">المحادثات</span>
-              <span className="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-[10px]">{sessions.length}</span>
+              <span className="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-xs">{sessions.length}</span>
             </button>
             <button
               onClick={() => setIsChatFullscreen(!isChatFullscreen)}
-              className="p-1.5 rounded-lg theme-header-btn border hover:text-cyan-400 transition"
+              className="p-1.5 rounded-lg theme-header-btn border hover:text-emerald-400 transition cursor-pointer"
               title={isChatFullscreen ? 'إنهاء ملء الشاشة' : 'ملء الشاشة'}
             >
               {isChatFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
             </button>
             <button
               onClick={handleClearHistory}
-              className="p-1.5 rounded-lg theme-header-btn border hover:text-rose-400 transition"
+              className="p-1.5 rounded-lg theme-header-btn border hover:text-rose-400 transition cursor-pointer"
               title="مسح"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -1100,9 +1100,10 @@ export default function ChatView({
           </div>
         </div>
 
-        {/* Messages Stream - airy, ChatGPT-like */}
+        {/* Messages Stream - Centered reading column */}
         <div className="relative flex-1 overflow-hidden">
-        <div ref={chatContainerRef} onScroll={handleScroll} className="h-full overflow-y-auto p-3 md:p-4 space-y-4">
+        <div ref={chatContainerRef} onScroll={handleScroll} className="h-full overflow-y-auto p-4 md:p-6">
+          <div className="max-w-4xl w-full mx-auto space-y-5">
           {(messages || []).map((msg, index) => {
             const isUser = msg.sender === 'user';
             const isLastAi = !isUser && index === (messages || []).length - 1;
@@ -1112,22 +1113,22 @@ export default function ChatView({
               <div
                 key={msg.id}
                 data-msg-id={msg.id}
-                className={`flex gap-2.5 max-w-[95%] ${isUser ? 'mr-auto flex-row-reverse' : 'ml-auto'}`}
+                className={`flex gap-3 max-w-[95%] ${isUser ? 'mr-auto flex-row-reverse' : 'ml-auto'}`}
               >
-                {/* Avatar - smaller */}
-                <div className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-xs font-bold shadow-sm ${
+                {/* Avatar */}
+                <div className={`w-8 h-8 rounded-xl shrink-0 flex items-center justify-center text-xs font-bold shadow-sm ${
                   isUser 
-                    ? 'bg-gradient-to-br from-cyan-500 to-indigo-600 text-white' 
-                    : 'bg-gradient-to-br from-indigo-600 to-violet-700 text-white border border-indigo-400/30'
+                    ? 'bg-gradient-to-br from-slate-700 to-slate-900 text-white' 
+                    : 'bg-gradient-to-br from-emerald-600 to-teal-700 text-white border border-emerald-400/30'
                 }`}>
-                  {isUser ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
+                  {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                 </div>
 
-                {/* Message Bubble - compact */}
+                {/* Message Bubble */}
                 <div className={`flex flex-col flex-1 ${isUser ? 'items-end' : 'items-start'} max-w-full overflow-hidden`}>
-                  <div className={`p-3.5 rounded-2xl text-[13.5px] leading-[1.7] relative group w-full ${
+                  <div className={`p-4 md:p-5 rounded-2xl text-[15px] leading-relaxed relative group w-full ${
                     isUser
-                      ? 'bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/70 dark:border-indigo-800/40 theme-text-primary rounded-tr-none shadow-sm'
+                      ? 'bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 theme-text-primary rounded-tr-none shadow-sm'
                       : 'glass-card theme-text-primary rounded-tl-none border shadow-md'
                   }`}>
                     
@@ -1139,8 +1140,8 @@ export default function ChatView({
                       </div>
                     )}
 
-                    {/* Rich Markdown Renderer */}
-                    <div className="prose prose-indigo dark:prose-invert max-w-none font-['Tajawal'] text-[13.5px] leading-[1.7] break-words space-y-1.5">
+                    {/* Rich Markdown Renderer with KaTeX */}
+                    <div className="prose prose-slate dark:prose-invert max-w-none font-['Tajawal'] text-[15px] leading-relaxed break-words space-y-2">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkMath]}
                         rehypePlugins={[rehypeKatex]}
@@ -1384,6 +1385,7 @@ export default function ChatView({
           )}
 
           <div ref={messagesEndRef} />
+          </div>
         </div>
 
         {/* Quick Navigation Rail between messages (Manus-style) */}
@@ -1420,7 +1422,7 @@ export default function ChatView({
                   onMouseEnter={openNav}
                   onMouseLeave={scheduleCloseNav}
                 >
-                  <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 px-2 py-1">
+                  <div className="text-xs font-black text-slate-400 dark:text-slate-500 px-2 py-1">
                     التنقّل السريع بين الرسائل ({messages.length})
                   </div>
                   {messages.map((m, idx) => (
@@ -1429,11 +1431,11 @@ export default function ChatView({
                       onClick={() => { scrollToNavMessage(idx); setNavOpen(false); }}
                       className={`w-full text-right px-2.5 py-1.5 rounded-lg text-xs leading-[18px] transition flex items-center gap-1.5 cursor-pointer ${
                         idx === activeNavIndex
-                          ? 'bg-indigo-500/15 text-indigo-600 dark:text-cyan-300 font-bold'
+                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 font-bold'
                           : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                       }`}
                     >
-                      <span className="shrink-0 text-[10px] opacity-60">{m.sender === 'user' ? '💬' : '🤖'}</span>
+                      <span className="shrink-0 text-xs opacity-60">{m.sender === 'user' ? '💬' : '🤖'}</span>
                       <span className="truncate">{m.text.replace(/\s+/g, ' ').slice(0, 44) || '(رسالة فارغة)'}</span>
                     </button>
                   ))}
@@ -1444,23 +1446,23 @@ export default function ChatView({
         </div>
 
         {/* Quick Prompts - compact */}
-        <div className="px-3 py-1.5 theme-nav border-t border-slate-200 dark:border-white/10 flex items-center gap-1.5 overflow-x-auto scrollbar-none shrink-0">
-          <span className="text-[10px] font-bold theme-text-muted flex items-center gap-1 shrink-0">
-            <Sparkles className="w-3 h-3 text-amber-400" /> سريع:
+        <div className="px-4 py-2 theme-nav border-t border-slate-200 dark:border-slate-800 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0">
+          <span className="text-xs font-bold theme-text-muted flex items-center gap-1 shrink-0">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" /> سريع:
           </span>
           {quickPrompts.map((qp, idx) => (
             <button
               key={idx}
               onClick={() => handleSend(qp.query)}
-              className="text-[11px] font-semibold px-2.5 py-1 rounded-full theme-header-btn border hover:border-indigo-400 transition whitespace-nowrap shrink-0 cursor-pointer"
+              className="text-xs font-bold px-3 py-1 rounded-full theme-header-btn border hover:border-emerald-500 transition whitespace-nowrap shrink-0 cursor-pointer"
             >
               {qp.label}
             </button>
           ))}
         </div>
 
-        {/* Input - compact ChatGPT style */}
-        <div className="p-2 md:p-2.5 border-t border-slate-200 dark:border-white/10 theme-nav shrink-0">
+        {/* Input - Modern Floating Capsule */}
+        <div className="p-3 md:p-4 border-t border-slate-200 dark:border-slate-800 theme-nav shrink-0">
           
           {/* Voice Listening Banner */}
           {isListening && (
@@ -1472,7 +1474,7 @@ export default function ChatView({
               <button 
                 type="button"
                 onClick={toggleListening}
-                className="text-[11px] bg-rose-500 hover:bg-rose-600 text-white px-2.5 py-1 rounded-lg transition"
+                className="text-xs bg-rose-500 hover:bg-rose-600 text-white px-2.5 py-1 rounded-lg transition"
               >
                 إيقاف التسجيل
               </button>
@@ -1484,7 +1486,7 @@ export default function ChatView({
               e.preventDefault();
               handleSend();
             }}
-            className="relative flex flex-col gap-2 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-300 dark:border-indigo-500/30 focus-within:border-indigo-500 p-2.5 transition shadow-inner"
+            className="max-w-4xl mx-auto relative flex flex-col gap-2 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700/80 focus-within:border-emerald-500 p-3 transition shadow-lg"
           >
             {/* Auto-expanding Multiline Textarea */}
             <textarea
@@ -1509,83 +1511,71 @@ export default function ChatView({
                   ? `اسأل أي سؤال حول "${activeDoc.filename}" (Enter للإرسال، Shift+Enter لسطر جديد)...` 
                   : "اكتب سؤالك الأكاديمي هنا (Enter للإرسال، Shift+Enter لسطر جديد)..."
               }
-              className="w-full bg-transparent px-3 py-1.5 text-sm theme-text-primary outline-none transition font-['Tajawal'] resize-none leading-relaxed min-h-[38px] max-h-[160px]"
+              className="w-full bg-transparent px-3 py-1.5 text-sm theme-text-primary outline-none transition font-['Tajawal'] resize-none leading-relaxed min-h-[40px] max-h-[160px]"
             />
 
             {/* Input Action Controls Bar */}
-            <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 dark:border-white/5 text-xs font-['Tajawal']">
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs font-['Tajawal']">
               
               {/* Left Action Shortcuts */}
               <div className="flex items-center gap-1.5">
-                
-                {/* Upload / Attach File Shortcut */}
                 <button
                   type="button"
                   onClick={onOpenUpload}
-                  className="px-2.5 py-1.5 rounded-xl theme-header-btn border hover:text-cyan-400 transition flex items-center gap-1.5 text-[11px] font-bold cursor-pointer"
-                  title="رفع أو تبديل المستند المفهرس"
+                  className="px-2.5 py-1.5 rounded-xl theme-header-btn border hover:text-emerald-400 transition flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+                  title="رفع مستند تعليمي جديد"
                 >
-                  <Paperclip className="w-3.5 h-3.5 text-cyan-400" />
-                  <span className="hidden sm:inline">أرفق مستند</span>
+                  <Paperclip className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="hidden sm:inline">إرفاق مادة</span>
                 </button>
 
-                {/* Prompt Manager Shortcut */}
                 <button
                   type="button"
                   onClick={onOpenPromptManager}
-                  className="px-2.5 py-1.5 rounded-xl theme-header-btn border hover:text-amber-400 transition flex items-center gap-1.5 text-[11px] font-bold cursor-pointer"
-                  title="تطبيق قالب برومبت ذكي"
+                  className="px-2.5 py-1.5 rounded-xl theme-header-btn border hover:text-amber-400 transition flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+                  title="استخدام قالب برومبت مخصص"
                 >
                   <Wand2 className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="hidden sm:inline">قوالب ذكية</span>
+                  <span className="hidden sm:inline">{activePrompt ? activePrompt.title : 'البرومبتات'}</span>
                 </button>
 
-                {/* Voice Dictation Button */}
                 <button
                   type="button"
                   onClick={toggleListening}
-                  className={`px-2.5 py-1.5 rounded-xl border transition flex items-center gap-1.5 text-[11px] font-bold cursor-pointer ${
+                  className={`px-2.5 py-1.5 rounded-xl border transition flex items-center gap-1.5 text-xs font-bold cursor-pointer ${
                     isListening
-                      ? 'bg-rose-500 text-white border-rose-500 animate-pulse'
-                      : 'theme-header-btn hover:text-rose-400'
+                      ? 'bg-rose-500/20 border-rose-500 text-rose-400 animate-pulse'
+                      : 'theme-header-btn hover:text-cyan-400'
                   }`}
-                  title="الإملاء والتحدث الصوتي"
+                  title={isListening ? 'إيقاف التسجيل الصوتي' : 'إدخال صوتي (Voice Input)'}
                 >
-                  {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5 text-rose-400" />}
-                  <span className="hidden sm:inline">{isListening ? 'تسجيل...' : 'إملاء صوتي'}</span>
+                  {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+                  <span className="hidden md:inline">{isListening ? 'استماع...' : 'تحدث'}</span>
                 </button>
-
               </div>
 
-              {/* Right Send / Cancel Controls */}
+              {/* Send Button */}
               <div className="flex items-center gap-2">
-                
                 {editingMsgId && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setEditingMsgId(null);
-                      setInputValue('');
-                    }}
-                    className="px-3 py-1.5 rounded-xl theme-header-btn border text-xs font-bold cursor-pointer"
+                    onClick={handleCancelEdit}
+                    className="px-3 py-1.5 rounded-xl theme-header-btn border text-xs font-bold hover:text-rose-400 transition cursor-pointer"
                   >
                     إلغاء التعديل
                   </button>
                 )}
-
+                
                 <button
                   type="submit"
-                  disabled={loading || !inputValue.trim()}
-                  className="h-9 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-black text-xs flex items-center justify-center gap-1.5 disabled:opacity-40 transition shadow-md shadow-indigo-600/25 border border-white/20 cursor-pointer"
+                  disabled={!inputValue.trim() || isSubmitting}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-40 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Send className="w-3.5 h-3.5 rotate-180 text-white" />
-                  <span className="font-bold">إرسال</span>
+                  <span>{editingMsgId ? 'حفظ وإرسال' : 'إرسال'}</span>
+                  <Send className="w-3.5 h-3.5 rotate-180" />
                 </button>
-
               </div>
-
             </div>
-
           </form>
         </div>
 

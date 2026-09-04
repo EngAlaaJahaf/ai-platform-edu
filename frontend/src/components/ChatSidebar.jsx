@@ -140,7 +140,7 @@ export default function ChatSidebar({
           <span className="text-sm font-bold theme-text-primary">المكتبة</span>
         </div>
 
-        <div className="text-[12px] theme-text-muted font-medium mb-1 mt-1">المستندات المرفوعة</div>
+        <div className="text-sm theme-text-muted font-medium mb-1 mt-1">المستندات المرفوعة</div>
         <div className="flex flex-col gap-px mb-4">
           {docList.length === 0 && (
             <div className="text-xs theme-text-muted text-center py-4">لا مستندات مرافعة بعد</div>
@@ -149,24 +149,24 @@ export default function ChatSidebar({
             <div key={i} className="flex items-center rounded-[10px] h-[36px] gap-[8px] ps-[8px] pe-[2px] hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer group">
               <FileText size={15} className="text-cyan-500 shrink-0" />
               <div className="flex-1 min-w-0">
-                <div className="text-[13px] theme-text-primary truncate">{doc.name}</div>
-                <div className="text-[10px] theme-text-muted">{doc.date}</div>
+                <div className="text-sm theme-text-primary truncate">{doc.name}</div>
+                <div className="text-xs theme-text-muted">{doc.date}</div>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="text-[12px] theme-text-muted font-medium mb-1">الملفات المُصدَّرة</div>
+        <div className="text-sm theme-text-muted font-medium mb-1">الملفات المُصدَّرة</div>
         <div className="flex flex-col gap-px">
           {exports.length === 0 && (
             <div className="text-xs theme-text-muted text-center py-4">لا ملفات مُصدَّرة بعد</div>
           )}
           {exports.map((file, i) => (
             <div key={i} className="flex items-center rounded-[10px] h-[40px] gap-[8px] ps-[8px] pe-[2px] hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer group">
-              <FileDown size={16} className="text-indigo-500 shrink-0" />
+              <FileDown size={16} className="text-emerald-500 shrink-0" />
               <div className="flex-1 min-w-0">
-                <div className="text-[13px] theme-text-primary truncate">{file.name}</div>
-                <div className="text-[10px] theme-text-muted">{file.date}</div>
+                <div className="text-sm theme-text-primary truncate">{file.name}</div>
+                <div className="text-xs theme-text-muted">{file.date}</div>
               </div>
               <a href={file.url} download={file.name} className="size-[28px] rounded-[6px] hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center opacity-0 group-hover:opacity-100 text-slate-500">
                 <FileDown size={12} />
@@ -174,7 +174,7 @@ export default function ChatSidebar({
             </div>
           ))}
           {exports.length > 0 && (
-            <button onClick={() => { setExports([]); saveExports([]); }} className="text-[11px] text-rose-500 hover:underline mt-2">مسح السجل</button>
+            <button onClick={() => { setExports([]); saveExports([]); }} className="text-xs text-rose-500 hover:underline mt-2">مسح السجل</button>
           )}
         </div>
       </div>
@@ -185,19 +185,19 @@ export default function ChatSidebar({
     <div className="simplebar-content flex flex-col h-full overflow-y-auto" ref={menuRef} style={{ padding: '0px 8px 12px' }}>
       {/* Search */}
       <div className="relative mb-3 mt-2">
-        <input type="text" placeholder="بحث في المحادثات..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pr-8 pl-3 py-1.5 rounded-xl theme-card-inner border text-xs theme-text-primary focus:border-indigo-500" />
+        <input type="text" placeholder="بحث في المحادثات..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pr-8 pl-3 py-1.5 rounded-xl theme-card-inner border text-xs theme-text-primary focus:border-emerald-500" />
         <span className="absolute right-3 top-2 text-slate-400">⌕</span>
       </div>
 
       {searchQuery.trim() ? (
         <div className="space-y-1">
-          <div className="text-[11px] theme-text-muted px-2 mb-1">نتائج البحث ({(searchResults || []).length})</div>
+          <div className="text-xs theme-text-muted px-2 mb-1">نتائج البحث ({(searchResults || []).length})</div>
           {(searchResults || []).map(r => {
             const sess = sessions.find(s => s.id === r.sessionId);
             return sess ? (
-              <div key={r.sessionId + r.messageId} onClick={() => onOpenSearchResult ? onOpenSearchResult(r) : onSelectSession(r.sessionId)} className="p-2.5 rounded-xl border theme-card-inner hover:border-indigo-500/30 cursor-pointer">
+              <div key={r.sessionId + r.messageId} onClick={() => onOpenSearchResult ? onOpenSearchResult(r) : onSelectSession(r.sessionId)} className="p-2.5 rounded-xl border theme-card-inner hover:border-emerald-500/30 cursor-pointer">
                 <div className="text-xs font-bold theme-text-primary truncate">{highlightText(r.sessionTitle, searchQuery)}</div>
-                <div className="text-[11px] theme-text-muted line-clamp-2" dir="auto">{highlightText(r.snippet, searchQuery)}</div>
+                <div className="text-xs theme-text-muted line-clamp-2" dir="auto">{highlightText(r.snippet, searchQuery)}</div>
               </div>
             ) : null;
           })}
@@ -207,7 +207,7 @@ export default function ChatSidebar({
         <>
           {/* New Chat + Library buttons */}
           <div className="flex items-center gap-1 mb-2">
-            <button onClick={() => onCreateNew()} className="flex-1 flex items-center justify-center gap-1.5 h-[34px] rounded-[10px] bg-indigo-600 text-white text-[13px] font-medium hover:bg-indigo-500 transition">
+            <button onClick={() => onCreateNew()} className="flex-1 flex items-center justify-center gap-1.5 h-[34px] rounded-[10px] bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-500 transition">
               <Plus size={16} /> محادثة جديدة
             </button>
             <button onClick={() => setShowLibrary(true)} className="size-[34px] rounded-[10px] border theme-card-inner hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center" title="المكتبة">
@@ -219,7 +219,7 @@ export default function ChatSidebar({
           {unassignedSessions.length > 0 && (
             <div className="mb-2">
               <div className="flex items-center justify-between ps-[4px] pe-[2px] h-[32px] mb-0.5">
-                <span className="text-[12px] theme-text-muted font-medium">محادثات</span>
+                <span className="text-sm theme-text-muted font-medium">محادثات</span>
               </div>
               <div className="flex flex-col gap-px">
                 {unassignedSessions.map(sess => (
@@ -234,7 +234,7 @@ export default function ChatSidebar({
 
           {/* Projects */}
           <div className="flex items-center justify-between ps-[4px] pe-[2px] h-[32px] mb-0.5">
-            <span className="text-[12px] theme-text-muted font-medium">المشاريع</span>
+            <span className="text-sm theme-text-muted font-medium">المشاريع</span>
             <button onClick={() => setShowNewProject(true)} className="size-[28px] rounded-[8px] hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center" title="مشروع جديد">
               <FolderPlus size={15} className="theme-text-muted" />
             </button>
@@ -243,7 +243,7 @@ export default function ChatSidebar({
           {showNewProject && (
             <div className="flex items-center gap-1 mb-2">
               <input ref={newProjRef} value={newProjectName} onChange={(e) => setNewProjectName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleCreateProject()} placeholder="اسم المشروع..." className="flex-1 h-[34px] px-3 rounded-xl theme-card-inner border text-xs theme-text-primary" />
-              <button onClick={handleCreateProject} className="size-[34px] rounded-[10px] bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-500"><Plus size={16} /></button>
+              <button onClick={handleCreateProject} className="size-[34px] rounded-[10px] bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-500"><Plus size={16} /></button>
               <button onClick={() => { setShowNewProject(false); setNewProjectName(''); }} className="size-[34px] rounded-[10px] border theme-card-inner flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800"><X size={14} /></button>
             </div>
           )}
@@ -260,8 +260,8 @@ export default function ChatSidebar({
                     </button>
                     <div onClick={() => toggleProject(proj.id)} className="flex items-center gap-[6px] flex-1 min-w-0">
                       <Folder size={15} style={{ color: proj.color }} className="shrink-0" />
-                      <span className="text-[13px] theme-text-primary truncate">{proj.title}</span>
-                      <span className="text-[11px] theme-text-muted">({projSessions.length})</span>
+                      <span className="text-sm theme-text-primary truncate">{proj.title}</span>
+                      <span className="text-xs theme-text-muted">({projSessions.length})</span>
                     </div>
                     <div className="relative">
                       <button onClick={(e) => { e.stopPropagation(); setOpenProjectMenuId(openProjectMenuId === proj.id ? null : proj.id); }} className="size-[28px] rounded-[8px] hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
@@ -277,7 +277,7 @@ export default function ChatSidebar({
                   </div>
                   {!isCollapsed && (
                     <div className="flex flex-col gap-px ps-[28px]">
-                      {projSessions.length === 0 && <div className="text-[11px] theme-text-muted ps-2 py-1">فارغ</div>}
+                      {projSessions.length === 0 && <div className="text-xs theme-text-muted ps-2 py-1">فارغ</div>}
                       {projSessions.map(sess => (
                         <SessionItem key={sess.id} sess={sess} activeSessionId={activeSessionId} onSelect={onSelectSession}
                           onDelete={onDeleteSession} onRename={onRenameSession}
@@ -290,7 +290,7 @@ export default function ChatSidebar({
               );
             })}
             {projects.length === 0 && (
-              <div className="text-[11px] theme-text-muted text-center py-2">لا مشاريع بعد. أضف مشروعًا لتنظيم محادثاتك.</div>
+              <div className="text-xs theme-text-muted text-center py-2">لا مشاريع بعد. أضف مشروعًا لتنظيم محادثاتك.</div>
             )}
           </div>
         </>
@@ -304,7 +304,7 @@ export default function ChatSidebar({
             <input value={editTitle} onChange={e => setEditTitle(e.target.value)} onKeyDown={e => e.key === 'Enter' && (projects.find(p => p.id === editingId) ? handleRenameProject(editingId, editTitle) : onRenameSession(editingId, editTitle), setEditingId(null))} className="w-full theme-card-inner border rounded-xl px-3 py-2 text-sm theme-text-primary" autoFocus />
             <div className="flex justify-end gap-2 mt-3">
               <button onClick={() => setEditingId(null)} className="px-3 py-1.5 rounded-lg border text-xs">إلغاء</button>
-              <button onClick={() => { if (projects.find(p => p.id === editingId)) handleRenameProject(editingId, editTitle); else onRenameSession(editingId, editTitle); setEditingId(null); }} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs">حفظ</button>
+              <button onClick={() => { if (projects.find(p => p.id === editingId)) handleRenameProject(editingId, editTitle); else onRenameSession(editingId, editTitle); setEditingId(null); }} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs">حفظ</button>
             </div>
           </div>
         </div>
@@ -320,12 +320,12 @@ function SessionItem({ sess, activeSessionId, onSelect, onDelete, onRename, proj
 
   return (
     <div className="flex flex-col">
-      <div onClick={() => onSelect(sess.id)} className={`flex items-center rounded-[10px] cursor-pointer transition-colors gap-[8px] h-[34px] ps-[8px] pe-[2px] group ${isActive ? 'bg-indigo-500/10 border border-indigo-500/20' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+      <div onClick={() => onSelect(sess.id)} className={`flex items-center rounded-[10px] cursor-pointer transition-colors gap-[8px] h-[34px] ps-[8px] pe-[2px] group ${isActive ? 'bg-emerald-500/10 border border-emerald-500/20' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
         <Clock size={14} className="text-slate-400 shrink-0" />
         {editing ? (
-          <input value={title} onChange={e => setTitle(e.target.value)} onBlur={() => { if (title.trim()) onRename(sess.id, title.trim()); setEditing(false); setTitle(sess.title); }} onKeyDown={e => { if (e.key === 'Enter') { if (title.trim()) onRename(sess.id, title.trim()); setEditing(false); } if (e.key === 'Escape') { setEditing(false); setTitle(sess.title); } }} onClick={e => e.stopPropagation()} className="flex-1 min-w-0 text-[13px] theme-text-primary bg-transparent border-b border-indigo-500 outline-none px-1" autoFocus />
+          <input value={title} onChange={e => setTitle(e.target.value)} onBlur={() => { if (title.trim()) onRename(sess.id, title.trim()); setEditing(false); setTitle(sess.title); }} onKeyDown={e => { if (e.key === 'Enter') { if (title.trim()) onRename(sess.id, title.trim()); setEditing(false); } if (e.key === 'Escape') { setEditing(false); setTitle(sess.title); } }} onClick={e => e.stopPropagation()} className="flex-1 min-w-0 text-sm theme-text-primary bg-transparent border-b border-emerald-500 outline-none px-1" autoFocus />
         ) : (
-          <span className="text-[13px] theme-text-primary truncate flex-1" title={sess.title}>{sess.title}</span>
+          <span className="text-sm theme-text-primary truncate flex-1" title={sess.title}>{sess.title}</span>
         )}
         <div className="relative">
           <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === sess.id ? null : sess.id); }} className="size-[28px] rounded-[8px] hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shrink-0">
@@ -349,13 +349,13 @@ function SessionItem({ sess, activeSessionId, onSelect, onDelete, onRename, proj
       {/* Move to project sub-menu */}
       {moveSessionId === sess.id && (
         <div className="ms-6 mb-1 mt-0.5 p-1 theme-bg-card border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg z-40">
-          <div className="text-[10px] theme-text-muted px-2 py-1">اختر مشروعًا:</div>
+          <div className="text-xs theme-text-muted px-2 py-1">اختر مشروعًا:</div>
           {projects.map(p => (
             <button key={p.id} onClick={(e) => { e.stopPropagation(); onMoveSession(sess.id, p.id); }} className="w-full text-right px-2 py-1.5 text-xs hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-2">
               <Folder size={12} style={{ color: p.color }} /> {p.title}
             </button>
           ))}
-          {projects.length === 0 && <div className="text-[10px] theme-text-muted px-2 py-1">لا مشاريع متاحة</div>}
+          {projects.length === 0 && <div className="text-xs theme-text-muted px-2 py-1">لا مشاريع متاحة</div>}
         </div>
       )}
     </div>
