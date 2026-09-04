@@ -220,7 +220,7 @@ export default function App() {
 
       {/* Main Content Workspace */}
       {/* Main Content Workspace - Keep-Alive Architecture across all sections */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8">
+      <main className={`flex-1 w-full mx-auto ${activeTab === 'chat' || activeTab === 'translate' ? 'max-w-[1600px] p-2 md:p-4' : 'max-w-7xl p-4 md:p-8'}`}>
         
         {/* Dashboard Workspace */}
         <div className={activeTab === 'dashboard' ? 'contents' : 'hidden'}>

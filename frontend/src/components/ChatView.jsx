@@ -409,6 +409,7 @@ export default function ChatView({
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [chatModels, setChatModels] = useState([]);
   const [fetchingChatModels, setFetchingChatModels] = useState(false);
+  const [isQuickPromptsOpen, setIsQuickPromptsOpen] = useState(false);
 
   useEffect(() => {
     latestMessagesRef.current = messages;
@@ -1001,10 +1002,10 @@ export default function ChatView({
   };
 
   return (
-    <div className={`grid gap-4 w-full lg:grid-cols-12 ${isChatFullscreen ? 'fixed inset-0 z-[70] px-4 py-4 grid-rows-1 max-w-none' : 'lg:h-[calc(100dvh-93px)] lg:grid-rows-1 max-w-[1600px] mx-auto px-4'}`}>
+    <div className={`grid gap-3 w-full lg:grid-cols-12 ${isChatFullscreen ? 'fixed inset-0 z-[70] p-3 grid-rows-1 max-w-none' : 'lg:h-[calc(100dvh-80px)] lg:grid-rows-1 w-full'}`}>
       
       {/* Right Sidebar - Manus style with options menu */}
-      <div className={`flex-col gap-4 h-full ${isChatFullscreen ? 'flex lg:col-span-3 xl:col-span-3 min-h-0' : 'hidden lg:flex lg:col-span-3 xl:col-span-3 min-h-[500px]'}`}>
+      <div className={`flex-col gap-3 h-full ${isChatFullscreen ? 'flex lg:col-span-3 xl:col-span-3 min-h-0' : 'hidden lg:flex lg:col-span-3 xl:col-span-3 min-h-[500px]'}`}>
         <div className="glass-panel rounded-2xl border flex flex-col h-full overflow-hidden">
           <ChatSidebar
             sessions={sessions}
@@ -1024,51 +1025,53 @@ export default function ChatView({
       </div>
 
       {/* Main Chat - ChatGPT style, airy and spacious */}
-      <div className={`flex flex-col glass-panel overflow-hidden shadow-xl h-full min-h-[500px] ${isChatFullscreen ? 'lg:col-span-9 xl:col-span-9 col-span-1 rounded-none' : 'lg:col-span-9 xl:col-span-9 col-span-1 rounded-2xl'}`}>
+      <div className={`flex flex-col glass-panel overflow-hidden shadow-lg h-full min-h-[500px] ${isChatFullscreen ? 'lg:col-span-9 xl:col-span-9 col-span-1 rounded-none' : 'lg:col-span-9 xl:col-span-9 col-span-1 rounded-2xl'}`}>
         
-        {/* Minimal Header */}
+        {/* Minimal Compact Header */}
         <div className="px-4 py-2 border-b border-slate-200 dark:border-slate-800 theme-nav flex items-center justify-between shrink-0 font-['Tajawal']">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 shrink-0">
-              <Bot className="w-4 h-4" />
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-sm shrink-0">
+              <Bot className="w-3.5 h-3.5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-sm theme-text-primary">
+                <h3 className="font-extrabold text-xs md:text-sm theme-text-primary">
                   {sessions.find(s => s.id === activeSessionId)?.title || 'المحادثة الأكاديمية التفاعلية RAG'}
                 </h3>
                 {activePrompt && (
-                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.2 rounded-full flex items-center gap-1">
                     <Wand2 className="w-3 h-3" /> {activePrompt.title}
                   </span>
                 )}
               </div>
-              <p className="text-xs theme-text-muted truncate max-w-sm">
+              <p className="text-[11px] theme-text-muted truncate max-w-sm">
                 {activeDoc ? `المستند: ${activeDoc.filename} (${activeDoc.pages_count} صفحة)` : 'إجابات أكاديمية عامة'}
               </p>
-              <div className="relative mt-1" ref={modelDropdownRef}>
-                <button onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)} className="flex items-center gap-1.5 text-xs font-bold theme-text-muted hover:theme-text-primary transition cursor-pointer">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span className="font-mono">{chatModel}</span>
-                  <ChevronDown className={`w-3 h-3 transition ${isModelDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {isModelDropdownOpen && (
-                  <div className="absolute top-full right-0 mt-1.5 w-64 theme-bg-card border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden">
-                    <div className="p-2 max-h-60 overflow-y-auto space-y-1">
-                      {chatModels.length ? chatModels.map(m => (
-                        <button key={m} onClick={() => { setChatModel(m); setSelectedModel(m); setIsModelDropdownOpen(false); }} className={`w-full text-right px-3 py-2 rounded-xl text-xs font-mono transition cursor-pointer ${chatModel===m ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 font-bold' : 'theme-text-secondary hover:bg-slate-500/10'}`}>{m}</button>
-                      )) : <div className="text-xs theme-text-muted p-3 text-center">{fetchingChatModels ? 'جاري الجلب...' : 'لا توجد نماذج'}</div>}
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
 
           <div className="flex items-center gap-1.5">
+            {/* Model Selector Pill */}
+            <div className="relative" ref={modelDropdownRef}>
+              <button onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg theme-card-inner border text-xs font-bold theme-text-secondary hover:theme-text-primary transition cursor-pointer">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="font-mono text-xs truncate max-w-[110px]">{chatModel}</span>
+                <ChevronDown className={`w-3 h-3 transition ${isModelDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {isModelDropdownOpen && (
+                <div className="absolute top-full right-0 mt-1.5 w-60 theme-bg-card border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl z-50 overflow-hidden">
+                  <div className="p-1.5 max-h-60 overflow-y-auto space-y-1">
+                    {chatModels.length ? chatModels.map(m => (
+                      <button key={m} onClick={() => { setChatModel(m); setSelectedModel(m); setIsModelDropdownOpen(false); }} className={`w-full text-right px-2.5 py-1.5 rounded-lg text-xs font-mono transition cursor-pointer ${chatModel===m ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 font-bold' : 'theme-text-secondary hover:bg-slate-500/10'}`}>{m}</button>
+                    )) : <div className="text-xs theme-text-muted p-3 text-center">{fetchingChatModels ? 'جاري الجلب...' : 'لا توجد نماذج'}</div>}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <button
               onClick={() => handleCreateNewSession()}
-              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition flex items-center gap-1 cursor-pointer"
               title="محادثة جديدة"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -1076,12 +1079,12 @@ export default function ChatView({
             </button>
             <button
               onClick={() => setIsSessionsModalOpen(true)}
-              className="px-3 py-1.5 rounded-lg theme-header-btn border text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1 rounded-lg theme-header-btn border text-xs font-bold transition flex items-center gap-1 cursor-pointer"
               title="المحادثات"
             >
               <MessageSquare className="w-3.5 h-3.5 text-emerald-500" />
               <span className="hidden sm:inline">المحادثات</span>
-              <span className="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-xs">{sessions.length}</span>
+              <span className="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.2 rounded text-[11px]">{sessions.length}</span>
             </button>
             <button
               onClick={() => setIsChatFullscreen(!isChatFullscreen)}
@@ -1102,8 +1105,8 @@ export default function ChatView({
 
         {/* Messages Stream - Centered reading column */}
         <div className="relative flex-1 overflow-hidden">
-        <div ref={chatContainerRef} onScroll={handleScroll} className="h-full overflow-y-auto p-4 md:p-6">
-          <div className="max-w-4xl w-full mx-auto space-y-5">
+        <div ref={chatContainerRef} onScroll={handleScroll} className="h-full overflow-y-auto p-3 md:p-4">
+          <div className="max-w-4xl w-full mx-auto space-y-3">
           {(messages || []).map((msg, index) => {
             const isUser = msg.sender === 'user';
             const isLastAi = !isUser && index === (messages || []).length - 1;
@@ -1113,23 +1116,23 @@ export default function ChatView({
               <div
                 key={msg.id}
                 data-msg-id={msg.id}
-                className={`flex gap-3 max-w-[95%] ${isUser ? 'mr-auto flex-row-reverse' : 'ml-auto'}`}
+                className={`flex gap-2.5 max-w-full ${isUser ? 'mr-auto flex-row-reverse justify-start' : 'ml-auto'}`}
               >
-                {/* Avatar */}
-                <div className={`w-8 h-8 rounded-xl shrink-0 flex items-center justify-center text-xs font-bold shadow-sm ${
+                {/* Avatar - Compact */}
+                <div className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-xs font-bold shadow-xs mt-0.5 ${
                   isUser 
                     ? 'bg-gradient-to-br from-slate-700 to-slate-900 text-white' 
                     : 'bg-gradient-to-br from-emerald-600 to-teal-700 text-white border border-emerald-400/30'
                 }`}>
-                  {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                  {isUser ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
                 </div>
 
-                {/* Message Bubble */}
-                <div className={`flex flex-col flex-1 ${isUser ? 'items-end' : 'items-start'} max-w-full overflow-hidden`}>
-                  <div className={`p-4 md:p-5 rounded-2xl text-[15px] leading-relaxed relative group w-full ${
+                {/* Message Bubble - Compact & Efficient */}
+                <div className={`flex flex-col ${isUser ? 'items-end max-w-[82%]' : 'items-start flex-1 max-w-full'} overflow-hidden`}>
+                  <div className={`rounded-2xl text-[14.5px] leading-relaxed relative group w-full ${
                     isUser
-                      ? 'bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 theme-text-primary rounded-tr-none shadow-sm'
-                      : 'glass-card theme-text-primary rounded-tl-none border shadow-md'
+                      ? 'px-4 py-2.5 bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 theme-text-primary rounded-tr-none shadow-xs'
+                      : 'px-4 py-3 md:px-5 md:py-3.5 glass-card theme-text-primary rounded-tl-none border shadow-xs'
                   }`}>
                     
                     {/* Out of scope warning */}
@@ -1445,24 +1448,8 @@ export default function ChatView({
           )}
         </div>
 
-        {/* Quick Prompts - compact */}
-        <div className="px-4 py-2 theme-nav border-t border-slate-200 dark:border-slate-800 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0">
-          <span className="text-xs font-bold theme-text-muted flex items-center gap-1 shrink-0">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" /> سريع:
-          </span>
-          {quickPrompts.map((qp, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleSend(qp.query)}
-              className="text-xs font-bold px-3 py-1 rounded-full theme-header-btn border hover:border-emerald-500 transition whitespace-nowrap shrink-0 cursor-pointer"
-            >
-              {qp.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Input - Modern Floating Capsule */}
-        <div className="p-3 md:p-4 border-t border-slate-200 dark:border-slate-800 theme-nav shrink-0">
+        {/* Input - Slim Anchored Capsule */}
+        <div className="p-2 md:p-3 border-t border-slate-200 dark:border-slate-800 theme-nav shrink-0">
           
           {/* Voice Listening Banner */}
           {isListening && (
@@ -1486,7 +1473,7 @@ export default function ChatView({
               e.preventDefault();
               handleSend();
             }}
-            className="max-w-4xl mx-auto relative flex flex-col gap-2 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700/80 focus-within:border-emerald-500 p-3 transition shadow-lg"
+            className="max-w-4xl mx-auto relative flex flex-col gap-1.5 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700/80 focus-within:border-emerald-500 p-2 transition shadow-md"
           >
             {/* Auto-expanding Multiline Textarea */}
             <textarea
@@ -1496,7 +1483,7 @@ export default function ChatView({
               onChange={(e) => {
                 setInputValue(e.target.value);
                 e.target.style.height = 'auto';
-                e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
+                e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -1511,38 +1498,38 @@ export default function ChatView({
                   ? `اسأل أي سؤال حول "${activeDoc.filename}" (Enter للإرسال، Shift+Enter لسطر جديد)...` 
                   : "اكتب سؤالك الأكاديمي هنا (Enter للإرسال، Shift+Enter لسطر جديد)..."
               }
-              className="w-full bg-transparent px-3 py-1.5 text-sm theme-text-primary outline-none transition font-['Tajawal'] resize-none leading-relaxed min-h-[40px] max-h-[160px]"
+              className="w-full bg-transparent px-2 py-1.5 text-sm theme-text-primary outline-none transition font-['Tajawal'] resize-none leading-relaxed min-h-[32px] max-h-[120px]"
             />
 
-            {/* Input Action Controls Bar */}
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs font-['Tajawal']">
+            {/* Single-Line Action Bar (icons prominent, labels hidden) */}
+            <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 dark:border-slate-800 text-xs font-['Tajawal']">
               
               {/* Left Action Shortcuts */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={onOpenUpload}
-                  className="px-2.5 py-1.5 rounded-xl theme-header-btn border hover:text-emerald-400 transition flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+                  className="px-2 py-1.5 rounded-lg theme-header-btn border hover:text-emerald-400 transition flex items-center gap-1.5 text-xs font-bold cursor-pointer"
                   title="رفع مستند تعليمي جديد"
                 >
                   <Paperclip className="w-3.5 h-3.5 text-emerald-500" />
-                  <span className="hidden sm:inline">إرفاق مادة</span>
+                  <span className="hidden lg:inline">إرفاق مادة</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={onOpenPromptManager}
-                  className="px-2.5 py-1.5 rounded-xl theme-header-btn border hover:text-amber-400 transition flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+                  className="px-2 py-1.5 rounded-lg theme-header-btn border hover:text-amber-400 transition flex items-center gap-1.5 text-xs font-bold cursor-pointer"
                   title="استخدام قالب برومبت مخصص"
                 >
                   <Wand2 className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="hidden sm:inline">{activePrompt ? activePrompt.title : 'البرومبتات'}</span>
+                  <span className="hidden lg:inline">{activePrompt ? activePrompt.title : 'البرومبتات'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={toggleListening}
-                  className={`px-2.5 py-1.5 rounded-xl border transition flex items-center gap-1.5 text-xs font-bold cursor-pointer ${
+                  className={`px-2 py-1.5 rounded-lg border transition flex items-center gap-1.5 text-xs font-bold cursor-pointer ${
                     isListening
                       ? 'bg-rose-500/20 border-rose-500 text-rose-400 animate-pulse'
                       : 'theme-header-btn hover:text-cyan-400'
@@ -1550,8 +1537,40 @@ export default function ChatView({
                   title={isListening ? 'إيقاف التسجيل الصوتي' : 'إدخال صوتي (Voice Input)'}
                 >
                   {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-                  <span className="hidden md:inline">{isListening ? 'استماع...' : 'تحدث'}</span>
                 </button>
+
+                {/* Quick Prompts - compact dropdown, no persistent strip */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsQuickPromptsOpen(o => !o)}
+                    className="px-2 py-1.5 rounded-lg theme-header-btn border hover:text-amber-400 transition flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+                    title="اقتراحات سريعة"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="hidden lg:inline">سريع</span>
+                  </button>
+                  {isQuickPromptsOpen && (
+                    <div className="absolute bottom-full left-0 mb-2 w-64 theme-bg-card border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl z-50 overflow-hidden font-['Tajawal']">
+                      <div className="p-1.5 space-y-0.5 max-h-72 overflow-y-auto">
+                        {quickPrompts.map((qp, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              setIsQuickPromptsOpen(false);
+                              handleSend(qp.query);
+                            }}
+                            className="w-full text-right px-3 py-2 rounded-lg text-xs font-bold theme-text-secondary hover:bg-emerald-500/10 hover:text-emerald-500 transition cursor-pointer flex items-center gap-2"
+                          >
+                            <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                            <span className="leading-snug">{qp.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Send Button */}
@@ -1560,18 +1579,18 @@ export default function ChatView({
                   <button
                     type="button"
                     onClick={handleCancelEdit}
-                    className="px-3 py-1.5 rounded-xl theme-header-btn border text-xs font-bold hover:text-rose-400 transition cursor-pointer"
+                    className="px-2.5 py-1.5 rounded-lg theme-header-btn border text-xs font-bold hover:text-rose-400 transition cursor-pointer"
                   >
-                    إلغاء التعديل
+                    إلغاء
                   </button>
                 )}
                 
                 <button
                   type="submit"
                   disabled={!inputValue.trim() || loading}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-40 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-40 text-white font-extrabold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>{editingMsgId ? 'حفظ وإرسال' : 'إرسال'}</span>
+                  <span>{editingMsgId ? 'حفظ' : 'إرسال'}</span>
                   <Send className="w-3.5 h-3.5 rotate-180" />
                 </button>
               </div>
