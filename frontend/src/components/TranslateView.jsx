@@ -410,7 +410,7 @@ export default function TranslateView({
               <button
                 onClick={handleExportDocx}
                 disabled={exportingDocx || !result}
-                className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+                className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
                 title="تصدير مستند Word (.docx) منسق"
               >
                 <FileDown className="w-3.5 h-3.5" />

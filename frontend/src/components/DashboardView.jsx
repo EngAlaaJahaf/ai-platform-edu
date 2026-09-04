@@ -44,7 +44,7 @@ export default function DashboardView({
       title: 'استوديو الاختبارات والتنبؤ',
       desc: 'توليد أسئلة MCQ وشروحات ثنائية وتنبؤ بالدرجة',
       icon: BrainCircuit,
-      gradient: 'from-violet-600 to-emerald-700',
+      gradient: 'from-emerald-600 to-teal-700',
       badge: 'تنبؤ ذكي',
       badgeColor: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30'
     },

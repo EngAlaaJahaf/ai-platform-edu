@@ -79,7 +79,7 @@ export default function AdminSidebar({ activeSection, setActiveSection, stats, o
                         <span className="font-mono font-bold theme-text-primary">{stats.total_prompts || 0}</span>
                       </div>
                       <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-violet-500 transition-all duration-700" style={{width: `${promptsPct}%`}}></div>
+                        <div className="h-full bg-teal-500 transition-all duration-700" style={{width: `${promptsPct}%`}}></div>
                       </div>
                     </div>
                     <div>

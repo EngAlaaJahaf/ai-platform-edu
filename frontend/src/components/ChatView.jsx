@@ -1366,7 +1366,7 @@ export default function ChatView({
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce"></span>
                   <span className="w-2 h-2 rounded-full bg-teal-400 animate-bounce [animation-delay:0.15s]"></span>
-                  <span className="w-2 h-2 rounded-full bg-violet-400 animate-bounce [animation-delay:0.3s]"></span>
+                  <span className="w-2 h-2 rounded-full bg-teal-400 animate-bounce [animation-delay:0.3s]"></span>
                 </div>
                 <span className="text-xs font-bold text-emerald-400">
                   ذكاء يبحث في المستند ويصيغ الإجابة الموثقة...
