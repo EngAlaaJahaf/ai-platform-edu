@@ -352,7 +352,10 @@ export default function ChatView({
         const parsed = JSON.parse(savedSessions);
         const current = parsed.find(s => s.id === activeId) || parsed[0];
         if (current && Array.isArray(current.messages) && current.messages.length > 0) {
-          return current.messages;
+          const cleaned = current.messages.filter(
+            (m) => m.sender !== 'ai' || (m.text && m.text.trim() !== '')
+          );
+          if (cleaned.length > 0) return cleaned;
         }
       }
     } catch (_) {}
@@ -812,7 +815,33 @@ export default function ChatView({
       timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const aiId = (Date.now() + 1).toString();
+    const placeholderMsg = {
+      id: aiId,
+      sender: 'ai',
+      text: '',
+      citations: [],
+      is_out_of_scope: false,
+      sources: [],
+      timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+    };
+    const persistPartial = (next) => {
+      try {
+        const raw = localStorage.getItem('eduai_chat_sessions_master');
+        if (raw) {
+          const allSessions = JSON.parse(raw);
+          const activeId = localStorage.getItem('eduai_active_session_id') || 'sess_default';
+          const updated = allSessions.map(s => s.id === activeId ? { ...s, messages: next, updatedAt: placeholderMsg.timestamp } : s);
+          localStorage.setItem('eduai_chat_sessions_master', JSON.stringify(updated));
+        }
+      } catch (_) {}
+    };
+
+    setMessages((prev) => {
+      const next = [...prev, userMsg, placeholderMsg];
+      persistPartial(next);
+      return next;
+    });
     setInputValue('');
     setLoading(true);
 
@@ -821,18 +850,6 @@ export default function ChatView({
         role: m.sender === 'user' ? 'user' : 'assistant',
         content: m.text
       }));
-
-      const aiId = (Date.now() + 1).toString();
-      const placeholderMsg = {
-        id: aiId,
-        sender: 'ai',
-        text: '',
-        citations: [],
-        is_out_of_scope: false,
-        sources: [],
-        timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages((prev) => [...prev, placeholderMsg]);
 
       let fullAnswer = '';
       let streamed = false;
@@ -845,21 +862,17 @@ export default function ChatView({
           (chunk) => {
             fullAnswer += chunk;
             streamed = true;
-            setMessages((prev) => prev.map(m => m.id === aiId ? { ...m, text: fullAnswer } : m));
+            setMessages((prev) => {
+              const next = prev.map(m => m.id === aiId ? { ...m, text: fullAnswer } : m);
+              persistPartial(next);
+              return next;
+            });
           }
         );
         if (!streamed || !fullAnswer.trim()) throw new Error('empty stream');
         setMessages((prev) => {
           const next = prev.map(m => m.id === aiId ? { ...m, text: fullAnswer } : m);
-          try {
-            const raw = localStorage.getItem('eduai_chat_sessions_master');
-            if (raw) {
-              const allSessions = JSON.parse(raw);
-              const activeId = localStorage.getItem('eduai_active_session_id') || 'sess_default';
-              const updated = allSessions.map(s => s.id === activeId ? { ...s, messages: next, updatedAt: placeholderMsg.timestamp } : s);
-              localStorage.setItem('eduai_chat_sessions_master', JSON.stringify(updated));
-            }
-          } catch (_) {}
+          persistPartial(next);
           return next;
         });
         fetchCurrentUser().catch(()=>{});
@@ -1111,6 +1124,7 @@ export default function ChatView({
             const isUser = msg.sender === 'user';
             const isLastAi = !isUser && index === (messages || []).length - 1;
             const previousUserMsg = isLastAi ? messages[index - 1]?.text : null;
+            const isStreamingPlaceholder = !isUser && loading && !msg.text;
 
             return (
               <div
@@ -1143,7 +1157,19 @@ export default function ChatView({
                       </div>
                     )}
 
-                    {/* Rich Markdown Renderer with KaTeX */}
+                    {/* Streaming placeholder - thinking state in-place */}
+                    {isStreamingPlaceholder ? (
+                      <div className="flex items-center gap-3 py-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce"></span>
+                          <span className="w-2 h-2 rounded-full bg-teal-400 animate-bounce [animation-delay:0.15s]"></span>
+                          <span className="w-2 h-2 rounded-full bg-teal-400 animate-bounce [animation-delay:0.3s]"></span>
+                        </div>
+                        <span className="text-sm font-bold text-emerald-400">
+                          ذكاء يبحث في المستند ويصيغ الإجابة الموثقة...
+                        </span>
+                      </div>
+                    ) : (
                     <div className="prose prose-slate dark:prose-invert max-w-none font-['Tajawal'] text-[15px] leading-relaxed break-words space-y-2">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkMath]}
@@ -1190,9 +1216,10 @@ export default function ChatView({
                         {formatArabicText(msg.text)}
                       </ReactMarkdown>
                     </div>
+                    )}
 
                     {/* Citations Pages Badges */}
-                    {msg.citations && msg.citations.length > 0 && (
+                    {!isStreamingPlaceholder && msg.citations && msg.citations.length > 0 && (
                       <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2">
                         <span className="text-xs font-bold theme-text-muted flex items-center gap-1">
                           <BookOpen className="w-3.5 h-3.5 text-emerald-500" /> الصفحات المقتبسة:
@@ -1209,6 +1236,7 @@ export default function ChatView({
                     )}
 
                     {/* Per-Message Action Toolbar */}
+                    {!isStreamingPlaceholder && (
                     <div className="mt-3 pt-2.5 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2 text-xs">
                       <span className="text-xs theme-text-muted font-medium">
                         {msg.timestamp}
@@ -1349,6 +1377,7 @@ export default function ChatView({
 
                       </div>
                     </div>
+                    )}
 
                   </div>
                 </div>
@@ -1356,24 +1385,7 @@ export default function ChatView({
             );
           })}
 
-          {/* Loading Indicator */}
-          {loading && (
-            <div className="flex gap-3 max-w-[80%] ml-auto">
-              <div className="w-8 h-8 rounded-xl bg-emerald-600/40 border border-emerald-500/40 flex items-center justify-center text-white shrink-0">
-                <Bot className="w-4 h-4 animate-spin" />
-              </div>
-              <div className="glass-card p-4 rounded-3xl rounded-tl-none border flex items-center gap-3">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce"></span>
-                  <span className="w-2 h-2 rounded-full bg-teal-400 animate-bounce [animation-delay:0.15s]"></span>
-                  <span className="w-2 h-2 rounded-full bg-teal-400 animate-bounce [animation-delay:0.3s]"></span>
-                </div>
-                <span className="text-xs font-bold text-emerald-400">
-                  ذكاء يبحث في المستند ويصيغ الإجابة الموثقة...
-                </span>
-              </div>
-            </div>
-          )}
+          {/* Streaming indicator is rendered in-place inside the placeholder AI bubble */}
 
           {/* Floating Scroll to Bottom Button */}
           {showScrollBottom && (
