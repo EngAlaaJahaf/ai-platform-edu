@@ -98,19 +98,19 @@ export default function DashboardView({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t border-white/10">
           <div className="p-4 rounded-2xl theme-card-inner text-center">
             <b className="text-xl font-black theme-text-primary font-['JetBrains_Mono']">10,000+</b>
-            <p className="text-[11px] theme-text-muted font-bold mt-0.5">ملخص أكاديمي</p>
+            <p className="text-xs theme-text-muted font-bold mt-0.5">ملخص أكاديمي</p>
           </div>
           <div className="p-4 rounded-2xl theme-card-inner text-center">
             <b className="text-xl font-black text-cyan-400 font-['JetBrains_Mono']">98%</b>
-            <p className="text-[11px] theme-text-muted font-bold mt-0.5">دقة RAG بالصفحات</p>
+            <p className="text-xs theme-text-muted font-bold mt-0.5">دقة RAG بالصفحات</p>
           </div>
           <div className="p-4 rounded-2xl theme-card-inner text-center">
             <b className="text-xl font-black text-emerald-400 font-['JetBrains_Mono']">&lt; 1.5s</b>
-            <p className="text-[11px] theme-text-muted font-bold mt-0.5">سرعة الاستجابة</p>
+            <p className="text-xs theme-text-muted font-bold mt-0.5">سرعة الاستجابة</p>
           </div>
           <div className="p-4 rounded-2xl theme-card-inner text-center">
             <b className="text-xl font-black text-amber-400 font-['JetBrains_Mono']">24/7</b>
-            <p className="text-[11px] theme-text-muted font-bold mt-0.5">متاح دائماً للطالب</p>
+            <p className="text-xs theme-text-muted font-bold mt-0.5">متاح دائماً للطالب</p>
           </div>
         </div>
       </div>

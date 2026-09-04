@@ -1436,18 +1436,60 @@ export default function QuizView({
       {mode === 'mcq' && currentQ && !loading && !isCompleted && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
-          {/* Main Question Card */}
+          {/* Main Question Card Column */}
           <div className="lg:col-span-8 space-y-4">
-            <div className="glass-card rounded-3xl p-6 md:p-8 border space-y-6">
+            
+            {/* Question Quick Navigator Bar */}
+            <div className="glass-card rounded-2xl p-3.5 border shadow-sm flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold theme-text-muted">فهرس الأسئلة:</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {questions.map((q, qIdx) => {
+                    const isCur = qIdx === currentIdx;
+                    const isAns = activeAnswers[q.id] !== undefined;
+                    return (
+                      <button
+                        key={q.id || qIdx}
+                        onClick={() => setCurrentIdx(qIdx)}
+                        className={`w-8 h-8 rounded-lg font-mono text-xs font-bold transition flex items-center justify-center cursor-pointer ${
+                          isCur
+                            ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/30'
+                            : isAns
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                            : 'theme-card-inner border theme-text-muted hover:theme-text-primary'
+                        }`}
+                      >
+                        {qIdx + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {quizSettings.mode === 'exam' && timeLeft !== null && (
+                  <span className="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-mono font-bold flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>{formatTime(timeLeft)}</span>
+                  </span>
+                )}
+                <span className="text-xs font-bold theme-text-muted">
+                  المستوى: <b>{difficulty === 'hard' ? 'متقدم (Exam)' : difficulty === 'easy' ? 'مبتدئ' : 'متوسط'}</b>
+                </span>
+              </div>
+            </div>
+
+            <div className="glass-card rounded-3xl p-6 md:p-8 border space-y-6 shadow-lg">
               
               {/* Question Header */}
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-500 dark:text-indigo-300 text-xs font-black">
-                    السؤال {currentIdx + 1} من {questions.length}
+              <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <span className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm font-black flex items-center gap-1.5">
+                    <HelpCircle className="w-4 h-4" />
+                    <span>السؤال رقم {currentIdx + 1} من {questions.length}</span>
                   </span>
                   {currentQ.cognitive_level && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-500 dark:text-cyan-300 text-[11px] font-bold">
+                    <span className="px-2.5 py-1 rounded-lg theme-card-inner border text-xs font-bold theme-text-muted">
                       {currentQ.cognitive_level}
                     </span>
                   )}

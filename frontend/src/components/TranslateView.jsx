@@ -2,27 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { 
   Languages, 
   Sparkles, 
-  Layers, 
   FileText, 
   ArrowLeftRight, 
-  Copy, 
-  Check, 
   Download, 
-  FileCode,
-  FileDown,
-  RefreshCw, 
+  FileDown, 
+  Printer, 
   BookOpen, 
-  FileCheck, 
   Columns, 
   Rows, 
   Search, 
-  Sliders, 
-  HelpCircle,
-  Wand2,
-  KeyRound,
-  Upload,
-  Printer,
-  ZoomIn,
+  Wand2, 
+  Plus, 
+  ChevronUp, 
+  ChevronDown, 
+  Lock, 
+  Copy, 
+  Trash2, 
+  ZoomIn, 
   ZoomOut,
   Maximize2
 } from 'lucide-react';
@@ -31,18 +27,18 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import { translateDocument, exportToDocx } from '../services/api';
-import ExportModal from './ExportModal';
 
 export default function TranslateView({ 
   activeDoc, 
   activePrompt, 
-  onOpenPromptManager,
-  onOpenUpload,
+  onOpenPromptManager, 
+  onOpenUpload, 
   onOpenApiKey 
 }) {
   const [sourceLang, setSourceLang] = useState('en');
   const [targetLang, setTargetLang] = useState('ar');
   const [mode, setMode] = useState('a4_sheet'); // 'a4_sheet', 'line_by_line', 'page_by_page'
+  const [canvaTab, setCanvaTab] = useState('translate'); // 'translate', 'settings'
   const [inputText, setInputText] = useState('');
   const [useDoc, setUseDoc] = useState(true);
   
@@ -51,6 +47,11 @@ export default function TranslateView({
   const [loading, setLoading] = useState(false);
   const [exportingDocx, setExportingDocx] = useState(false);
   const [error, setError] = useState(null);
+
+  // Settings State (Canva Settings tab)
+  const [reduceFontToFit, setReduceFontToFit] = useState(true);
+  const [duplicatePage, setDuplicatePage] = useState(true);
+  const [mirrorRtl, setMirrorRtl] = useState(true);
 
   // Resilient state initializer from localStorage
   const [result, setResult] = useState(() => {
@@ -67,11 +68,6 @@ export default function TranslateView({
     }
     return null;
   });
-
-  const [searchFilter, setSearchFilter] = useState('');
-  const [copiedUnitIndex, setCopiedUnitIndex] = useState(null);
-  const [copiedAll, setCopiedAll] = useState(false);
-  const [isExportOpen, setIsExportOpen] = useState(false);
 
   // Sync result to localStorage
   useEffect(() => {
@@ -95,9 +91,16 @@ export default function TranslateView({
     }
   }, [currentDocId]);
 
-  // A4 Reading comfort controls
+  // Canva A4 Reading controls
   const [fontSize, setFontSize] = useState(16); // px
-  const [lineHeight, setLineHeight] = useState(2.0); // rem/factor
+  const [zoomScale, setZoomScale] = useState(1.0);
+  const [pageTitle, setPageTitle] = useState('المستند الأكاديمي المترجم');
+
+  useEffect(() => {
+    if (result?.translated_title) {
+      setPageTitle(result.translated_title);
+    }
+  }, [result]);
 
   const languages = [
     { code: 'en', label: 'الإنجليزية (English)', flag: '🇬🇧' },
@@ -106,30 +109,6 @@ export default function TranslateView({
     { code: 'de', label: 'الألمانية (Deutsch)', flag: '🇩🇪' },
     { code: 'es', label: 'الإسبانية (Español)', flag: '🇪🇸' },
     { code: 'zh', label: 'الصينية (中文)', flag: '🇨🇳' }
-  ];
-
-  const modes = [
-    { 
-      id: 'a4_sheet', 
-      title: 'ورقة A4 أكاديمية منسقة (خالية من التشتيت)', 
-      desc: 'عرض النص المترجم كـ ورقة A4 بيضاء أنيقة وبخط أكاديمي فصيح واضح ومريح للقراءة والمذاكرة', 
-      icon: BookOpen,
-      badge: 'نمط القراءة الهادئ 📄'
-    },
-    { 
-      id: 'line_by_line', 
-      title: 'ترجمة سطرية موازية (تحت كل سطر)', 
-      desc: 'عرض النص الإنجليزي الأصلي وتظهر تحته مباشرة الترجمة العربية المقابلة', 
-      icon: Rows,
-      badge: 'سطر بسطر 🔤'
-    },
-    { 
-      id: 'page_by_page', 
-      title: 'صفحة بصفحة (Page-by-Page)', 
-      desc: 'عرض صفحة النص الأصلي تليها صفحة الترجمة المقابلة بشكل متتابع ومنظم', 
-      icon: Columns,
-      badge: 'للمقارنة الثنائية 📄'
-    }
   ];
 
   const handleSwapLanguages = () => {
@@ -161,6 +140,7 @@ export default function TranslateView({
         customSystemPrompt: activePrompt?.prompt || null
       });
       setResult(data);
+      if (data?.translated_title) setPageTitle(data.translated_title);
       localStorage.setItem('eduai_last_translate', JSON.stringify(data));
       if (currentDocId) {
         localStorage.setItem(`eduai_translate_${currentDocId}`, JSON.stringify(data));
@@ -177,12 +157,12 @@ export default function TranslateView({
     setExportingDocx(true);
     try {
       await exportToDocx({
-        title: result.translated_title || 'المستند الأكاديمي المترجم',
+        title: result.translated_title || pageTitle,
         subtitle: `ترجمة أكاديمية معتمدة (${sourceLang.toUpperCase()} ➔ ${targetLang.toUpperCase()})`,
         docName: activeDoc?.filename || 'مستند_أكاديمي',
         content: result.full_translated_text,
         units: mode === 'line_by_line' ? result.units : null,
-        filename: `Translated_${activeDoc?.filename ? activeDoc.filename.replace(/\.[^/.]+$/, '') : 'Doc'}.docx`
+        filename: `Translated_${activeDoc?.filename ? activeDoc.filename.replace(/\.[^/.]+$/, '') : 'Document'}.docx`
       });
     } catch (e) {
       alert(`خطأ في تصدير Word: ${e.message}`);
@@ -191,544 +171,441 @@ export default function TranslateView({
     }
   };
 
-  const handleCopyUnit = (text, idx) => {
-    navigator.clipboard.writeText(text);
-    setCopiedUnitIndex(idx);
-    setTimeout(() => setCopiedUnitIndex(null), 2000);
-  };
-
-  const handleCopyAll = () => {
-    if (!result) return;
-    let fullContent = '';
-    if (mode === 'line_by_line' && result.units) {
-      fullContent = result.units.map(u => `${u.original}\n${u.translated}`).join('\n\n');
-    } else {
-      fullContent = result.full_translated_text || '';
-    }
-    navigator.clipboard.writeText(fullContent);
-    setCopiedAll(true);
-    setTimeout(() => setCopiedAll(false), 2000);
-  };
-
-  const filteredUnits = result?.units?.filter(u => 
-    u.original?.toLowerCase().includes(searchFilter.toLowerCase()) ||
-    u.translated?.toLowerCase().includes(searchFilter.toLowerCase())
-  ) || [];
-
   return (
     <div className="space-y-6 animate-fade-in pb-16">
       
-      {/* Top Banner */}
-      <div className="glass-card rounded-3xl p-6 border shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 via-cyan-600 to-indigo-700 flex items-center justify-center text-white shadow-lg shadow-cyan-600/25">
-            <Languages className="w-7 h-7" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h2 className="text-2xl font-black theme-text-primary">مترجم المقررات والمستندات الأكاديمي</h2>
-              <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 font-black text-xs">
-                Smart Academic Engine
-              </span>
-            </div>
-            <p className="text-xs theme-text-secondary mt-1">
-              استخراج فوري للنصوص من ملفات PDF وترجمتها لعرض A4 أكاديمي نقي مريح للعين مع تصدير Word و PDF
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2.5 self-end md:self-auto">
-          {activePrompt && (
-            <span className="px-3 py-1.5 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 text-xs font-bold flex items-center gap-1.5">
-              <Wand2 className="w-3.5 h-3.5 text-cyan-400" />
-              <span>قالب مخصص: {activePrompt.title}</span>
-            </span>
-          )}
-
-          <button
-            onClick={onOpenPromptManager}
-            className="px-3.5 py-2 rounded-xl theme-header-btn border text-xs font-bold transition flex items-center gap-1.5"
-            title="تخصيص برومبت وقواعد الترجمة"
-          >
-            <Wand2 className="w-3.5 h-3.5 text-amber-400" />
-            <span>بنك البرومبتات</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Control Panel: Languages & Modes Setup */}
-      <div className="glass-card rounded-3xl p-6 border shadow-lg space-y-6">
+      {/* Main Canva Docs Translation Studio Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* Row 1: Source & Target Language Selector */}
-        <div className="grid grid-cols-1 md:grid-cols-11 gap-3 items-center">
+        {/* 1. LEFT: Canva Translate Side Panel */}
+        <aside className="lg:col-span-4 glass-panel rounded-3xl p-6 border shadow-xl flex flex-col gap-5 sticky top-20">
           
-          {/* Source Lang */}
-          <div className="md:col-span-5 space-y-1.5">
-            <label className="text-xs font-bold theme-text-muted block">لغة المستند المصدر (Source Language):</label>
-            <select
-              value={sourceLang}
-              onChange={(e) => setSourceLang(e.target.value)}
-              className="w-full p-3 rounded-2xl theme-card-inner border theme-text-primary text-xs font-bold outline-none focus:border-cyan-500"
-            >
-              {languages.map((l) => (
-                <option key={l.code} value={l.code}>{l.flag} {l.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Swap Button */}
-          <div className="md:col-span-1 flex justify-center pt-5">
+          {/* Canva Tabs (Translate / Settings) */}
+          <div className="flex items-center gap-6 border-b border-slate-200 dark:border-slate-800 pb-2">
             <button
-              onClick={handleSwapLanguages}
-              className="p-3 rounded-2xl theme-header-btn border hover:border-cyan-500 hover:text-cyan-500 transition shadow-sm"
-              title="تبديل اللغات"
+              onClick={() => setCanvaTab('translate')}
+              className={`text-sm font-extrabold pb-2 transition relative cursor-pointer ${
+                canvaTab === 'translate' ? 'text-emerald-600 dark:text-emerald-400' : 'theme-text-muted hover:theme-text-primary'
+              }`}
             >
-              <ArrowLeftRight className="w-4 h-4" />
+              Translate
+              {canvaTab === 'translate' && (
+                <span className="absolute -bottom-2.5 left-0 right-0 h-0.5 bg-emerald-500 rounded-full"></span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setCanvaTab('settings')}
+              className={`text-sm font-extrabold pb-2 transition relative cursor-pointer ${
+                canvaTab === 'settings' ? 'text-emerald-600 dark:text-emerald-400' : 'theme-text-muted hover:theme-text-primary'
+              }`}
+            >
+              Settings
+              {canvaTab === 'settings' && (
+                <span className="absolute -bottom-2.5 left-0 right-0 h-0.5 bg-emerald-500 rounded-full"></span>
+              )}
             </button>
           </div>
 
-          {/* Target Lang */}
-          <div className="md:col-span-5 space-y-1.5">
-            <label className="text-xs font-bold theme-text-muted block">اللغة الهدف للترجمة (Target Language):</label>
-            <select
-              value={targetLang}
-              onChange={(e) => setTargetLang(e.target.value)}
-              className="w-full p-3 rounded-2xl theme-card-inner border theme-text-primary text-xs font-bold outline-none focus:border-cyan-500"
-            >
-              {languages.map((l) => (
-                <option key={l.code} value={l.code}>{l.flag} {l.label}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Row 2: Translation Mode Cards */}
-        <div className="space-y-2">
-          <label className="text-xs font-bold theme-text-muted block">نمط وتنسيق العرض المطلوب للترجمة:</label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {modes.map((m) => {
-              const Icon = m.icon;
-              const isSelected = mode === m.id;
-              return (
-                <div
-                  key={m.id}
-                  onClick={() => setMode(m.id)}
-                  className={`p-4 rounded-2xl border cursor-pointer transition-all duration-200 flex flex-col justify-between space-y-2.5 ${
-                    isSelected
-                      ? 'bg-gradient-to-br from-indigo-50 to-cyan-50/60 dark:from-indigo-950/70 dark:to-cyan-950/40 border-cyan-500 shadow-md ring-2 ring-cyan-500/25'
-                      : 'theme-card-inner border hover:border-indigo-400/40'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className={`p-2 rounded-xl ${isSelected ? 'bg-cyan-500 text-white' : 'bg-indigo-500/15 text-indigo-600 dark:text-cyan-400'}`}>
-                        <Icon className="w-4 h-4" />
-                      </span>
-                      <b className="text-xs font-black theme-text-primary">{m.title}</b>
-                    </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400">
-                      {m.badge}
-                    </span>
-                  </div>
-                  <p className="text-[11px] theme-text-secondary leading-relaxed font-medium">
-                    {m.desc}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Row 3: Source Content Selection (Active Doc vs Manual Text) */}
-        <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-3">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-4 text-xs font-bold">
-              <label className="flex items-center gap-2 cursor-pointer theme-text-primary">
-                <input
-                  type="radio"
-                  name="source_type"
-                  checked={useDoc}
-                  onChange={() => setUseDoc(true)}
-                  className="accent-indigo-600"
-                />
-                <span>ترجمة ملف الـ PDF / المستند المرفوع</span>
-              </label>
-
-              <label className="flex items-center gap-2 cursor-pointer theme-text-primary">
-                <input
-                  type="radio"
-                  name="source_type"
-                  checked={!useDoc}
-                  onChange={() => setUseDoc(false)}
-                  className="accent-indigo-600"
-                />
-                <span>إدخال نص مخصص يدوياً</span>
-              </label>
-            </div>
-
-            {useDoc && activeDoc && (
-              <span className="text-xs text-emerald-500 font-bold flex items-center gap-1.5">
-                <FileCheck className="w-4 h-4" />
-                <span className="max-w-xs truncate">{activeDoc.filename} ({activeDoc.pages_count} صفحة)</span>
-              </span>
-            )}
-          </div>
-
-          {!useDoc ? (
-            <textarea
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="الصق النص الأكاديمي المطلوب ترجمته هنا..."
-              rows={4}
-              className="w-full p-3.5 rounded-2xl theme-card-inner border text-xs theme-text-primary outline-none focus:border-cyan-500 leading-relaxed font-mono"
-            />
-          ) : !activeDoc ? (
-            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs font-bold theme-text-primary flex items-center justify-between">
-              <span>لم يتم اختيار أو رفع ملف PDF حالياً.</span>
-              <button
-                onClick={onOpenUpload}
-                className="px-3 py-1.5 rounded-xl bg-amber-600 text-white text-xs font-bold shadow-sm"
-              >
-                رفع ملف PDF الآن
-              </button>
-            </div>
-          ) : null}
-        </div>
-
-        {/* Action Button */}
-        <div className="flex items-center justify-between pt-2">
-          <span className="text-xs theme-text-muted">
-            النمط المختار: <b className="theme-text-primary">{modes.find(m => m.id === mode)?.title}</b>
-          </span>
-
-          <button
-            onClick={handleTranslate}
-            disabled={loading || (useDoc && !activeDoc)}
-            className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-black text-xs shadow-lg shadow-indigo-600/30 transition hover:scale-[1.02] border border-white/20 flex items-center gap-2.5 disabled:opacity-50"
-          >
-            <Sparkles className={`w-4 h-4 ${loading ? 'animate-spin' : 'text-amber-300'}`} />
-            <span>{loading ? 'جاري استخراج النص والترجمة الأكاديمية...' : 'بدء الترجمة الآن'}</span>
-          </button>
-        </div>
-
-        {error && (
-          <div className="p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-bold">
-            {error}
-          </div>
-        )}
-      </div>
-
-      {/* Translation Results Workspace */}
-      {result && (
-        <div className="glass-card rounded-3xl p-6 border shadow-xl space-y-6 animate-fade-in">
-          
-          {/* Results Header Toolbar */}
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-black theme-text-primary">{result.translated_title || 'المستند المترجم'}</h3>
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black text-xs">
-                  مكتمل ✓
-                </span>
-              </div>
-              <p className="text-xs theme-text-secondary mt-0.5">{result.summary_overview}</p>
-            </div>
-
-            {/* Toolbar Actions: Word Export, Academic Export, Copy, Search */}
-            <div className="flex items-center gap-2 self-end lg:self-auto flex-wrap">
+          {/* Tab 1 Content: Translate Controls */}
+          {canvaTab === 'translate' && (
+            <div className="space-y-4">
               
-              {/* Direct Word (.docx) Export Button */}
+              {/* Language Selection */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold theme-text-secondary block">Translate to</label>
+                <select
+                  value={targetLang}
+                  onChange={(e) => setTargetLang(e.target.value)}
+                  className="w-full p-2.5 rounded-xl theme-card-inner border theme-text-primary text-xs font-bold outline-none focus:border-emerald-500"
+                >
+                  {languages.map((l) => (
+                    <option key={l.code} value={l.code}>{l.flag} {l.label}</option>
+                  ))}
+                </select>
+                <div className="flex items-center justify-between text-[11px] theme-text-muted pt-0.5">
+                  <span>المستند المصدر: <b className="theme-text-primary">{sourceLang.toUpperCase()}</b></span>
+                  <button onClick={handleSwapLanguages} className="text-emerald-500 hover:underline font-bold flex items-center gap-1 cursor-pointer">
+                    <ArrowLeftRight className="w-3 h-3" />
+                    <span>تبديل</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-200 dark:border-slate-800"></div>
+
+              {/* 3 Layout Modes Selection */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold theme-text-secondary block">طريقة عرض الترجمة (Layout Mode)</label>
+                
+                <div className="space-y-1.5">
+                  <button
+                    onClick={() => setMode('a4_sheet')}
+                    className={`w-full text-right p-3 rounded-xl border text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+                      mode === 'a4_sheet' 
+                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 shadow-sm' 
+                        : 'theme-card-inner hover:bg-white/5 theme-text-primary'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <BookOpen className="w-4 h-4 text-emerald-500" />
+                      <span>الوضع 1: ورقة A4 كاملة (Canva Sheet)</span>
+                    </div>
+                    {mode === 'a4_sheet' && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
+                  </button>
+
+                  <button
+                    onClick={() => setMode('line_by_line')}
+                    className={`w-full text-right p-3 rounded-xl border text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+                      mode === 'line_by_line' 
+                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 shadow-sm' 
+                        : 'theme-card-inner hover:bg-white/5 theme-text-primary'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Rows className="w-4 h-4 text-emerald-500" />
+                      <span>الوضع 2: سطر بسطر (Bilingual Book)</span>
+                    </div>
+                    {mode === 'line_by_line' && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
+                  </button>
+
+                  <button
+                    onClick={() => setMode('page_by_page')}
+                    className={`w-full text-right p-3 rounded-xl border text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+                      mode === 'page_by_page' 
+                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 shadow-sm' 
+                        : 'theme-card-inner hover:bg-white/5 theme-text-primary'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Columns className="w-4 h-4 text-emerald-500" />
+                      <span>الوضع 3: صفحة بصفحة (White A4 Sheets)</span>
+                    </div>
+                    {mode === 'page_by_page' && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
+                  </button>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-200 dark:border-slate-800"></div>
+
+              {/* Scope Selection */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold theme-text-secondary block">Apply to page</label>
+                <div className="p-2.5 rounded-xl theme-card-inner border text-xs font-bold flex items-center justify-between">
+                  <span>الصفحة 1 (الصفحة الحالية)</span>
+                  <span className="text-[11px] theme-text-muted">من أصل {activeDoc?.pages_count || 1}</span>
+                </div>
+              </div>
+
+              {error && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-bold leading-relaxed">
+                  {error}
+                </div>
+              )}
+
+              {/* Primary Canva Translate Button */}
+              <button
+                onClick={handleTranslate}
+                disabled={loading}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
+              >
+                {loading ? (
+                  <>
+                    <span className="animate-spin text-sm">⏳</span>
+                    <span>جاري الترجمة الأكاديمية...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 text-amber-300" />
+                    <span>ترجمة المستند (Translate)</span>
+                  </>
+                )}
+              </button>
+
+            </div>
+          )}
+
+          {/* Tab 2 Content: Canva Settings */}
+          {canvaTab === 'settings' && (
+            <div className="space-y-4 text-xs">
+              <label className="flex items-start gap-3 cursor-pointer theme-card-inner p-3 rounded-xl border">
+                <input
+                  type="checkbox"
+                  checked={reduceFontToFit}
+                  onChange={(e) => setReduceFontToFit(e.target.checked)}
+                  className="mt-0.5 accent-emerald-600"
+                />
+                <div>
+                  <b className="theme-text-primary block">Reduce font size to fit</b>
+                  <span className="theme-text-muted block mt-0.5 leading-relaxed text-[11px]">
+                    ضبط أحجام الخطوط تلقائياً لملاءمة حجم ورقة A4.
+                  </span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer theme-card-inner p-3 rounded-xl border">
+                <input
+                  type="checkbox"
+                  checked={duplicatePage}
+                  onChange={(e) => setDuplicatePage(e.target.checked)}
+                  className="mt-0.5 accent-emerald-600"
+                />
+                <div>
+                  <b className="theme-text-primary block">Duplicate page when translating</b>
+                  <span className="theme-text-muted block mt-0.5 leading-relaxed text-[11px]">
+                    الحفاظ على الصفحة الأصلية وإنشاء صفحة مستقلة للترجمة المقابلة.
+                  </span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer theme-card-inner p-3 rounded-xl border">
+                <input
+                  type="checkbox"
+                  checked={mirrorRtl}
+                  onChange={(e) => setMirrorRtl(e.target.checked)}
+                  className="mt-0.5 accent-emerald-600"
+                />
+                <div>
+                  <b className="theme-text-primary block">Mirror page to match text direction</b>
+                  <span className="theme-text-muted block mt-0.5 leading-relaxed text-[11px]">
+                    عكس اتجاه وهوامش الصفحة تلقائياً عند الترجمة من الإنجليزية إلى العربية (RTL).
+                  </span>
+                </div>
+              </label>
+            </div>
+          )}
+
+        </aside>
+
+        {/* 2. RIGHT: Canva Document Canvas */}
+        <main className="lg:col-span-8 flex flex-col items-center gap-6">
+          
+          {/* Floating Canva Studio Toolbar (Zoom, Font Size & Export) */}
+          <div className="sticky top-20 z-40 flex items-center gap-3 bg-slate-900/90 dark:bg-slate-900/95 text-white px-4 py-2 rounded-full border border-slate-700 shadow-2xl backdrop-blur-md text-xs font-bold">
+            
+            {/* Font Size controls */}
+            <div className="flex items-center gap-1.5 pl-3 border-l border-slate-700">
+              <span className="text-slate-400">الخط:</span>
+              <button 
+                onClick={() => setFontSize(Math.max(13, fontSize - 1))}
+                className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 cursor-pointer"
+              >A-</button>
+              <span className="font-mono text-emerald-400">{fontSize}px</span>
+              <button 
+                onClick={() => setFontSize(Math.min(24, fontSize + 1))}
+                className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 cursor-pointer"
+              >A+</button>
+            </div>
+
+            {/* Zoom controls */}
+            <div className="flex items-center gap-1.5 pl-3 border-l border-slate-700">
+              <span className="text-slate-400">الزوم:</span>
+              <button onClick={() => setZoomScale(0.85)} className={`px-2 py-0.5 rounded cursor-pointer ${zoomScale === 0.85 ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300'}`}>85%</button>
+              <button onClick={() => setZoomScale(1.0)} className={`px-2 py-0.5 rounded cursor-pointer ${zoomScale === 1.0 ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300'}`}>100%</button>
+              <button onClick={() => setZoomScale(1.15)} className={`px-2 py-0.5 rounded cursor-pointer ${zoomScale === 1.15 ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300'}`}>115%</button>
+            </div>
+
+            {/* Export buttons */}
+            <div className="flex items-center gap-2">
               <button
                 onClick={handleExportDocx}
-                disabled={exportingDocx}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-white text-xs font-black shadow-md transition flex items-center gap-2 border border-white/20 disabled:opacity-50"
-                title="تصدير الترجمة كمستند Microsoft Word (.docx) رسمي"
+                disabled={exportingDocx || !result}
+                className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+                title="تصدير مستند Word (.docx) منسق"
               >
-                <FileDown className={`w-4 h-4 ${exportingDocx ? 'animate-bounce' : 'text-cyan-300'}`} />
-                <span>{exportingDocx ? 'جاري تجهيز Word...' : 'تصدير كمستند Word (.docx)'}</span>
+                <FileDown className="w-3.5 h-3.5" />
+                <span>Word (.docx)</span>
               </button>
-
-              {/* Multi-Format Academic Export Button */}
               <button
-                onClick={() => setIsExportOpen(true)}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white text-xs font-black shadow-md transition flex items-center gap-1.5 border border-white/20"
-                title="تصدير بصيغة PDF أبيض، HTML، أو TXT"
+                onClick={() => window.print()}
+                className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1 cursor-pointer"
+                title="طباعة أو حفظ PDF"
               >
-                <Printer className="w-3.5 h-3.5 text-white" />
-                <span>خيارات التصدير الأكاديمي</span>
-              </button>
-
-              <button
-                onClick={handleCopyAll}
-                className="px-3.5 py-2 rounded-xl theme-header-btn border text-xs font-bold transition flex items-center gap-1.5"
-                title="نسخ كامل المحتوى المترجم"
-              >
-                {copiedAll ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedAll ? 'تم النسخ' : 'نسخ النص'}</span>
+                <Printer className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
-          {/* Mode 1: Pure A4 Academic Paper Sheet (خالية من التشتيت) */}
+          {/* MODE 1: Full A4 Translated Document Sheet (Canva Clean Doc) */}
           {mode === 'a4_sheet' && (
-            <div className="space-y-4">
-              
-              {/* Reading Bar */}
-              <div className="flex items-center justify-between text-xs theme-text-muted px-2">
-                <span className="font-bold flex items-center gap-1.5">
-                  <BookOpen className="w-4 h-4 text-cyan-500" />
-                  <span>معاينة ورقة A4 الأكاديمية (طباعة وقراءة نقية)</span>
-                </span>
-
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1 bg-slate-200/50 dark:bg-slate-800/50 px-2.5 py-1 rounded-xl">
-                    <span className="text-[11px] font-bold">حجم الخط:</span>
-                    <button 
-                      onClick={() => setFontSize(Math.max(13, fontSize - 1))}
-                      className="px-1.5 py-0.5 rounded text-xs font-bold hover:bg-white/20"
-                    >-</button>
-                    <span className="font-mono font-bold text-xs">{fontSize}px</span>
-                    <button 
-                      onClick={() => setFontSize(Math.min(22, fontSize + 1))}
-                      className="px-1.5 py-0.5 rounded text-xs font-bold hover:bg-white/20"
-                    >+</button>
-                  </div>
-
-                  <div className="flex items-center gap-1 bg-slate-200/50 dark:bg-slate-800/50 px-2.5 py-1 rounded-xl">
-                    <span className="text-[11px] font-bold">تباعد الأسطر:</span>
-                    <button 
-                      onClick={() => setLineHeight(Math.max(1.5, lineHeight - 0.2))}
-                      className="px-1.5 py-0.5 rounded text-xs font-bold hover:bg-white/20"
-                    >-</button>
-                    <span className="font-mono font-bold text-xs">{lineHeight.toFixed(1)}</span>
-                    <button 
-                      onClick={() => setLineHeight(Math.min(2.8, lineHeight + 0.2))}
-                      className="px-1.5 py-0.5 rounded text-xs font-bold hover:bg-white/20"
-                    >+</button>
-                  </div>
+            <div 
+              className="w-full max-w-[860px] space-y-2 transition-transform duration-200"
+              style={{ transform: `scale(${zoomScale})`, transformOrigin: 'top center' }}
+            >
+              {/* Canva Page Header Bar */}
+              <div className="flex items-center justify-between px-2 text-xs font-bold theme-text-muted">
+                <div className="flex items-center gap-2">
+                  <span>Page 1 - </span>
+                  <input
+                    type="text"
+                    value={pageTitle}
+                    onChange={(e) => setPageTitle(e.target.value)}
+                    className="bg-transparent border border-transparent hover:border-slate-400 focus:border-emerald-500 rounded px-1.5 py-0.5 theme-text-primary outline-none text-xs font-bold"
+                  />
+                </div>
+                <div className="flex items-center gap-1">
+                  <button className="p-1 rounded hover:bg-white/10 text-slate-400"><ChevronUp className="w-4 h-4" /></button>
+                  <button className="p-1 rounded hover:bg-white/10 text-slate-400"><ChevronDown className="w-4 h-4" /></button>
+                  <button className="p-1 rounded hover:bg-white/10 text-slate-400"><Lock className="w-3.5 h-3.5" /></button>
+                  <button className="p-1 rounded hover:bg-white/10 text-slate-400"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               </div>
 
-              {/* A4 Paper Sheet Simulation */}
-              <div className="bg-slate-100 dark:bg-slate-950 p-4 md:p-8 rounded-3xl overflow-x-auto flex justify-center border border-slate-200 dark:border-slate-800">
-                <div 
-                  className="bg-white text-slate-900 shadow-2xl rounded-2xl border border-slate-300 w-full max-w-[850px] min-h-[1050px] p-8 md:p-14 space-y-6 font-['Tajawal'] select-text"
-                  style={{ fontSize: `${fontSize}px`, lineHeight: lineHeight }}
-                >
-                  {/* A4 Document Academic Header */}
-                  <div className="border-b-2 border-slate-900 pb-4 text-center space-y-1.5">
-                    <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
-                      {result.translated_title || 'المستند الأكاديمي المترجم'}
-                    </h1>
-                    <div className="text-xs text-slate-500 font-semibold flex items-center justify-center gap-3">
-                      <span>المستند الأصلي: <b>{activeDoc?.filename || 'مقرر دراسي'}</b></span>
-                      <span>•</span>
-                      <span>الترجمة: <b>{sourceLang.toUpperCase()} ➔ {targetLang.toUpperCase()}</b></span>
-                      <span>•</span>
-                      <span>التاريخ: <b>{new Date().toLocaleDateString('ar-EG')}</b></span>
-                    </div>
-                  </div>
-
-                  {/* Clean Markdown Text Content (Zero Noise / No Distractions) */}
-                  <div className="prose prose-slate max-w-none text-justify font-medium leading-loose space-y-4">
-                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
-                      {result.full_translated_text}
-                    </ReactMarkdown>
-                  </div>
-
-                  {/* A4 Document Footer */}
-                  <div className="border-t border-slate-200 pt-4 mt-8 flex items-center justify-between text-[11px] text-slate-400 font-bold">
-                    <span>منصة المساعد الأكاديمي الذكي (EduAI Platform)</span>
-                    <span>صفحة 1 من 1</span>
+              {/* Realistic White A4 Paper Canvas */}
+              <div 
+                className="w-full bg-white text-slate-900 shadow-2xl rounded-xl border border-slate-300 p-10 md:p-16 space-y-6 font-['Tajawal'] select-text"
+                style={{ fontSize: `${fontSize}px`, lineHeight: 2.0 }}
+              >
+                <div className="border-b-2 border-slate-900 pb-4 text-center space-y-1">
+                  <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight font-['IBM_Plex_Sans_Arabic']">
+                    {result?.translated_title || pageTitle}
+                  </h1>
+                  <div className="text-xs text-slate-500 font-semibold flex items-center justify-center gap-3 pt-1">
+                    <span>المستند الأصلي: <b>{activeDoc?.filename || 'Lab 5.pdf'}</b></span>
+                    <span>•</span>
+                    <span>الترجمة: <b>{sourceLang.toUpperCase()} ➔ {targetLang.toUpperCase()}</b></span>
+                    <span>•</span>
+                    <span>التاريخ: <b>{new Date().toLocaleDateString('ar-EG')}</b></span>
                   </div>
                 </div>
-              </div>
 
+                <div className="prose prose-slate max-w-none text-justify font-medium leading-loose space-y-4">
+                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                    {result?.full_translated_text || 'يرجى الضغط على زر «Translate» لبدء ترجمة المستند وتوليد الصفحة الأكاديمية.'}
+                  </ReactMarkdown>
+                </div>
+
+                <div className="border-t border-slate-200 pt-4 mt-8 flex items-center justify-between text-xs text-slate-400 font-bold">
+                  <span>منصة المساعد الأكاديمي الذكي (EduAI Platform - Canva Translate Studio)</span>
+                  <span>صفحة 1 من 1</span>
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Mode 2: Interlinear Line-by-Line Cards */}
+          {/* MODE 2: Interlinear Line-by-Line Paper Sheet (Bilingual Book Flow - Zero Copy Buttons) */}
           {mode === 'line_by_line' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-xs theme-text-muted">
-                <span>إجمالي الفقرات والسطور المترجمة: <b className="theme-text-primary">{filteredUnits.length} وحدة</b></span>
-                <span className="text-[11px]">💡 النص الأصلي بالأعلى متبوعاً بالترجمة العربية الموازية مباشرة</span>
+            <div 
+              className="w-full max-w-[860px] space-y-2 transition-transform duration-200"
+              style={{ transform: `scale(${zoomScale})`, transformOrigin: 'top center' }}
+            >
+              <div className="flex items-center justify-between px-2 text-xs font-bold theme-text-muted">
+                <div className="flex items-center gap-2">
+                  <span>Page 1 - </span>
+                  <span>الترجمة السطرية الموازية (Bilingual Flow)</span>
+                </div>
+                <span className="text-xs text-emerald-600 font-bold">نسق الكتاب الأكاديمي المعتمد</span>
               </div>
 
-              <div className="space-y-3.5 max-h-[750px] overflow-y-auto pr-1">
-                {filteredUnits.map((unit, idx) => (
-                  <div
-                    key={idx}
-                    className="p-4 rounded-2xl theme-card-inner border transition hover:border-cyan-500/50 space-y-2.5 group"
-                  >
-                    
-                    {/* Original Source Line */}
-                    <div className="flex items-start justify-between gap-3 text-xs leading-relaxed font-sans theme-text-secondary dir-ltr text-left">
-                      <div className="flex-1">
-                        <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-500/15 text-slate-500 dark:text-slate-400 mr-2 uppercase">
-                          {sourceLang} {idx + 1}
-                        </span>
-                        <span>{unit.original}</span>
-                      </div>
+              <div 
+                className="w-full bg-white text-slate-900 shadow-2xl rounded-xl border border-slate-300 p-10 md:p-16 space-y-6 font-['Tajawal'] select-text"
+                style={{ fontSize: `${fontSize}px`, lineHeight: 2.0 }}
+              >
+                <div className="border-b-2 border-slate-900 pb-4 text-center space-y-1">
+                  <h1 className="text-2xl font-black text-slate-900 tracking-tight font-['IBM_Plex_Sans_Arabic']">
+                    الترجمة السطرية الموازية (Line-by-Line Parallel Translation)
+                  </h1>
+                  <p className="text-xs text-slate-500 font-semibold">
+                    المستند: {activeDoc?.filename || 'Lab 5.pdf'} • النمط: كتاب أكاديمي ثنائي اللغة
+                  </p>
+                </div>
 
-                      <button
-                        onClick={() => handleCopyUnit(unit.original, `orig_${idx}`)}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg theme-header-btn border transition shrink-0"
-                        title="نسخ النص الأصلي"
-                      >
-                        {copiedUnitIndex === `orig_${idx}` ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                      </button>
-                    </div>
-
-                    {/* Translated Target Line */}
-                    <div className="pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed theme-text-primary bg-gradient-to-r from-indigo-500/5 to-cyan-500/5 p-2.5 rounded-xl border border-indigo-500/10">
-                      <div className="flex-1">
-                        <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 ml-2 uppercase">
-                          {targetLang}
-                        </span>
-                        <span>{unit.translated}</span>
-                      </div>
-
-                      <button
-                        onClick={() => handleCopyUnit(unit.translated, `trans_${idx}`)}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg theme-header-btn border transition shrink-0"
-                        title="نسخ الترجمة"
-                      >
-                        {copiedUnitIndex === `trans_${idx}` ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                      </button>
-                    </div>
-
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Mode 3: Canva-Style Page-by-Page Structured White Paper Sheet */}
-          {mode === 'page_by_page' && (
-            <div className="space-y-8 flex flex-col items-center">
-              
-              {/* Page View Info Header */}
-              <div className="w-full max-w-[850px] flex items-center justify-between text-xs theme-text-muted px-2">
-                <span className="font-bold flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-cyan-500" />
-                  <span>عرض صفحة بصفحة (ورقة A4 بيضاء • النص الإنجليزي أولاً وتحته العربي)</span>
-                </span>
-                <span className="font-bold bg-indigo-500/10 text-indigo-500 px-3 py-1 rounded-full text-xs">
-                  إجمالي الصفحات: {(result.parallel_pages || []).length || 1}
-                </span>
-              </div>
-
-              {/* A4 White Sheet per Page (Canva Style) */}
-              {(result.parallel_pages || [{ page_num: 1, original_text: result.full_translated_text, translated_text: result.full_translated_text }]).map((page, pIdx) => {
-                // Smart structuring: break numbered points and headers if collapsed into single line
-                const formatPage = (txt) => {
-                  if (!txt) return '';
-                  let formatted = txt.trim();
-                  if (!formatted.includes('\n\n')) {
-                    formatted = formatted
-                      .replace(/(LEARNING OBJECTIVES|OBJECTIVES|CHAPTER|المخرجات التعليمية|الأهداف التعليمية|الفصل)/gi, '\n\n### $1\n\n')
-                      .replace(/(\s)((\d+\.\d+|\d+\.)\s+)/g, '\n\n* **$2** ')
-                      .replace(/(\s)(-\s+)/g, '\n\n* ')
-                      .trim();
-                  }
-                  return formatted;
-                };
-
-                const origFormatted = formatPage(page.original_text);
-                const transFormatted = formatPage(page.translated_text);
-
-                return (
-                  <div
-                    key={pIdx}
-                    className="bg-white text-slate-900 shadow-2xl rounded-3xl border border-slate-300 w-full max-w-[850px] min-h-[900px] p-8 md:p-14 space-y-8 font-['Tajawal'] select-text transition hover:shadow-cyan-500/5 relative"
-                  >
-                    {/* Top Sheet Header Banner */}
-                    <div className="border-b-2 border-slate-900 pb-4 flex items-center justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="px-3 py-1 rounded-full bg-indigo-900 text-white text-xs font-black">
-                            📄 الصفحة رقم {page.page_num || pIdx + 1}
-                          </span>
-                          <span className="text-xs text-slate-500 font-bold truncate max-w-[280px]">
-                            {activeDoc?.filename || 'المستند الأكاديمي'}
-                          </span>
+                {result?.units && result.units.length > 0 ? (
+                  <div className="space-y-6">
+                    {result.units.map((unit, idx) => (
+                      <div key={idx} className="pb-5 border-b border-dashed border-slate-200 last:border-b-0 space-y-2">
+                        <div className="font-['Inter',sans-serif] text-sm text-slate-500 dir-ltr text-left leading-relaxed">
+                          {unit.original}
+                        </div>
+                        <div className="font-bold text-slate-900 text-right leading-loose">
+                          {unit.translated}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-                        <button
-                          onClick={() => handleCopyUnit(`${page.original_text}\n\n---\n\n${page.translated_text}`, `page_${pIdx}`)}
-                          className="px-2.5 py-1 rounded-lg border border-slate-300 hover:bg-slate-100 transition flex items-center gap-1 text-[11px] cursor-pointer"
-                          title="نسخ الصفحة كاملة"
-                        >
-                          {copiedUnitIndex === `page_${pIdx}` ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                          <span>{copiedUnitIndex === `page_${pIdx}` ? 'تم النسخ' : 'نسخ الصفحة'}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 1. UPPER SECTION: Original English Content (Top) */}
-                    <div className="space-y-3 dir-ltr text-left">
-                      <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
-                        <span className="px-2.5 py-0.5 rounded-lg bg-blue-100 text-blue-800 text-[11px] font-black tracking-wide">
-                          🇬🇧 ORIGINAL PAGE CONTENT ({sourceLang.toUpperCase()})
-                        </span>
-                      </div>
-                      
-                      <div className="prose prose-slate max-w-none text-slate-800 font-sans text-[14.5px] leading-relaxed space-y-3">
-                        <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
-                          {origFormatted}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-
-                    {/* Divider Ribbon */}
-                    <div className="relative py-2 flex items-center justify-center">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t-2 border-dashed border-indigo-200"></div>
-                      </div>
-                      <span className="relative px-4 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-cyan-600 text-white text-xs font-black shadow-md flex items-center gap-1.5 font-['Tajawal']">
-                        <ArrowLeftRight className="w-3.5 h-3.5" />
-                        <span>🇸🇦 الترجمة الأكاديمية المعتمدة (العربية)</span>
-                      </span>
-                    </div>
-
-                    {/* 2. LOWER SECTION: Certified Arabic Content (Bottom) */}
-                    <div className="space-y-3 dir-rtl text-right">
-                      <div className="prose prose-slate max-w-none text-slate-900 font-['Tajawal'] text-[15px] font-medium leading-loose space-y-3">
-                        <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
-                          {transFormatted}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-
-                    {/* Bottom Sheet Footer */}
-                    <div className="border-t border-slate-200 pt-4 mt-8 flex items-center justify-between text-[11px] text-slate-400 font-bold">
-                      <span>منصة المساعد الأكاديمي الذكي (EduAI Platform - Canva Translate Engine)</span>
-                      <span>صفحة {page.page_num || pIdx + 1}</span>
-                    </div>
-
+                    ))}
                   </div>
-                );
-              })}
+                ) : (
+                  <div className="py-12 text-center text-slate-400 font-bold text-sm">
+                    اضغط على زر «Translate» لبدء استخراج وترجمة الأسطر الموازية.
+                  </div>
+                )}
+
+                <div className="border-t border-slate-200 pt-4 mt-8 flex items-center justify-between text-xs text-slate-400 font-bold">
+                  <span>EduAI Canva Translate Engine</span>
+                  <span>صفحة 1 من 1</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODE 3: Page by Page Consecutive White A4 Sheets */}
+          {mode === 'page_by_page' && (
+            <div 
+              className="w-full max-w-[860px] space-y-8 transition-transform duration-200"
+              style={{ transform: `scale(${zoomScale})`, transformOrigin: 'top center' }}
+            >
+              {/* Sheet 1: Original English Page on White Canvas */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between px-2 text-xs font-bold theme-text-muted">
+                  <span className="font-bold text-slate-300">Page 1 - Original Source Content (English)</span>
+                  <span className="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-[11px] text-slate-700 dark:text-slate-300">ORIGINAL (EN)</span>
+                </div>
+
+                <div 
+                  className="w-full bg-white text-slate-800 shadow-2xl rounded-xl border border-slate-300 p-10 md:p-14 space-y-6 font-['Inter',sans-serif] dir-ltr text-left select-text"
+                  style={{ fontSize: `${fontSize - 1}px`, lineHeight: 1.85 }}
+                >
+                  <div className="border-b border-slate-200 pb-3 text-center">
+                    <h2 className="text-xl font-bold text-slate-900">Original Document Content</h2>
+                    <span className="text-xs text-slate-400">Page 1 of {result?.parallel_pages?.length || 1}</span>
+                  </div>
+
+                  <div className="prose prose-slate max-w-none leading-relaxed space-y-3">
+                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                      {result?.parallel_pages?.[0]?.original_text || result?.units?.map(u => u.original).slice(0, 10).join('\n\n') || 'Original page content will appear here.'}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sheet 2: Certified Arabic Translation on White Canvas */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between px-2 text-xs font-bold theme-text-muted">
+                  <span className="font-bold text-emerald-500">صفحة 1 - الترجمة الأكاديمية المعتمدة (العربية)</span>
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold">CERTIFIED (AR)</span>
+                </div>
+
+                <div 
+                  className="w-full bg-white text-slate-900 shadow-2xl rounded-xl border-2 border-emerald-500/40 p-10 md:p-14 space-y-6 font-['Tajawal'] select-text"
+                  style={{ fontSize: `${fontSize}px`, lineHeight: 2.0 }}
+                >
+                  <div className="border-b-2 border-slate-900 pb-3 text-center">
+                    <h2 className="text-xl font-black text-slate-900 font-['IBM_Plex_Sans_Arabic']">الترجمة الأكاديمية المعتمدة</h2>
+                    <span className="text-xs text-slate-500 font-bold">صفحة 1 من {result?.parallel_pages?.length || 1}</span>
+                  </div>
+
+                  <div className="prose prose-slate max-w-none text-justify font-medium leading-loose space-y-4">
+                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                      {result?.parallel_pages?.[0]?.translated_text || result?.full_translated_text || 'الترجمة الأكاديمية ستظهر هنا.'}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              </div>
 
             </div>
           )}
 
-        </div>
-      )}
+          {/* Canva Add Page Button */}
+          <button 
+            onClick={onOpenUpload}
+            className="w-full max-w-[860px] py-3 rounded-xl border border-dashed border-slate-400 dark:border-slate-700 hover:border-emerald-500 text-xs font-bold theme-text-muted hover:text-emerald-500 transition flex items-center justify-center gap-2 cursor-pointer bg-white/5"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add page / إضافة مادة أخرى للمستند</span>
+          </button>
 
-      {/* Academic Export Modal Integration */}
-      {isExportOpen && (
-        <ExportModal
-          isOpen={isExportOpen}
-          onClose={() => setIsExportOpen(false)}
-          type="translate"
-          data={result}
-          docName={activeDoc?.filename || 'مستند_مترجم'}
-          currentTab={mode}
-        />
-      )}
+        </main>
+
+      </div>
 
     </div>
   );

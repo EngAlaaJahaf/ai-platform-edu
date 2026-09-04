@@ -350,13 +350,6 @@ export default function App() {
         </div>
       </main>
 
-      {/* Floating Action Button (FAB) for Course Management & Upload */}
-      <DocumentFAB
-        activeDoc={activeDoc}
-        onOpenUpload={() => setIsUploadOpen(true)}
-        onOpenDocumentLibrary={() => setActiveTab('documents')}
-      />
-
       {/* Modals */}
       <FileUploadModal
         isOpen={isUploadOpen}

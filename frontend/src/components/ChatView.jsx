@@ -1190,13 +1190,13 @@ export default function ChatView({
                     {/* Citations Pages Badges */}
                     {msg.citations && msg.citations.length > 0 && (
                       <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2">
-                        <span className="text-[11px] font-bold theme-text-muted flex items-center gap-1">
-                          <BookOpen className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" /> الصفحات المقتبسة:
+                        <span className="text-xs font-bold theme-text-muted flex items-center gap-1">
+                          <BookOpen className="w-3.5 h-3.5 text-emerald-500" /> الصفحات المقتبسة:
                         </span>
                         {msg.citations.map((pageNo) => (
                           <span
                             key={pageNo}
-                            className="px-2.5 py-0.5 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-300 text-[11px] font-bold"
+                            className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-xs font-bold"
                           >
                             صفحة {pageNo}
                           </span>
@@ -1206,7 +1206,7 @@ export default function ChatView({
 
                     {/* Per-Message Action Toolbar */}
                     <div className="mt-3 pt-2.5 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2 text-xs">
-                      <span className="text-[10px] theme-text-muted font-medium">
+                      <span className="text-xs theme-text-muted font-medium">
                         {msg.timestamp}
                       </span>
 
@@ -1216,7 +1216,7 @@ export default function ChatView({
                         {!isUser && (
                           <button
                             onClick={() => handleSpeak(msg.id, msg.text)}
-                            className={`p-1.5 rounded-lg theme-header-btn border transition flex items-center gap-1 text-[11px] ${
+                            className={`p-1.5 rounded-lg theme-header-btn border transition flex items-center gap-1 text-xs ${
                               speakingMsgId === msg.id ? 'text-cyan-400 border-cyan-400 animate-pulse' : 'hover:text-cyan-400'
                             }`}
                             title={speakingMsgId === msg.id ? 'إيقاف القراءة الصوتية' : 'استماع صوتي للإجابة'}
@@ -1231,7 +1231,7 @@ export default function ChatView({
                           <div className="flex items-center gap-0.5">
                             <button
                               onClick={() => handleFeedback(msg.id, 'up')}
-                              className={`p-1.5 rounded-lg theme-header-btn border transition text-[11px] ${
+                              className={`p-1.5 rounded-lg theme-header-btn border transition text-xs ${
                                 feedback[msg.id] === 'up' ? 'text-emerald-500 border-emerald-500 bg-emerald-500/10' : 'hover:text-emerald-400'
                               }`}
                               title="إجابة ممتازة ومفيدة"
@@ -1240,7 +1240,7 @@ export default function ChatView({
                             </button>
                             <button
                               onClick={() => handleFeedback(msg.id, 'down')}
-                              className={`p-1.5 rounded-lg theme-header-btn border transition text-[11px] ${
+                              className={`p-1.5 rounded-lg theme-header-btn border transition text-xs ${
                                 feedback[msg.id] === 'down' ? 'text-rose-500 border-rose-500 bg-rose-500/10' : 'hover:text-rose-400'
                               }`}
                               title="تحتاج لتحسين أو غير دقيقة"
