@@ -346,11 +346,12 @@ export async function sendChatMessage(query, docId = null, history = [], customS
   return await res.json();
 }
 
-export async function sendChatMessageStream(query, docId = null, history = [], customSystemPrompt = null, onChunk) {
+export async function sendChatMessageStream(query, docId = null, history = [], customSystemPrompt = null, onChunk, signal) {
   const res = await fetch(`${API_BASE}/chat/stream`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({ query, doc_id: docId, history, custom_system_prompt: customSystemPrompt }),
+    signal,
   });
   if (!res.ok) throw new Error('Chat stream error');
   if (!res.body) {

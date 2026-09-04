@@ -21,6 +21,7 @@ import 'prismjs/components/prism-markup';
 import 'prismjs/components/prism-css';
 import { 
   Send, 
+  Square, 
   Sparkles, 
   BookOpen, 
   AlertCircle, 
@@ -423,6 +424,8 @@ export default function ChatView({
   const [chatModels, setChatModels] = useState([]);
   const [fetchingChatModels, setFetchingChatModels] = useState(false);
   const [isQuickPromptsOpen, setIsQuickPromptsOpen] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const streamControllerRef = useRef(null);
 
   useEffect(() => {
     latestMessagesRef.current = messages;
@@ -823,6 +826,13 @@ export default function ChatView({
     setTimeout(() => handleSend(userText), 0);
   };
 
+  // Stop the in-flight stream. The partial answer (if any) is kept as final.
+  const handleStopGeneration = () => {
+    if (streamControllerRef.current) {
+      streamControllerRef.current.abort();
+    }
+  };
+
   const handleSend = async (queryText = inputValue) => {
     const textToSend = queryText.trim();
     if (!textToSend || loading) return;
@@ -871,6 +881,9 @@ export default function ChatView({
     });
     setInputValue('');
     setLoading(true);
+    setIsStreaming(true);
+    const controller = new AbortController();
+    streamControllerRef.current = controller;
 
     try {
       const historyPayload = (latestMessagesRef.current || messages || []).slice(-6).map((m) => ({
@@ -894,7 +907,8 @@ export default function ChatView({
               persistPartial(next);
               return next;
             });
-          }
+          },
+          controller.signal
         );
         if (!streamed || !fullAnswer.trim()) throw new Error('empty stream');
         setMessages((prev) => {
@@ -905,6 +919,26 @@ export default function ChatView({
         fetchCurrentUser().catch(()=>{});
         return;
       } catch (streamErr) {
+        if (controller.signal.aborted) {
+          // User stopped the stream: keep the partial answer as final,
+          // or drop the placeholder entirely if nothing arrived yet.
+          if (fullAnswer.trim()) {
+            setMessages((prev) => {
+              const next = prev.map(m => m.id === aiId ? { ...m, text: fullAnswer, streaming: false } : m);
+              persistPartial(next);
+              return next;
+            });
+          } else {
+            setMessages((prev) => {
+              const next = prev.filter(m => m.id !== aiId);
+              persistPartial(next);
+              return next;
+            });
+          }
+          fetchCurrentUser().catch(()=>{});
+          return;
+        }
+        setIsStreaming(false);
         setMessages((prev) => prev.filter(m => m.id !== aiId));
         const res = await sendChatMessage(textToSend, activeDoc?.doc_id, historyPayload, activePrompt?.prompt);
         const aiMsg = {
@@ -939,6 +973,8 @@ export default function ChatView({
       setMessages((prev) => [...prev, errMsg]);
     } finally {
       setLoading(false);
+      setIsStreaming(false);
+      streamControllerRef.current = null;
     }
   };
 
@@ -1651,6 +1687,17 @@ export default function ChatView({
                   </button>
                 )}
                 
+                {isStreaming ? (
+                  <button
+                    type="button"
+                    onClick={handleStopGeneration}
+                    title="إيقاف توليد الإجابة"
+                    className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-rose-600 dark:text-rose-400 font-extrabold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer hover:bg-rose-500/10"
+                  >
+                    <Square className="w-3.5 h-3.5 fill-current" />
+                    <span>إيقاف</span>
+                  </button>
+                ) : (
                 <button
                   type="submit"
                   disabled={!inputValue.trim() || loading}
@@ -1659,6 +1706,7 @@ export default function ChatView({
                   <span>{editingMsgId ? 'حفظ' : 'إرسال'}</span>
                   <Send className="w-3.5 h-3.5 rotate-180" />
                 </button>
+                )}
               </div>
             </div>
           </form>
