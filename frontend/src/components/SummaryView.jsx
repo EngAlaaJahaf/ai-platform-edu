@@ -1,4 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import { 
   FileText, 
   Sparkles, 
@@ -607,16 +611,16 @@ export default function SummaryView({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                     isAct
-                      ? 'bg-indigo-600 text-white shadow-md'
+                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
                       : 'theme-text-secondary hover:bg-white/10'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
                   <span>{tab.label}</span>
                   {tab.count !== undefined && tab.count > 0 && (
-                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isAct ? 'bg-white/20 text-white' : 'theme-card-inner text-cyan-400'}`}>
+                    <span className={`text-xs px-1.5 py-0.2 rounded-full ${isAct ? 'bg-white/20 text-white' : 'theme-card-inner text-emerald-400'}`}>
                       {tab.count}
                     </span>
                   )}
@@ -635,22 +639,28 @@ export default function SummaryView({
                   summaryData.pillars.map((pillar, idx) => (
                     <div key={idx} className="glass-card rounded-2xl p-6 border space-y-3">
                       <div className="flex items-center gap-2.5">
-                        <span className="w-7 h-7 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center font-black text-xs">
+                        <span className="w-7 h-7 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center font-black text-xs">
                           {idx + 1}
                         </span>
                         <h4 className="text-base font-black theme-text-primary">
                           {pillar.pillar_title}
                         </h4>
                       </div>
-                      <p className="text-xs theme-text-secondary leading-relaxed font-['Tajawal'] pr-9">
-                        {pillar.description}
-                      </p>
+                      <div className="text-sm theme-text-secondary leading-relaxed font-['Tajawal'] pr-9">
+                        <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                          {pillar.description}
+                        </ReactMarkdown>
+                      </div>
                       {pillar.sub_points && pillar.sub_points.length > 0 && (
                         <div className="pr-9 pt-2 space-y-2">
                           {pillar.sub_points.map((sp, spIdx) => (
-                            <div key={spIdx} className="p-3 rounded-xl theme-card-inner border text-xs theme-text-primary flex items-start gap-2">
-                              <span className="text-cyan-400 mt-0.5">•</span>
-                              <span className="leading-relaxed">{sp}</span>
+                            <div key={spIdx} className="p-3 rounded-xl theme-card-inner border text-sm theme-text-primary flex items-start gap-2 leading-relaxed">
+                              <span className="text-emerald-400 mt-0.5">•</span>
+                              <div className="flex-1">
+                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                                  {sp}
+                                </ReactMarkdown>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -662,9 +672,13 @@ export default function SummaryView({
                     <h4 className="text-sm font-black theme-text-primary">النقاط المفتاحية المستخلصة:</h4>
                     <div className="space-y-2">
                       {summaryData.key_points?.map((kp, idx) => (
-                        <div key={idx} className="p-3 rounded-xl theme-card-inner border text-xs theme-text-primary flex items-start gap-2">
-                          <span className="text-indigo-400 font-bold">{idx + 1}.</span>
-                          <span>{kp}</span>
+                        <div key={idx} className="p-3 rounded-xl theme-card-inner border text-sm theme-text-primary flex items-start gap-2">
+                          <span className="text-emerald-400 font-bold">{idx + 1}.</span>
+                          <div className="flex-1">
+                            <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                              {kp}
+                            </ReactMarkdown>
+                          </div>
                         </div>
                       ))}
                     </div>

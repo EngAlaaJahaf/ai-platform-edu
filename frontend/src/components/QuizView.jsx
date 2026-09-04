@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import { 
   BrainCircuit, 
   Sparkles, 
@@ -20,20 +24,20 @@ import {
   Copy, 
   Check, 
   FileInput, 
-  X,
-  Play,
-  Sliders,
-  HelpCircle,
-  BookOpen,
-  Target,
-  GraduationCap,
-  Languages,
-  Repeat,
-  Clock,
-  Settings,
-  Trash2,
-  History,
-  MoreHorizontal
+  X, 
+  Play, 
+  Sliders, 
+  HelpCircle, 
+  BookOpen, 
+  Target, 
+  GraduationCap, 
+  Languages, 
+  Repeat, 
+  Clock, 
+  Settings, 
+  Trash2, 
+  History, 
+  MoreHorizontal 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { fetchQuiz, exportQuizData, importQuizFromText, fetchQuizProgress, saveQuizProgress } from '../services/api';
@@ -1501,31 +1505,39 @@ export default function QuizView({
                 )}
               </div>
 
-              {/* Dynamic Question Text based on viewLang */}
+              {/* Dynamic Question Text based on viewLang with KaTeX Support */}
               <div className="space-y-2.5">
                 {viewLang === 'ar' ? (
-                  <h3 className="text-lg md:text-xl font-black theme-text-primary leading-relaxed font-['Tajawal']">
-                    {currentQ.question_ar || currentQ.question}
-                  </h3>
+                  <div className="text-lg md:text-xl font-black theme-text-primary leading-relaxed font-['Tajawal']">
+                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                      {currentQ.question_ar || currentQ.question}
+                    </ReactMarkdown>
+                  </div>
                 ) : viewLang === 'en' ? (
-                  <h3 className="text-lg md:text-xl font-black theme-text-primary leading-relaxed font-sans dir-ltr text-right">
-                    {currentQ.question_en || currentQ.question}
-                  </h3>
+                  <div className="text-lg md:text-xl font-black theme-text-primary leading-relaxed font-sans dir-ltr text-right">
+                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                      {currentQ.question_en || currentQ.question}
+                    </ReactMarkdown>
+                  </div>
                 ) : (
                   <>
-                    <h3 className="text-lg md:text-xl font-black theme-text-primary leading-relaxed font-['Tajawal']">
-                      {currentQ.question_ar || currentQ.question}
-                    </h3>
+                    <div className="text-lg md:text-xl font-black theme-text-primary leading-relaxed font-['Tajawal']">
+                      <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                        {currentQ.question_ar || currentQ.question}
+                      </ReactMarkdown>
+                    </div>
                     {currentQ.question_en && (
-                      <p className="text-sm font-semibold text-slate-400 font-sans leading-normal dir-ltr text-right">
-                        {currentQ.question_en}
-                      </p>
+                      <div className="text-sm font-semibold text-slate-400 font-sans leading-normal dir-ltr text-right pt-1">
+                        <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                          {currentQ.question_en}
+                        </ReactMarkdown>
+                      </div>
                     )}
                   </>
                 )}
               </div>
 
-              {/* Options List */}
+              {/* Options List with KaTeX Support */}
               <div className="space-y-3 pt-2">
                 {currentQ.options?.map((opt, optIdx) => {
                   const letters = ['A', 'B', 'C', 'D', 'E'];
@@ -1536,11 +1548,11 @@ export default function QuizView({
 
                   const hideCorrection = (quizSettings.mode === 'exam' || quizSettings.showResult === 'final') && !isReviewActive;
 
-                  let optClass = 'theme-card-inner border hover:border-indigo-400';
+                  let optClass = 'theme-card-inner border hover:border-emerald-500/50';
                   if (isAnswered) {
                     if (hideCorrection) {
                       if (isSelected) {
-                        optClass = 'bg-indigo-650/40 border-indigo-500 text-indigo-300 shadow-md';
+                        optClass = 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-md';
                       } else {
                         optClass = 'opacity-60 theme-card-inner border';
                       }
@@ -1571,7 +1583,7 @@ export default function QuizView({
                         handleSelectOption(currentQ.id, optIdx);
                       }}
                       disabled={isAnswered || isReviewActive}
-                      className={`w-full p-4 rounded-2xl text-right transition-all flex items-start gap-3.5 ${optClass}`}
+                      className={`w-full p-4 rounded-2xl text-right transition-all flex items-start gap-3.5 cursor-pointer ${optClass}`}
                     >
                       <span className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${
                         isAnswered && !hideCorrection && isCorrect
@@ -1579,13 +1591,15 @@ export default function QuizView({
                           : isAnswered && !hideCorrection && isSelected
                           ? 'bg-rose-500 text-white font-black'
                           : isAnswered && hideCorrection && isSelected
-                          ? 'bg-indigo-500 text-white font-black'
+                          ? 'bg-emerald-500 text-white font-black'
                           : 'bg-white/10 theme-text-primary'
                       }`}>
                         {letter}
                       </span>
                       <div className="flex-1 text-sm font-bold theme-text-primary leading-relaxed">
-                        {displayOpt}
+                        <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                          {displayOpt}
+                        </ReactMarkdown>
                       </div>
                       {isAnswered && !hideCorrection && isCorrect && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-1" />}
                       {isAnswered && !hideCorrection && isSelected && !isCorrect && <XCircle className="w-5 h-5 text-rose-400 shrink-0 mt-1" />}
@@ -1648,16 +1662,20 @@ export default function QuizView({
                   </button>
 
                   {isExplanationExpanded && (
-                    <div className="p-4 rounded-2xl bg-indigo-950/40 border border-white/5 text-right space-y-2.5 max-h-[180px] overflow-y-auto pr-2 animate-fade-in">
+                    <div className="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/20 text-right space-y-2.5 max-h-[220px] overflow-y-auto pr-2 animate-fade-in text-sm leading-relaxed">
                       {(viewLang === 'ar' || viewLang === 'bilingual') && (
-                        <p className="text-xs theme-text-primary leading-relaxed font-['Tajawal']">
-                          {currentQ.explanation_ar || currentQ.explanation}
-                        </p>
+                        <div className="theme-text-primary font-['Tajawal'] font-medium">
+                          <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                            {currentQ.explanation_ar || currentQ.explanation}
+                          </ReactMarkdown>
+                        </div>
                       )}
                       {(viewLang === 'en' || (viewLang === 'bilingual' && currentQ.explanation_en)) && (
-                        <p className="text-[11px] text-slate-400 font-sans pt-1 border-t border-white/5 dir-ltr text-right">
-                          {currentQ.explanation_en || currentQ.explanation}
-                        </p>
+                        <div className="text-xs text-slate-400 font-sans pt-1 border-t border-white/5 dir-ltr text-right">
+                          <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                            {currentQ.explanation_en || currentQ.explanation}
+                          </ReactMarkdown>
+                        </div>
                       )}
                     </div>
                   )}
