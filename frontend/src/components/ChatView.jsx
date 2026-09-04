@@ -346,6 +346,16 @@ export default function ChatView({
 
   const [messages, setMessages] = useState(() => {
     try {
+      const activeSnapshot = localStorage.getItem('eduai_active_chat_messages');
+      if (activeSnapshot) {
+        const snapshot = JSON.parse(activeSnapshot);
+        if (Array.isArray(snapshot) && snapshot.length > 0) {
+          const cleaned = snapshot.filter(
+            (m) => m.sender !== 'ai' || (m.text && m.text.trim() !== '')
+          );
+          if (cleaned.length > 0) return cleaned;
+        }
+      }
       const savedSessions = localStorage.getItem('eduai_chat_sessions_master');
       const activeId = localStorage.getItem('eduai_active_session_id') || 'sess_default';
       if (savedSessions) {
@@ -463,6 +473,7 @@ export default function ChatView({
         });
         try {
           localStorage.setItem('eduai_chat_sessions_master', JSON.stringify(updated));
+          localStorage.setItem('eduai_active_chat_messages', JSON.stringify(messages));
         } catch (_) {}
         return updated;
       });
@@ -828,12 +839,17 @@ export default function ChatView({
     const persistPartial = (next) => {
       try {
         const raw = localStorage.getItem('eduai_chat_sessions_master');
-        if (raw) {
-          const allSessions = JSON.parse(raw);
-          const activeId = localStorage.getItem('eduai_active_session_id') || 'sess_default';
-          const updated = allSessions.map(s => s.id === activeId ? { ...s, messages: next, updatedAt: placeholderMsg.timestamp } : s);
-          localStorage.setItem('eduai_chat_sessions_master', JSON.stringify(updated));
+        const allSessions = raw ? JSON.parse(raw) : [];
+        let activeId = localStorage.getItem('eduai_active_session_id') || (allSessions[0]?.id || null);
+        let updated = allSessions.map(s => s.id === activeId ? { ...s, messages: next, updatedAt: placeholderMsg.timestamp } : s);
+        if (!Array.isArray(updated) || !updated.some(s => s.id === activeId)) {
+          if (updated.length === 0) updated = [{ id: activeId || 'sess_default', title: 'محادثة', messages: next, createdAt: new Date().toLocaleDateString('ar-EG'), updatedAt: placeholderMsg.timestamp }];
+          else updated[0] = { ...updated[0], messages: next, updatedAt: placeholderMsg.timestamp, id: activeId || updated[0].id };
         }
+        localStorage.setItem('eduai_chat_sessions_master', JSON.stringify(updated));
+        if (!activeId) activeId = updated[0]?.id || 'sess_default';
+        localStorage.setItem('eduai_active_session_id', activeId);
+        localStorage.setItem('eduai_active_chat_messages', JSON.stringify(next));
       } catch (_) {}
     };
 
@@ -891,15 +907,7 @@ export default function ChatView({
         };
         setMessages((prev) => {
           const next = [...prev, aiMsg];
-          try {
-            const raw = localStorage.getItem('eduai_chat_sessions_master');
-            if (raw) {
-              const allSessions = JSON.parse(raw);
-              const activeId = localStorage.getItem('eduai_active_session_id') || 'sess_default';
-              const updated = allSessions.map(s => s.id === activeId ? { ...s, messages: next, updatedAt: aiMsg.timestamp } : s);
-              localStorage.setItem('eduai_chat_sessions_master', JSON.stringify(updated));
-            }
-          } catch (_) {}
+          persistPartial(next);
           return next;
         });
         fetchCurrentUser().catch(()=>{});
