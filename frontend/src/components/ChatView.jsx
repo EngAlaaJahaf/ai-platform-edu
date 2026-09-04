@@ -1568,7 +1568,7 @@ export default function ChatView({
                 
                 <button
                   type="submit"
-                  disabled={!inputValue.trim() || isSubmitting}
+                  disabled={!inputValue.trim() || loading}
                   className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-40 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>{editingMsgId ? 'حفظ وإرسال' : 'إرسال'}</span>
