@@ -392,7 +392,7 @@ export default function SummaryView({
                     </span>
                     {isSelected && <span className="w-2 h-2 rounded-full bg-teal-500"></span>}
                   </div>
-                  <p className="text-[11px] theme-text-muted leading-relaxed">
+                  <p className="text-[13px] theme-text-secondary leading-relaxed">
                     {lvl.desc}
                   </p>
                 </button>
@@ -425,7 +425,7 @@ export default function SummaryView({
                     </span>
                     {isSelected && <span className="w-2 h-2 rounded-full bg-teal-500"></span>}
                   </div>
-                  <p className="text-[11px] theme-text-muted leading-relaxed">
+                  <p className="text-[13px] theme-text-secondary leading-relaxed">
                     {l.desc}
                   </p>
                 </button>
@@ -442,7 +442,7 @@ export default function SummaryView({
           </div>
           <button
             onClick={onOpenPromptManager}
-            className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+            className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
           >
             اختيار قالب آخر
           </button>
@@ -484,90 +484,104 @@ export default function SummaryView({
     <div className="space-y-6">
       
       {/* View Header Bar */}
-      <div className="glass-panel rounded-2xl p-6 border shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="p-1.5 rounded-lg bg-teal-500/20 text-teal-400">
-              <FileText className="w-5 h-5" />
-            </span>
-            <h2 className="text-xl font-black theme-text-primary">
-              {summaryData?.title || 'الملخص والخريطة الذهنية'}
-            </h2>
+      <div className="glass-panel rounded-2xl border shadow-lg overflow-hidden">
+        <div className="p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2.5 mb-1">
+              <span className="p-2 rounded-xl bg-teal-500/20 text-teal-400">
+                <FileText className="w-5 h-5" />
+              </span>
+              <h2 className="text-xl md:text-2xl font-black theme-text-primary">
+                {summaryData?.title || 'الملخص والخريطة الذهنية'}
+              </h2>
+            </div>
+            <p className="text-sm theme-text-muted">
+              المستند: {activeDoc.filename} • {levels.find(l => l.id === level)?.label}
+            </p>
           </div>
-          <p className="text-xs theme-text-muted">
-            المستند: {activeDoc.filename} • {levels.find(l => l.id === level)?.label}
-          </p>
+
+          {/* Primary Actions */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setIsExportModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-sm font-extrabold shadow-md shadow-emerald-600/25 transition flex items-center gap-2 border border-white/20 hover:scale-[1.02]"
+              title="تصدير وطباعة التقرير (PDF, HTML, MD, TXT)"
+            >
+              <Download className="w-4 h-4 text-white" />
+              <span>تصدير وطباعة 📄</span>
+            </button>
+
+            <button
+              onClick={onSwitchToQuiz}
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm shadow-md shadow-emerald-600/25 transition flex items-center gap-2"
+            >
+              <Sparkles className="w-4 h-4 text-amber-300" />
+              <span>اختبرني في هذا الملخص 🎯</span>
+            </button>
+          </div>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Level Switcher */}
-          <div className="flex items-center p-1 rounded-xl theme-card-inner border">
-            {levels.map((lvl) => (
-              <button
-                key={lvl.id}
-                onClick={() => {
-                  setLevel(lvl.id);
-                  handleGenerateSummary(lvl.id, language);
-                }}
-                disabled={loading}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                  level === lvl.id
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'theme-text-muted hover:theme-text-primary'
-                }`}
-              >
-                {lvl.label}
-              </button>
-            ))}
+        {/* Settings Strip - structured control bar */}
+        <div className="px-4 md:px-6 py-3 border-t border-slate-200 dark:border-slate-800 theme-nav flex flex-col lg:flex-row lg:items-center gap-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-black theme-text-muted shrink-0">مستوى التلخيص:</span>
+              <div className="flex items-center p-1 rounded-xl theme-card-inner border">
+                {levels.map((lvl) => (
+                  <button
+                    key={lvl.id}
+                    onClick={() => {
+                      setLevel(lvl.id);
+                      handleGenerateSummary(lvl.id, language);
+                    }}
+                    disabled={loading}
+                    className={`px-3.5 py-1.5 rounded-lg text-sm font-bold transition ${
+                      level === lvl.id
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'theme-text-muted hover:theme-text-primary'
+                    }`}
+                  >
+                    {lvl.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-black theme-text-muted shrink-0">اللغة:</span>
+              <div className="flex items-center p-1 rounded-xl theme-card-inner border" title="تغيير لغة التلخيص">
+                {languages.map((l) => (
+                  <button
+                    key={l.id}
+                    onClick={() => {
+                      setLanguage(l.id);
+                      handleGenerateSummary(level, l.id);
+                    }}
+                    disabled={loading}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-bold transition ${
+                      language === l.id
+                        ? 'bg-teal-600 text-white shadow-sm'
+                        : 'theme-text-muted hover:theme-text-primary'
+                    }`}
+                  >
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Language Switcher */}
-          <div className="flex items-center p-1 rounded-xl theme-card-inner border" title="تغيير لغة التلخيص">
-            {languages.map((l) => (
-              <button
-                key={l.id}
-                onClick={() => {
-                  setLanguage(l.id);
-                  handleGenerateSummary(level, l.id);
-                }}
-                disabled={loading}
-                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition ${
-                  language === l.id
-                    ? 'bg-teal-600 text-white shadow-sm'
-                    : 'theme-text-muted hover:theme-text-primary'
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
+          <div className="lg:mr-auto">
+            <button
+              onClick={() => handleGenerateSummary(level, language)}
+              disabled={loading}
+              className="px-4 py-2 rounded-xl theme-header-btn border hover:text-teal-500 transition flex items-center gap-2 text-sm font-bold"
+              title="إعادة التوليد"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              <span>إعادة التوليد</span>
+            </button>
           </div>
-
-          <button
-            onClick={() => handleGenerateSummary(level, language)}
-            disabled={loading}
-            className="p-2.5 rounded-xl theme-header-btn border hover:text-teal-500 transition"
-            title="إعادة التوليد"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-
-          <button
-            onClick={() => setIsExportModalOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-extrabold shadow-md shadow-emerald-600/25 transition flex items-center gap-1.5 border border-white/20 hover:scale-[1.02]"
-            title="تصدير وطباعة التقرير (PDF, HTML, MD, TXT)"
-          >
-            <Download className="w-3.5 h-3.5 text-white" />
-            <span>تصدير وطباعة 📄</span>
-          </button>
-
-          <button
-            onClick={onSwitchToQuiz}
-            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md shadow-emerald-600/25 transition flex items-center gap-1.5"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>اختبرني في هذا الملخص 🎯</span>
-          </button>
         </div>
       </div>
 
@@ -586,11 +600,11 @@ export default function SummaryView({
           
           {/* Executive Overview Card */}
           <div className="glass-card rounded-2xl p-6 border space-y-3">
-            <h3 className="text-sm font-black theme-text-primary flex items-center gap-2">
+            <h3 className="text-base font-black theme-text-primary flex items-center gap-2">
               <BookMarked className="w-4 h-4 text-teal-500" />
               <span>نظرة عامة جوهرية (Executive Overview)</span>
             </h3>
-            <p className="text-sm theme-text-secondary leading-relaxed font-['Tajawal'] whitespace-pre-wrap">
+            <p className="text-[15px] leading-relaxed font-['Tajawal'] whitespace-pre-wrap theme-text-primary">
               {summaryData.overview}
             </p>
           </div>
@@ -611,16 +625,16 @@ export default function SummaryView({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
                     isAct
                       ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
                       : 'theme-text-secondary hover:bg-white/10'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon className="w-4 h-4" />
                   <span>{tab.label}</span>
                   {tab.count !== undefined && tab.count > 0 && (
-                    <span className={`text-xs px-1.5 py-0.2 rounded-full ${isAct ? 'bg-white/20 text-white' : 'theme-card-inner text-emerald-400'}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${isAct ? 'bg-white/20 text-white' : 'theme-card-inner text-emerald-400'}`}>
                       {tab.count}
                     </span>
                   )}
@@ -639,14 +653,14 @@ export default function SummaryView({
                   summaryData.pillars.map((pillar, idx) => (
                     <div key={idx} className="glass-card rounded-2xl p-6 border space-y-3">
                       <div className="flex items-center gap-2.5">
-                        <span className="w-7 h-7 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center font-black text-xs">
+                        <span className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center font-black text-base">
                           {idx + 1}
                         </span>
-                        <h4 className="text-base font-black theme-text-primary">
+                        <h4 className="text-lg font-black theme-text-primary">
                           {pillar.pillar_title}
                         </h4>
                       </div>
-                      <div className="text-sm theme-text-secondary leading-relaxed font-['Tajawal'] pr-9">
+                      <div className="text-[15px] theme-text-primary leading-relaxed font-['Tajawal'] pr-9">
                         <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
                           {pillar.description}
                         </ReactMarkdown>
@@ -654,8 +668,8 @@ export default function SummaryView({
                       {pillar.sub_points && pillar.sub_points.length > 0 && (
                         <div className="pr-9 pt-2 space-y-2">
                           {pillar.sub_points.map((sp, spIdx) => (
-                            <div key={spIdx} className="p-3 rounded-xl theme-card-inner border text-sm theme-text-primary flex items-start gap-2 leading-relaxed">
-                              <span className="text-emerald-400 mt-0.5">•</span>
+                            <div key={spIdx} className="p-3.5 rounded-xl theme-card-inner border text-[15px] theme-text-primary flex items-start gap-2 leading-relaxed">
+                              <span className="text-emerald-400 mt-1">•</span>
                               <div className="flex-1">
                                 <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
                                   {sp}
@@ -669,10 +683,10 @@ export default function SummaryView({
                   ))
                 ) : (
                   <div className="glass-card rounded-2xl p-6 border space-y-3">
-                    <h4 className="text-sm font-black theme-text-primary">النقاط المفتاحية المستخلصة:</h4>
-                    <div className="space-y-2">
+                    <h4 className="text-base font-black theme-text-primary">النقاط المفتاحية المستخلصة:</h4>
+                    <div className="space-y-2.5">
                       {summaryData.key_points?.map((kp, idx) => (
-                        <div key={idx} className="p-3 rounded-xl theme-card-inner border text-sm theme-text-primary flex items-start gap-2">
+                        <div key={idx} className="p-3.5 rounded-xl theme-card-inner border text-[15px] theme-text-primary flex items-start gap-2">
                           <span className="text-emerald-400 font-bold">{idx + 1}.</span>
                           <div className="flex-1">
                             <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
@@ -696,24 +710,24 @@ export default function SummaryView({
                     compTables.map((tbl, tIdx) => (
                       <div key={tIdx} className="glass-card rounded-2xl p-6 border space-y-4 shadow-sm animate-fade-in">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-black theme-text-primary flex items-center gap-2 font-['Tajawal']">
-                            <Scale className="w-4 h-4 text-teal-400" />
+                          <h4 className="text-base font-black theme-text-primary flex items-center gap-2 font-['Tajawal']">
+                            <Scale className="w-5 h-5 text-teal-400" />
                             <span>{tbl.title || `مقارنة ${tIdx + 1}`}</span>
                           </h4>
-                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-400 font-bold font-mono">
+                          <span className="text-xs px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-400 font-bold font-mono">
                             {tbl.rows?.length || 0} أوجه مقارنة • {tbl.items?.length || 2} أطراف
                           </span>
                         </div>
 
                         <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
-                          <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-xs text-right font-['Tajawal']">
+                          <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm text-right font-['Tajawal']">
                             <thead className="bg-slate-100 dark:bg-slate-900 font-black theme-text-primary">
                               <tr>
-                                <th className="px-4 py-3.5 text-emerald-600 dark:text-teal-400 whitespace-nowrap min-w-[140px]">
+                                <th className="px-4 py-3.5 text-emerald-600 dark:text-teal-400 whitespace-nowrap min-w-[150px] text-sm">
                                   وجه المقارنة
                                 </th>
                                 {(tbl.items || ['الطرف الأول', 'الطرف الثاني']).map((item, iIdx) => (
-                                  <th key={iIdx} className="px-4 py-3.5 min-w-[200px]">
+                                  <th key={iIdx} className="px-4 py-3.5 min-w-[220px] text-sm">
                                     {item}
                                   </th>
                                 ))}
@@ -722,11 +736,11 @@ export default function SummaryView({
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 font-medium">
                               {(tbl.rows || []).map((r, rIdx) => (
                                 <tr key={rIdx} className="hover:bg-white/5 transition">
-                                  <td className="px-4 py-3.5 font-black text-emerald-600 dark:text-teal-400 align-top whitespace-nowrap">
+                                  <td className="px-4 py-3.5 font-black text-emerald-600 dark:text-teal-400 align-top whitespace-nowrap text-sm">
                                     {r.aspect}
                                   </td>
                                   {(r.values || [r.item_a_val, r.item_b_val]).map((val, vIdx) => (
-                                    <td key={vIdx} className="px-4 py-3.5 theme-text-primary leading-relaxed align-top">
+                                    <td key={vIdx} className="px-4 py-3.5 theme-text-primary leading-relaxed align-top text-sm">
                                       {val || '—'}
                                     </td>
                                   ))}
@@ -749,31 +763,31 @@ export default function SummaryView({
             {/* 3. Exam Traps & Common Pitfalls Tab */}
             {activeTab === 'traps' && (
               <div className="glass-card rounded-2xl p-6 border space-y-4">
-                <div className="flex items-center gap-2 text-sm font-black text-amber-500">
+                <div className="flex items-center gap-2 text-base font-black text-amber-500">
                   <AlertTriangle className="w-5 h-5" />
                   <span>مصائد الامتحانات ونقاط اللبس الشائعة بين الطلاب</span>
                 </div>
                 {summaryData.exam_traps && summaryData.exam_traps.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {summaryData.exam_traps.map((trap, idx) => (
-                      <div key={idx} className="p-4 rounded-2xl theme-card-inner border border-amber-500/20 space-y-2">
+                      <div key={idx} className="p-4 rounded-2xl theme-card-inner border border-amber-500/20 space-y-2.5">
                         <div className="flex items-start gap-2">
-                          <span className="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-400 font-bold text-[10px] shrink-0 mt-0.5">
+                          <span className="px-2 py-1 rounded-md bg-rose-500/20 text-rose-400 font-bold text-xs shrink-0 mt-0.5 whitespace-nowrap">
                             فخ شائع ❌
                           </span>
-                          <b className="text-xs theme-text-primary leading-relaxed">{trap.trap}</b>
+                          <b className="text-[15px] theme-text-primary leading-relaxed">{trap.trap}</b>
                         </div>
-                        <div className="flex items-start gap-2 pt-2 border-t border-white/10">
-                          <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-bold text-[10px] shrink-0 mt-0.5">
+                        <div className="flex items-start gap-2 pt-2.5 border-t border-white/10">
+                          <span className="px-2 py-1 rounded-md bg-emerald-500/20 text-emerald-400 font-bold text-xs shrink-0 mt-0.5 whitespace-nowrap">
                             المفهوم الصحيح ✓
                           </span>
-                          <p className="text-xs text-emerald-600 dark:text-emerald-300 leading-relaxed font-bold">{trap.correct_concept}</p>
+                          <p className="text-[15px] text-emerald-600 dark:text-emerald-300 leading-relaxed font-bold">{trap.correct_concept}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs theme-text-muted p-4 text-center">تم استعراض كافة المفاهيم بوضوح دون مصائد خاصة.</p>
+                  <p className="text-sm theme-text-muted p-4 text-center">تم استعراض كافة المفاهيم بوضوح دون مصائد خاصة.</p>
                 )}
               </div>
             )}
@@ -781,24 +795,24 @@ export default function SummaryView({
             {/* 4. Formulas & Rules Tab */}
             {activeTab === 'rules' && (
               <div className="glass-card rounded-2xl p-6 border space-y-4">
-                <h4 className="text-sm font-black theme-text-primary flex items-center gap-2">
-                  <Calculator className="w-4 h-4 text-emerald-400" />
+                <h4 className="text-base font-black theme-text-primary flex items-center gap-2">
+                  <Calculator className="w-5 h-5 text-emerald-400" />
                   <span>القوانين والمعادلات والخوارزميات</span>
                 </h4>
                 {summaryData.formulas_rules && summaryData.formulas_rules.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {summaryData.formulas_rules.map((rule, idx) => (
-                      <div key={idx} className="p-4 rounded-2xl theme-card-inner border space-y-2">
-                        <b className="text-xs font-black text-emerald-500 dark:text-teal-300 block">{rule.name}</b>
-                        <div className="p-2.5 rounded-xl bg-slate-950 text-teal-400 font-mono text-xs text-left dir-ltr overflow-x-auto">
+                      <div key={idx} className="p-4 rounded-2xl theme-card-inner border space-y-2.5">
+                        <b className="text-sm font-black text-emerald-500 dark:text-teal-300 block">{rule.name}</b>
+                        <div className="p-3 rounded-xl bg-slate-950 text-teal-400 font-mono text-sm text-left dir-ltr overflow-x-auto">
                           {rule.rule}
                         </div>
-                        <p className="text-[11px] theme-text-secondary leading-relaxed">{rule.explanation}</p>
+                        <p className="text-sm theme-text-secondary leading-relaxed">{rule.explanation}</p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs theme-text-muted p-4 text-center">المحاضرة ذات طابع نظري ومفاهيمي لا تتضمن معادلات رياضية معقدة.</p>
+                  <p className="text-sm theme-text-muted p-4 text-center">المحاضرة ذات طابع نظري ومفاهيمي لا تتضمن معادلات رياضية معقدة.</p>
                 )}
               </div>
             )}
@@ -806,18 +820,18 @@ export default function SummaryView({
             {/* 5. Glossary Definitions Tab */}
             {activeTab === 'definitions' && (
               <div className="glass-card rounded-2xl p-6 border space-y-4">
-                <h4 className="text-sm font-black theme-text-primary flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-amber-400" />
+                <h4 className="text-base font-black theme-text-primary flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-amber-400" />
                   <span>قاموس المصطلحات والمفاهيم الأكاديمية</span>
                 </h4>
                 {summaryData.definitions && summaryData.definitions.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {summaryData.definitions.map((item, idx) => (
                       <div key={idx} className="p-4 rounded-xl theme-card-inner border space-y-1.5">
-                        <b className="text-xs font-black text-emerald-600 dark:text-teal-300 block">{item.term}</b>
-                        <p className="text-xs theme-text-primary leading-relaxed font-medium">{item.meaning}</p>
+                        <b className="text-sm font-black text-emerald-600 dark:text-teal-300 block">{item.term}</b>
+                        <p className="text-[15px] theme-text-primary leading-relaxed font-medium">{item.meaning}</p>
                         {item.example && (
-                          <span className="text-[10px] theme-text-muted block pt-1 border-t border-white/5">
+                          <span className="text-xs theme-text-muted block pt-2 border-t border-white/5">
                             💡 مثال: {item.example}
                           </span>
                         )}
@@ -825,7 +839,7 @@ export default function SummaryView({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs theme-text-muted p-4 text-center">لا توجد مصطلحات منفصلة.</p>
+                  <p className="text-sm theme-text-muted p-4 text-center">لا توجد مصطلحات منفصلة.</p>
                 )}
               </div>
             )}

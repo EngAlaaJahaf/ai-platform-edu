@@ -83,8 +83,9 @@ export default function NotebookLMMindMap({ mindmapData, defaultTitle, language 
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [collapsedPaths, setCollapsedPaths] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState('');
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedNodeId, setSelectedNodeId] = useState(null);
+const [isFullscreen, setIsFullscreen] = useState(false);
+const [selectedNodeId, setSelectedNodeId] = useState(null);
+const [exportOpen, setExportOpen] = useState(false);
   
   const containerRef = useRef(null);
   const svgRef = useRef(null);
@@ -364,11 +365,11 @@ export default function NotebookLMMindMap({ mindmapData, defaultTitle, language 
           <div>
             <div className="flex items-center gap-2">
               <h4 className="text-sm font-black theme-text-primary">الخريطة الذهنية التفاعلية (Google NotebookLM)</h4>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-teal-400 font-bold text-[10px]">
+              <span className="px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-teal-400 font-bold text-xs">
                 {direction === 'rtl' ? 'اتجاه عربي (يمين ← يسار)' : 'LTR Direction (Left → Right)'}
               </span>
             </div>
-            <p className="text-[11px] theme-text-muted">اسحب للتحريك في أي اتجاه، واستخدم العجلة للتكبير، وانقر على الدوائر للطي والفرد</p>
+            <p className="text-[13px] theme-text-muted">اسحب للتحريك في أي اتجاه، واستخدم العجلة للتكبير، وانقر على الدوائر للطي والفرد</p>
           </div>
         </div>
 
@@ -383,19 +384,19 @@ export default function NotebookLMMindMap({ mindmapData, defaultTitle, language 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="بحث في المفاهيم..."
-              className="pr-8 pl-3 py-1.5 rounded-xl theme-card-inner border text-xs theme-text-primary placeholder-slate-400 outline-none w-36 sm:w-44 font-['Tajawal']"
+              className="pr-8 pl-3 py-1.5 rounded-xl theme-card-inner border text-sm theme-text-primary placeholder-slate-400 outline-none w-36 sm:w-48 font-['Tajawal']"
             />
           </div>
 
           {/* Direction Toggle (RTL / LTR) */}
-          <button
-            onClick={toggleDirection}
-            className="px-2.5 py-1.5 rounded-xl theme-card-inner border text-xs font-bold theme-text-primary hover:border-teal-500 transition flex items-center gap-1.5"
-            title="تبديل اتجاه الشجرة (عربي / إنجليزي)"
-          >
-            <ArrowLeftRight className="w-3.5 h-3.5 text-teal-500" />
-            <span className="text-[11px]">{direction === 'rtl' ? 'RTL' : 'LTR'}</span>
-          </button>
+            <button
+              onClick={toggleDirection}
+              className="px-3 py-1.5 rounded-xl theme-card-inner border text-sm font-bold theme-text-primary hover:border-teal-500 transition flex items-center gap-1.5"
+              title="تبديل اتجاه الشجرة (عربي / إنجليزي)"
+            >
+              <ArrowLeftRight className="w-4 h-4 text-teal-500" />
+              <span>{direction === 'rtl' ? 'RTL' : 'LTR'}</span>
+            </button>
 
           {/* Expand / Collapse All */}
           <div className="flex items-center p-1 rounded-xl theme-card-inner border">
@@ -424,7 +425,7 @@ export default function NotebookLMMindMap({ mindmapData, defaultTitle, language 
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
-            <span className="text-[10px] font-mono font-bold px-1.5 theme-text-muted">
+            <span className="text-xs font-mono font-bold px-2 theme-text-muted">
               {Math.round(zoom * 100)}%
             </span>
             <button
@@ -443,35 +444,46 @@ export default function NotebookLMMindMap({ mindmapData, defaultTitle, language 
             </button>
           </div>
 
-          {/* Export Interactive HTML */}
-          <button
-            onClick={() => exportInteractiveMindMapHTML(rootNode, defaultTitle || rootNode.label, language)}
-            className="p-2 rounded-xl bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-600 dark:text-teal-400 border border-emerald-500/30 transition flex items-center gap-1 font-bold text-xs shadow-sm"
-            title="تصدير كصفحة HTML تفاعلية قابلة للطي والفرد"
-          >
-            <Globe className="w-4 h-4 text-emerald-500 dark:text-teal-400" />
-            <span className="text-[11px] font-black">HTML تفاعلي</span>
-          </button>
+          {/* Export Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setExportOpen((o) => !o)}
+              className="px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-sm font-extrabold shadow-md shadow-emerald-600/25 transition flex items-center gap-2 border border-white/20"
+              title="تصدير الخريطة بصيغ متعددة"
+            >
+              <Download className="w-4 h-4 text-white" />
+              <span>تصدير</span>
+            </button>
 
-          {/* Export PNG */}
-          <button
-            onClick={handleExportPNG}
-            className="p-2 rounded-xl theme-card-inner border theme-text-primary hover:border-teal-500 transition flex items-center gap-1"
-            title="تصدير الخريطة كصورة PNG عالية الدقة"
-          >
-            <ImageIcon className="w-4 h-4 text-emerald-500" />
-            <span className="text-[10px] font-bold hidden md:inline">PNG</span>
-          </button>
-
-          {/* Export SVG */}
-          <button
-            onClick={handleExportSVG}
-            className="p-2 rounded-xl theme-card-inner border theme-text-primary hover:border-teal-500 transition flex items-center gap-1"
-            title="تصدير الخريطة بصيغة SVG فيكتور"
-          >
-            <Download className="w-4 h-4 text-teal-500" />
-            <span className="text-[10px] font-bold hidden md:inline">SVG</span>
-          </button>
+            {exportOpen && (
+              <>
+                <div className="fixed inset-0 z-30" onClick={() => setExportOpen(false)} />
+                <div className="absolute z-40 left-0 mt-2 w-56 rounded-2xl glass-panel border shadow-2xl p-2 space-y-1">
+                  <button
+                    onClick={() => { exportInteractiveMindMapHTML(rootNode, defaultTitle || rootNode.label, language); setExportOpen(false); }}
+                    className="w-full px-3 py-2.5 rounded-xl hover:bg-white/10 transition flex items-center gap-2.5 text-sm font-bold theme-text-primary"
+                  >
+                    <Globe className="w-4 h-4 text-emerald-500" />
+                    <span>HTML تفاعلي</span>
+                  </button>
+                  <button
+                    onClick={() => { handleExportPNG(); setExportOpen(false); }}
+                    className="w-full px-3 py-2.5 rounded-xl hover:bg-white/10 transition flex items-center gap-2.5 text-sm font-bold theme-text-primary"
+                  >
+                    <ImageIcon className="w-4 h-4 text-emerald-500" />
+                    <span>صورة PNG عالية الدقة</span>
+                  </button>
+                  <button
+                    onClick={() => { handleExportSVG(); setExportOpen(false); }}
+                    className="w-full px-3 py-2.5 rounded-xl hover:bg-white/10 transition flex items-center gap-2.5 text-sm font-bold theme-text-primary"
+                  >
+                    <Download className="w-4 h-4 text-teal-500" />
+                    <span>SVG فيكتوري</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
 
           {/* Fullscreen Toggle */}
           <button
@@ -504,7 +516,7 @@ export default function NotebookLMMindMap({ mindmapData, defaultTitle, language 
         }}
       >
         {/* Helper Navigation Floating Pill */}
-        <div className="absolute top-4 left-4 z-20 pointer-events-none px-3 py-1.5 rounded-full bg-slate-900/70 backdrop-blur-md border border-white/10 text-[10px] font-bold text-slate-200 flex items-center gap-1.5">
+        <div className="absolute top-4 left-4 z-20 pointer-events-none px-3 py-1.5 rounded-full bg-slate-900/70 backdrop-blur-md border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5">
           <Sparkles className="w-3 h-3 text-teal-400" />
           <span>اسحب للتجول • انقر على المفاتيح &lt; و &gt; للطي والتوسيع</span>
         </div>
