@@ -364,11 +364,17 @@ export async function sendChatMessageStream(query, docId = null, history = [], c
   const decoder = new TextDecoder('utf-8');
   let full = '';
   while (true) {
+    if (signal && signal.aborted) {
+      throw new DOMException('The user aborted a request.', 'AbortError');
+    }
     const { done, value } = await reader.read();
     if (done) break;
     const chunk = decoder.decode(value, { stream: true });
     full += chunk;
     if (onChunk) onChunk(chunk);
+  }
+  if (signal && signal.aborted) {
+    throw new DOMException('The user aborted a request.', 'AbortError');
   }
   return { answer: full };
 }

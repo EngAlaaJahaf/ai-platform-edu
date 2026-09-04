@@ -893,6 +893,21 @@ export default function ChatView({
 
       let fullAnswer = '';
       let streamed = false;
+      const finalizeAborted = () => {
+        if (fullAnswer.trim()) {
+          setMessages((prev) => {
+            const next = prev.map(m => m.id === aiId ? { ...m, text: fullAnswer, streaming: false } : m);
+            persistPartial(next);
+            return next;
+          });
+        } else {
+          setMessages((prev) => {
+            const next = prev.filter(m => m.id !== aiId);
+            persistPartial(next);
+            return next;
+          });
+        }
+      };
       try {
         await sendChatMessageStream(
           textToSend,
@@ -900,6 +915,7 @@ export default function ChatView({
           historyPayload,
           activePrompt?.prompt,
           (chunk) => {
+            if (controller.signal.aborted) return;
             fullAnswer += chunk;
             streamed = true;
             setMessages((prev) => {
@@ -910,6 +926,11 @@ export default function ChatView({
           },
           controller.signal
         );
+        if (controller.signal.aborted) {
+          finalizeAborted();
+          fetchCurrentUser().catch(()=>{});
+          return;
+        }
         if (!streamed || !fullAnswer.trim()) throw new Error('empty stream');
         setMessages((prev) => {
           const next = prev.map(m => m.id === aiId ? { ...m, text: fullAnswer, streaming: false } : m);
@@ -922,19 +943,7 @@ export default function ChatView({
         if (controller.signal.aborted) {
           // User stopped the stream: keep the partial answer as final,
           // or drop the placeholder entirely if nothing arrived yet.
-          if (fullAnswer.trim()) {
-            setMessages((prev) => {
-              const next = prev.map(m => m.id === aiId ? { ...m, text: fullAnswer, streaming: false } : m);
-              persistPartial(next);
-              return next;
-            });
-          } else {
-            setMessages((prev) => {
-              const next = prev.filter(m => m.id !== aiId);
-              persistPartial(next);
-              return next;
-            });
-          }
+          finalizeAborted();
           fetchCurrentUser().catch(()=>{});
           return;
         }
