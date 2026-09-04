@@ -819,6 +819,8 @@ export default function ChatView({
     const textToSend = queryText.trim();
     if (!textToSend || loading) return;
 
+    setEditingMsgId(null);
+
     const userMsg = {
       id: Date.now().toString(),
       sender: 'user',
@@ -939,6 +941,23 @@ export default function ChatView({
   const handleEditUserMessage = (msg) => {
     setInputValue(msg.text);
     setEditingMsgId(msg.id);
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.style.height = 'auto';
+          textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+        }
+      }, 0);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMsgId(null);
+    setInputValue('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
   };
 
   const handleRegenerate = async (lastUserText) => {

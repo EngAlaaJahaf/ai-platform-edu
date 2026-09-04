@@ -75,6 +75,8 @@ export default function AdminDashboardModal({
   const modelDropdownRef = useRef(null);
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
+  const [modelDiscoveryStatus, setModelDiscoveryStatus] = useState(null);
+  const [isModelsListOpen, setIsModelsListOpen] = useState(false);
 
   const providers = [
     { 
@@ -295,12 +297,6 @@ export default function AdminDashboardModal({
       setSaving(false);
     }
   };
-
-  const [validating, setValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState(null);
-  const [fetchingModels, setFetchingModels] = useState(false);
-  const [modelDiscoveryStatus, setModelDiscoveryStatus] = useState(null);
-  const [isModelsListOpen, setIsModelsListOpen] = useState(false);
 
   const handleValidateConnection = async () => {
     setValidating(true);
@@ -591,8 +587,31 @@ export default function AdminDashboardModal({
                     {documents.map((d) => (
                       <tr key={d.id} className="hover:bg-white/5 transition">
                         <td className="px-4 py-3 font-bold theme-text-primary max-w-xs truncate">{d.filename}</td>
-                        <td className="px                {/* Provider & Key Configuration */}
-                <div className="glass-card rounded-2xl p-5 border space-y-4">
+                        <td className="px-4 py-3 theme-text-muted">{d.pages_count}</td>
+                        <td className="px-4 py-3 theme-text-muted">{d.words_count}</td>
+                        <td className="px-4 py-3 theme-text-muted">{d.created_at ? new Date(d.created_at).toLocaleDateString('ar-EG') : '—'}</td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            onClick={() => handleDeleteDocument(d.id)}
+                            className="p-1 rounded-lg text-rose-500 hover:bg-rose-500/10 transition"
+                            title="حذف المستند"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* 3. AI & Models Configuration Tab */}
+          {activeTab === 'ai' && (
+            <div className="space-y-6">
+              {/* Provider & Key Configuration */}
+              <div className="glass-card rounded-2xl p-5 border space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-black uppercase text-emerald-500 dark:text-teal-300 flex items-center gap-1.5">
                       <KeyRound className="w-4 h-4 text-teal-500" /> إعداد المزود والمفاتيح
@@ -807,34 +826,6 @@ export default function AdminDashboardModal({
                     )}
 
                   </div>
-                </div>               );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleValidateConnection}
-                      disabled={validating}
-                      className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition flex items-center justify-center gap-2"
-                    >
-                      <Zap className={`w-4 h-4 ${validating ? 'animate-spin' : ''}`} />
-                      <span>{validating ? 'جاري فحص الاتصال بالمحرك...' : 'اختبار الاتصال والمفتاح الآن'}</span>
-                    </button>
-
-                    {validationResult && (
-                      <div className={`p-3 rounded-xl border text-xs font-bold ${
-                        validationResult.valid
-                          ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
-                          : 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400'
-                      }`}>
-                        {validationResult.valid ? '✓ الاتصال بالمحرك سليم ومفتاح الـ API صالح 100%' : `❌ خطأ في الاتصال: ${validationResult.error}`}
-                      </div>
-                    )}
-
-                  </div>
                 </div>
 
                 {/* Hyperparameters & AI Tuning */}
@@ -882,8 +873,6 @@ export default function AdminDashboardModal({
                     </div>
                   </div>
                 </div>
-
-              </div>
 
             </div>
           )}
