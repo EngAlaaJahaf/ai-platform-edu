@@ -1219,31 +1219,31 @@ export default function QuizView({
     <div className="space-y-6">
       
       {/* Studio Header Bar */}
-      <div className="glass-panel rounded-2xl p-6 border shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-20">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="p-1.5 rounded-lg bg-indigo-500/20 text-indigo-400">
-              <BrainCircuit className="w-5 h-5" />
-            </span>
-            <h2 className="text-xl font-black theme-text-primary">
+      <div className="glass-panel rounded-2xl p-5 border shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-20">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center shrink-0">
+            <BrainCircuit className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-black theme-text-primary">
               {quizData?.chapter_title || 'استوديو الاختبارات الأكاديمية'}
             </h2>
+            <p className="text-xs theme-text-muted mt-0.5">
+              المستند: {activeDoc.filename} • {questions.length} أسئلة ({quizData?.difficulty_level || difficulty})
+            </p>
           </div>
-          <p className="text-xs theme-text-muted">
-            المستند: {activeDoc.filename} • {questions.length} أسئلة ({quizData?.difficulty_level || difficulty})
-          </p>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           
           {/* Mode Switcher */}
           <div className="flex items-center p-1 rounded-xl theme-card-inner border">
             <button
               onClick={() => setMode('mcq')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                 mode === 'mcq'
-                  ? 'bg-indigo-600 text-white shadow-sm'
+                  ? 'bg-emerald-600 text-white shadow-sm'
                   : 'theme-text-muted hover:theme-text-primary'
               }`}
             >
@@ -1251,9 +1251,9 @@ export default function QuizView({
             </button>
             <button
               onClick={() => setMode('flashcard')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                 mode === 'flashcard'
-                  ? 'bg-indigo-600 text-white shadow-sm'
+                  ? 'bg-emerald-600 text-white shadow-sm'
                   : 'theme-text-muted hover:theme-text-primary'
               }`}
             >
@@ -1261,65 +1261,37 @@ export default function QuizView({
             </button>
           </div>
 
-          {/* Interactive Language Display Switcher */}
-          <div className="flex items-center p-1 rounded-xl theme-card-inner border" title="تبديل لغة العرض">
-            <button
-              onClick={() => setViewLang('bilingual')}
-              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition ${
-                viewLang === 'bilingual' ? 'bg-cyan-600 text-white shadow-sm' : 'theme-text-muted hover:theme-text-primary'
-              }`}
-            >
-              🌐 ثنائي
-            </button>
-            <button
-              onClick={() => setViewLang('ar')}
-              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition ${
-                viewLang === 'ar' ? 'bg-cyan-600 text-white shadow-sm' : 'theme-text-muted hover:theme-text-primary'
-              }`}
-            >
-              🇸🇦 عربي
-            </button>
-            <button
-              onClick={() => setViewLang('en')}
-              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition ${
-                viewLang === 'en' ? 'bg-cyan-600 text-white shadow-sm' : 'theme-text-muted hover:theme-text-primary'
-              }`}
-            >
-              🇬🇧 EN
-            </button>
-          </div>
-
-          {/* Timer Countdown Pill */}
-          {timeLeft !== null && !isCompleted && !isReviewActive && (
-            <div className={`px-3 py-1.5 rounded-xl border text-xs font-black flex items-center gap-1.5 shadow-sm transition font-mono ${
-              timeLeft < 300 
-                ? 'bg-rose-500/10 border-rose-500 text-rose-400 animate-pulse' 
-                : 'theme-card-inner theme-text-primary'
-            }`}>
-              <Clock className="w-3.5 h-3.5 text-cyan-400" />
-              <span>{formatTime(timeLeft)}</span>
-            </div>
-          )}
+          {/* Compact Language Display Toggle */}
+          <button
+            onClick={() => {
+              const nextLang = viewLang === 'bilingual' ? 'ar' : viewLang === 'ar' ? 'en' : 'bilingual';
+              setViewLang(nextLang);
+            }}
+            className="px-3 py-1.5 rounded-xl theme-card-inner border text-xs font-bold theme-text-secondary hover:theme-text-primary transition flex items-center gap-1.5 cursor-pointer"
+            title="تبديل لغة العرض (ثنائي / عربي / إنجليزي)"
+          >
+            <Languages className="w-3.5 h-3.5 text-emerald-500" />
+            <span>{viewLang === 'bilingual' ? '🌐 ثنائي' : viewLang === 'ar' ? '🇸🇦 عربي' : '🇬🇧 EN'}</span>
+          </button>
 
           {/* Direct Export Trigger */}
           <button
             onClick={() => setIsAcademicExportOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-xs font-bold transition shadow-md shadow-indigo-600/20 flex items-center gap-1.5 font-['Tajawal'] cursor-pointer"
+            className="px-3 py-1.5 rounded-xl theme-card-inner border text-xs font-bold theme-text-secondary hover:theme-text-primary hover:border-emerald-500/50 transition flex items-center gap-1.5 cursor-pointer"
             title="تصدير بنك الأسئلة PDF / HTML"
           >
-            <Download className="w-3.5 h-3.5" />
-            <span>تصدير 📄</span>
+            <Download className="w-3.5 h-3.5 text-emerald-500" />
+            <span>تصدير</span>
           </button>
 
           {/* Unified Tools Dropdown Menu */}
           <div className="relative">
             <button
               onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-              className="px-3 py-2 rounded-xl theme-header-btn border hover:text-cyan-400 transition flex items-center gap-1.5 font-bold text-xs font-['Tajawal']"
+              className="p-2 rounded-xl theme-header-btn border hover:border-emerald-500/50 transition flex items-center justify-center cursor-pointer"
               title="المزيد من الأدوات والإعدادات"
             >
-              <MoreHorizontal className="w-4 h-4" />
-              <span>الأدوات ⚙️</span>
+              <Settings className="w-4 h-4 theme-text-muted hover:theme-text-primary" />
             </button>
 
             {isMoreMenuOpen && (
@@ -1329,9 +1301,9 @@ export default function QuizView({
                     setIsMoreMenuOpen(false);
                     setIsSettingsOpen(true);
                   }}
-                  className="w-full text-right px-3 py-2.5 rounded-xl hover:bg-white/10 dark:hover:bg-slate-800/80 transition flex items-center gap-2 theme-text-primary cursor-pointer"
+                  className="w-full text-right px-3 py-2.5 rounded-xl hover:bg-white/10 transition flex items-center gap-2 theme-text-primary cursor-pointer"
                 >
-                  <Settings className="w-4 h-4 text-indigo-400" />
+                  <Settings className="w-4 h-4 text-emerald-500" />
                   <span>تخصيص ومظهر الاختبار ⚙️</span>
                 </button>
                 <button
@@ -1339,14 +1311,14 @@ export default function QuizView({
                     setIsMoreMenuOpen(false);
                     setIsHistoryOpen(true);
                   }}
-                  className="w-full text-right px-3 py-2.5 rounded-xl hover:bg-white/10 dark:hover:bg-slate-800/80 transition flex items-center justify-between theme-text-primary cursor-pointer"
+                  className="w-full text-right px-3 py-2.5 rounded-xl hover:bg-white/10 transition flex items-center justify-between theme-text-primary cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
                     <History className="w-4 h-4 text-amber-400" />
                     <span>الاختبارات المحفوظة</span>
                   </div>
                   {history.length > 0 && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-mono">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-mono">
                       {history.length}
                     </span>
                   )}
@@ -1356,7 +1328,7 @@ export default function QuizView({
                     setIsMoreMenuOpen(false);
                     setIsImportOpen(true);
                   }}
-                  className="w-full text-right px-3 py-2.5 rounded-xl hover:bg-white/10 dark:hover:bg-slate-800/80 transition flex items-center gap-2 theme-text-primary cursor-pointer"
+                  className="w-full text-right px-3 py-2.5 rounded-xl hover:bg-white/10 transition flex items-center gap-2 theme-text-primary cursor-pointer"
                 >
                   <FileInput className="w-4 h-4 text-cyan-400" />
                   <span>استيراد بنك أسئلة نصي</span>
@@ -1368,9 +1340,9 @@ export default function QuizView({
                     setCachedQuizData(quizData);
                     setQuizData(null);
                   }}
-                  className="w-full text-right px-3 py-2.5 rounded-xl hover:bg-white/10 dark:hover:bg-slate-800/80 transition flex items-center gap-2 text-cyan-500 cursor-pointer"
+                  className="w-full text-right px-3 py-2.5 rounded-xl hover:bg-white/10 transition flex items-center gap-2 text-emerald-500 cursor-pointer"
                 >
-                  <Sliders className="w-4 h-4 text-cyan-400" />
+                  <Sliders className="w-4 h-4 text-emerald-500" />
                   <span>توليد بنك أسئلة جديد 🎯</span>
                 </button>
               </div>
