@@ -223,7 +223,7 @@ export default function TranslateView({
                     <option key={l.code} value={l.code}>{l.flag} {l.label}</option>
                   ))}
                 </select>
-                <div className="flex items-center justify-between text-[11px] theme-text-muted pt-0.5">
+                <div className="flex items-center justify-between text-xs theme-text-muted pt-0.5">
                   <span>المستند المصدر: <b className="theme-text-primary">{sourceLang.toUpperCase()}</b></span>
                   <button onClick={handleSwapLanguages} className="text-emerald-500 hover:underline font-bold flex items-center gap-1 cursor-pointer">
                     <ArrowLeftRight className="w-3 h-3" />
@@ -293,7 +293,7 @@ export default function TranslateView({
                 <label className="text-xs font-bold theme-text-secondary block">Apply to page</label>
                 <div className="p-2.5 rounded-xl theme-card-inner border text-xs font-bold flex items-center justify-between">
                   <span>الصفحة 1 (الصفحة الحالية)</span>
-                  <span className="text-[11px] theme-text-muted">من أصل {activeDoc?.pages_count || 1}</span>
+                  <span className="text-xs theme-text-muted">من أصل {activeDoc?.pages_count || 1}</span>
                 </div>
               </div>
 
@@ -337,7 +337,7 @@ export default function TranslateView({
                 />
                 <div>
                   <b className="theme-text-primary block">Reduce font size to fit</b>
-                  <span className="theme-text-muted block mt-0.5 leading-relaxed text-[11px]">
+                  <span className="theme-text-muted block mt-0.5 leading-relaxed text-xs">
                     ضبط أحجام الخطوط تلقائياً لملاءمة حجم ورقة A4.
                   </span>
                 </div>
@@ -352,7 +352,7 @@ export default function TranslateView({
                 />
                 <div>
                   <b className="theme-text-primary block">Duplicate page when translating</b>
-                  <span className="theme-text-muted block mt-0.5 leading-relaxed text-[11px]">
+                  <span className="theme-text-muted block mt-0.5 leading-relaxed text-xs">
                     الحفاظ على الصفحة الأصلية وإنشاء صفحة مستقلة للترجمة المقابلة.
                   </span>
                 </div>
@@ -367,7 +367,7 @@ export default function TranslateView({
                 />
                 <div>
                   <b className="theme-text-primary block">Mirror page to match text direction</b>
-                  <span className="theme-text-muted block mt-0.5 leading-relaxed text-[11px]">
+                  <span className="theme-text-muted block mt-0.5 leading-relaxed text-xs">
                     عكس اتجاه وهوامش الصفحة تلقائياً عند الترجمة من الإنجليزية إلى العربية (RTL).
                   </span>
                 </div>
@@ -547,7 +547,7 @@ export default function TranslateView({
               <div className="space-y-2">
                 <div className="flex items-center justify-between px-2 text-xs font-bold theme-text-muted">
                   <span className="font-bold text-slate-300">Page 1 - Original Source Content (English)</span>
-                  <span className="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-[11px] text-slate-700 dark:text-slate-300">ORIGINAL (EN)</span>
+                  <span className="px-2.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-300 font-mono font-bold">ORIGINAL (EN)</span>
                 </div>
 
                 <div 
@@ -571,7 +571,7 @@ export default function TranslateView({
               <div className="space-y-2">
                 <div className="flex items-center justify-between px-2 text-xs font-bold theme-text-muted">
                   <span className="font-bold text-emerald-500">صفحة 1 - الترجمة الأكاديمية المعتمدة (العربية)</span>
-                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold">CERTIFIED (AR)</span>
+                  <span className="px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold font-mono">CERTIFIED (AR)</span>
                 </div>
 
                 <div 

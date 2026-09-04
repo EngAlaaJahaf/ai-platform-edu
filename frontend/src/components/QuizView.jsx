@@ -886,19 +886,19 @@ export default function QuizView({
                             {percent}%
                           </span>
                           <div>
-                            <input
-                              type="text"
-                              value={att.name || `محاولة #${idx + 1}`}
-                              onChange={(e) => renameAttempt(att.id, e.target.value)}
-                              className="text-xs font-black theme-text-primary bg-transparent border-b border-transparent hover:border-slate-500 focus:border-emerald-500 outline-none transition font-['Tajawal']"
-                              title="انقر لتعديل اسم المحاولة"
-                            />
-                            <div className="text-[11px] theme-text-muted flex items-center gap-2">
-                              <span>📅 {dateStr}</span>
-                              <span>•</span>
-                              <span>الدرجة: {att.score} من {att.totalQuestions}</span>
-                              {wrongCount > 0 && <span className="text-rose-400 font-bold">({wrongCount} أخطاء)</span>}
-                            </div>
+                              <input
+                                type="text"
+                                value={att.name || `محاولة #${idx + 1}`}
+                                onChange={(e) => renameAttempt(att.id, e.target.value)}
+                                className="text-sm font-black theme-text-primary bg-transparent border-b border-transparent hover:border-slate-500 focus:border-emerald-500 outline-none transition font-['Tajawal']"
+                                title="انقر لتعديل اسم المحاولة"
+                              />
+                              <div className="text-xs theme-text-muted flex items-center gap-2 mt-0.5">
+                                <span>📅 {dateStr}</span>
+                                <span>•</span>
+                                <span>الدرجة: {att.score} من {att.totalQuestions}</span>
+                                {wrongCount > 0 && <span className="text-rose-400 font-bold">({wrongCount} أخطاء)</span>}
+                              </div>
                           </div>
                         </div>
 
@@ -1041,8 +1041,8 @@ export default function QuizView({
                 }`}
               >
                 <div>
-                  <b className="text-xs font-black theme-text-primary block">اختيار من متعدد (MCQ)</b>
-                  <span className="text-[11px] theme-text-muted">أسئلة ثنائية وشروحات وتنبؤ بالدرجة</span>
+                  <b className="text-sm font-black theme-text-primary block">اختيار من متعدد (MCQ)</b>
+                  <span className="text-xs theme-text-secondary mt-0.5 block">أسئلة ثنائية وشروحات وتنبؤ بالدرجة</span>
                 </div>
                 {mode === 'mcq' && <span className="w-2.5 h-2.5 rounded-full bg-teal-400"></span>}
               </button>
@@ -1056,8 +1056,8 @@ export default function QuizView({
                 }`}
               >
                 <div>
-                  <b className="text-xs font-black theme-text-primary block">بطاقات استذكار (Flashcards)</b>
-                  <span className="text-[11px] theme-text-muted">بطاقات تفاعلية تدعم التبديل اللغوي الفوري</span>
+                  <b className="text-sm font-black theme-text-primary block">بطاقات استذكار (Flashcards)</b>
+                  <span className="text-xs theme-text-secondary mt-0.5 block">بطاقات تفاعلية تدعم التبديل اللغوي الفوري</span>
                 </div>
                 {mode === 'flashcard' && <span className="w-2.5 h-2.5 rounded-full bg-teal-400"></span>}
               </button>
@@ -1089,7 +1089,7 @@ export default function QuizView({
                     <b className={`text-xs font-black ${language === l.id ? 'text-teal-600 dark:text-teal-400' : 'theme-text-primary'}`}>{l.label}</b>
                     {language === l.id && <span className="w-2 h-2 rounded-full bg-teal-500"></span>}
                   </div>
-                  <p className="text-[10px] theme-text-muted leading-relaxed">{l.desc}</p>
+                  <p className="text-xs theme-text-secondary leading-relaxed">{l.desc}</p>
                 </button>
               ))}
             </div>
@@ -1148,7 +1148,7 @@ export default function QuizView({
             </div>
             <button
               onClick={onOpenPromptManager}
-              className="text-[11px] font-bold text-emerald-500 hover:underline"
+              className="text-xs font-bold text-emerald-500 hover:underline"
             >
               اختيار قالب آخر
             </button>
@@ -1371,7 +1371,7 @@ export default function QuizView({
             <button
               onClick={() => handleRetryWrongOnly(reviewAttempt)}
               disabled={!reviewAttempt?.wrongQuestionIds?.length}
-              className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-black transition disabled:opacity-50 font-['Tajawal']"
+              className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-black transition disabled:opacity-50 font-['Tajawal']"
             >
               حل الأخطاء فقط 🔄
             </button>
@@ -1381,7 +1381,7 @@ export default function QuizView({
                 setOnlyWrongQuestionsFilter(null);
                 handleReset();
               }}
-              className="px-3.5 py-1.5 rounded-lg theme-header-btn border text-[11px] font-black transition font-['Tajawal']"
+              className="px-3.5 py-1.5 rounded-xl theme-header-btn border text-xs font-black transition font-['Tajawal']"
             >
               الخروج من المراجعة 🔙
             </button>
@@ -1401,7 +1401,7 @@ export default function QuizView({
               setOnlyWrongQuestionsFilter(null);
               handleReset();
             }}
-            className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black transition font-['Tajawal']"
+            className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition font-['Tajawal']"
           >
             العودة للاختبار الكامل 🔁
           </button>
@@ -1729,7 +1729,7 @@ export default function QuizView({
           {/* Rename Attempt Input */}
           {latestAttemptId && history.find(a => a.id === latestAttemptId) && (
             <div className="max-w-xs mx-auto p-3.5 rounded-2xl theme-card-inner border border-white/5 space-y-2 text-right">
-              <span className="text-[11px] font-bold theme-text-secondary block font-['Tajawal']">تسمية هذه المحاولة (اختياري):</span>
+              <span className="text-xs font-bold theme-text-secondary block font-['Tajawal']">تسمية هذه المحاولة (اختياري):</span>
               <input
                 type="text"
                 value={history.find(a => a.id === latestAttemptId)?.name || ''}
@@ -1806,11 +1806,11 @@ export default function QuizView({
             onClick={() => setFlipped(!flipped)}
             className="glass-card rounded-3xl p-12 min-h-[320px] border flex flex-col items-center justify-center text-center cursor-pointer shadow-2xl hover:scale-[1.01] transition-all select-none relative group"
           >
-            <span className="absolute top-4 right-4 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">
+            <span className="absolute top-4 right-4 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">
               بطاقة {cardIdx + 1} من {flashcards.length}
             </span>
 
-            <span className="absolute top-4 left-4 text-[10px] font-bold theme-text-muted bg-white/5 px-2.5 py-1 rounded-full flex items-center gap-1">
+            <span className="absolute top-4 left-4 text-xs font-bold theme-text-muted bg-white/5 px-2.5 py-1 rounded-full flex items-center gap-1">
               {flipped ? 'الوجه الخلفي (الشرح) 🔄' : 'الوجه الأمامي (المصطلح) 👁️'}
             </span>
 
@@ -1838,7 +1838,7 @@ export default function QuizView({
               )}
             </div>
 
-            <span className="text-[11px] theme-text-muted mt-6 block opacity-60 group-hover:opacity-100 transition">
+            <span className="text-xs theme-text-muted mt-6 block opacity-60 group-hover:opacity-100 transition">
               انقر على البطاقة لقلبها
             </span>
           </div>

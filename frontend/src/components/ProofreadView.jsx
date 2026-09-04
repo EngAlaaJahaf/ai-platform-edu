@@ -97,10 +97,10 @@ export default function ProofreadView({ onOpenApiKey, onOpenPromptManager }) {
         <div className="lg:col-span-7 space-y-4">
           <div className="glass-card rounded-2xl p-5 border flex flex-col h-[480px]">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-extrabold theme-text-primary flex items-center gap-2">
+              <span className="text-sm font-extrabold theme-text-primary flex items-center gap-2">
                 <FileEdit className="w-4 h-4 text-teal-500" /> أدخل نص فقرتك أو بحثك:
               </span>
-              <span className="text-[11px] theme-text-muted font-mono">
+              <span className="text-xs theme-text-muted font-mono">
                 {inputText.split(/\s+/).filter(Boolean).length} كلمة
               </span>
             </div>
@@ -137,7 +137,7 @@ export default function ProofreadView({ onOpenApiKey, onOpenPromptManager }) {
                   <div className="text-3xl font-black text-emerald-500 dark:text-emerald-400 font-['JetBrains_Mono'] my-1">
                     {result.originality_score}%
                   </div>
-                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
                     أصالة ممتازة ✓
                   </span>
                 </div>
@@ -147,7 +147,7 @@ export default function ProofreadView({ onOpenApiKey, onOpenPromptManager }) {
                   <div className="text-3xl font-black text-teal-600 dark:text-teal-400 font-['JetBrains_Mono'] my-1">
                     {result.grammar_score}%
                   </div>
-                  <span className="text-[10px] font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2.5 py-0.5 rounded-full">
                     {result.issues?.length || 0} تنبيهات
                   </span>
                 </div>
@@ -164,18 +164,18 @@ export default function ProofreadView({ onOpenApiKey, onOpenPromptManager }) {
                       <div key={idx} className="p-3 rounded-xl theme-card-inner border flex items-center justify-between gap-3">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-500 border border-rose-500/30">
+                            <span className="text-xs font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-500 border border-rose-500/30">
                               {iss.type}
                             </span>
                             <span className="text-xs font-bold line-through text-rose-500">{iss.original}</span>
                             <ArrowRight className="w-3 h-3 text-slate-400" />
                             <span className="text-xs font-bold text-emerald-500 dark:text-emerald-400">{iss.correction}</span>
                           </div>
-                          <p className="text-[11px] theme-text-secondary mt-1">{iss.reason}</p>
+                          <p className="text-xs theme-text-secondary mt-1">{iss.reason}</p>
                         </div>
                         <button
                           onClick={() => handleApplyFix(iss)}
-                          className="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/30 text-[11px] font-bold text-emerald-500 dark:text-emerald-200 shrink-0 transition"
+                          className="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/30 text-xs font-bold text-emerald-500 dark:text-emerald-200 shrink-0 transition"
                         >
                           تطبيق
                         </button>
