@@ -53,7 +53,7 @@ export default function Header({
 
   // Primary 4 Core Study Tabs
   const primaryTabs = [
-    { id: 'translate', label: 'ترجمة المقررات (Canva)', icon: Languages },
+    { id: 'translate', label: 'ترجمة المقررات', icon: Languages },
     { id: 'quiz', label: 'استوديو الاختبارات', icon: BrainCircuit },
     { id: 'chat', label: 'المحادثة الذكية', icon: MessageSquareText },
     { id: 'summary', label: 'التلخيص والخريطة', icon: FileText }
@@ -174,7 +174,7 @@ export default function Header({
       </div>
 
       {/* 2. CENTER: Clean Segmented Navigation Switcher (Desktop) */}
-      <nav className="hidden md:flex items-center gap-1.5 theme-card-inner border p-1 rounded-2xl">
+      <nav className="hidden md:flex items-center gap-1 theme-card-inner border p-1 rounded-xl">
         {primaryTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -182,13 +182,13 @@ export default function Header({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold transition cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                 isActive 
-                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-sm' 
-                  : 'theme-text-muted hover:theme-text-primary'
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-xs' 
+                  : 'theme-text-muted hover:theme-text-primary hover:bg-white/5'
               }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-3.5 h-3.5" />
               <span>{tab.label}</span>
             </button>
           );
@@ -198,12 +198,12 @@ export default function Header({
         <div className="relative" ref={moreToolsRef}>
           <button
             onClick={() => setIsMoreToolsOpen(!isMoreToolsOpen)}
-            className={`p-2 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
-              isSecondaryActive ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30' : 'theme-text-muted hover:theme-text-primary'
+            className={`p-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+              isSecondaryActive ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30' : 'theme-text-muted hover:theme-text-primary hover:bg-white/5'
             }`}
             title="المزيد من الأدوات"
           >
-            <MoreHorizontal className="w-4 h-4" />
+            <MoreHorizontal className="w-3.5 h-3.5" />
           </button>
 
           {isMoreToolsOpen && (
