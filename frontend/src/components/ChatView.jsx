@@ -351,7 +351,7 @@ export default function ChatView({
         const snapshot = JSON.parse(activeSnapshot);
         if (Array.isArray(snapshot) && snapshot.length > 0) {
           const cleaned = snapshot.filter(
-            (m) => m.sender !== 'ai' || (m.text && m.text.trim() !== '')
+            (m) => m.sender !== 'ai' || (m.text && m.text.trim() !== '') || m.streaming
           );
           if (cleaned.length > 0) return cleaned;
         }
@@ -363,7 +363,7 @@ export default function ChatView({
         const current = parsed.find(s => s.id === activeId) || parsed[0];
         if (current && Array.isArray(current.messages) && current.messages.length > 0) {
           const cleaned = current.messages.filter(
-            (m) => m.sender !== 'ai' || (m.text && m.text.trim() !== '')
+            (m) => m.sender !== 'ai' || (m.text && m.text.trim() !== '') || m.streaming
           );
           if (cleaned.length > 0) return cleaned;
         }
@@ -815,6 +815,14 @@ export default function ChatView({
     scrollToBottom();
   }, [messages, loading]);
 
+  // Regenerate an interrupted (empty) AI reply: drop the dangling placeholder,
+  // then re-send the same preceding user question from scratch.
+  const handleRegenerateInterrupted = (msgId, userText) => {
+    if (!userText || loading) return;
+    setMessages((prev) => prev.filter(m => m.id !== msgId));
+    setTimeout(() => handleSend(userText), 0);
+  };
+
   const handleSend = async (queryText = inputValue) => {
     const textToSend = queryText.trim();
     if (!textToSend || loading) return;
@@ -833,6 +841,7 @@ export default function ChatView({
       id: aiId,
       sender: 'ai',
       text: '',
+      streaming: true,
       citations: [],
       is_out_of_scope: false,
       sources: [],
@@ -889,7 +898,7 @@ export default function ChatView({
         );
         if (!streamed || !fullAnswer.trim()) throw new Error('empty stream');
         setMessages((prev) => {
-          const next = prev.map(m => m.id === aiId ? { ...m, text: fullAnswer } : m);
+          const next = prev.map(m => m.id === aiId ? { ...m, text: fullAnswer, streaming: false } : m);
           persistPartial(next);
           return next;
         });
@@ -902,6 +911,7 @@ export default function ChatView({
           id: aiId,
           sender: 'ai',
           text: res.answer,
+          streaming: false,
           citations: res.citations || [],
           is_out_of_scope: res.is_out_of_scope,
           sources: res.sources || [],
@@ -1152,6 +1162,7 @@ export default function ChatView({
             const isLastAi = !isUser && index === (messages || []).length - 1;
             const previousUserMsg = isLastAi ? messages[index - 1]?.text : null;
             const isStreamingPlaceholder = !isUser && loading && !msg.text;
+            const isInterrupted = !isUser && !loading && msg.streaming && !msg.text;
 
             return (
               <div
@@ -1195,6 +1206,22 @@ export default function ChatView({
                         <span className="text-sm font-bold text-emerald-400">
                           ذكاء يبحث في المستند ويصيغ الإجابة الموثقة...
                         </span>
+                      </div>
+                    ) : isInterrupted ? (
+                      <div className="flex items-center gap-2.5 py-1 flex-wrap text-sm">
+                        <span className="font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                          <AlertCircle className="w-4 h-4 shrink-0" />
+                          توقف توليد الإجابة قبل اكتمالها.
+                        </span>
+                        {previousUserMsg && (
+                          <button
+                            type="button"
+                            onClick={() => handleRegenerateInterrupted(msg.id, previousUserMsg)}
+                            className="px-2.5 py-1 rounded-lg bg-emerald-600/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold hover:bg-emerald-500/20 transition cursor-pointer"
+                          >
+                            إعادة توليد الإجابة
+                          </button>
+                        )}
                       </div>
                     ) : (
                     <div className="prose prose-slate dark:prose-invert max-w-none font-['Tajawal'] text-[15px] leading-relaxed break-words space-y-2">
@@ -1246,7 +1273,7 @@ export default function ChatView({
                     )}
 
                     {/* Citations Pages Badges */}
-                    {!isStreamingPlaceholder && msg.citations && msg.citations.length > 0 && (
+                    {!isStreamingPlaceholder && !isInterrupted && msg.citations && msg.citations.length > 0 && (
                       <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2">
                         <span className="text-xs font-bold theme-text-muted flex items-center gap-1">
                           <BookOpen className="w-3.5 h-3.5 text-emerald-500" /> الصفحات المقتبسة:
@@ -1263,7 +1290,7 @@ export default function ChatView({
                     )}
 
                     {/* Per-Message Action Toolbar */}
-                    {!isStreamingPlaceholder && (
+                    {!isStreamingPlaceholder && !isInterrupted && (
                     <div className="mt-3 pt-2.5 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2 text-xs">
                       <span className="text-xs theme-text-muted font-medium">
                         {msg.timestamp}
