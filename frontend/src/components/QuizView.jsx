@@ -1438,44 +1438,74 @@ export default function QuizView({
 
       {/* MCQ Mode View */}
       {mode === 'mcq' && currentQ && !loading && !isCompleted && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="max-w-4xl mx-auto w-full space-y-4">
           
-          {/* Main Question Card Column */}
-          <div className="lg:col-span-8 space-y-4">
-
-            <div className="glass-card rounded-3xl p-6 md:p-8 border space-y-6 shadow-lg">
-              
-              {/* Question Header */}
-              <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-200 dark:border-slate-800">
-                <div className="flex items-center gap-2.5">
-                  <span className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm font-black flex items-center gap-1.5">
-                    <HelpCircle className="w-4 h-4" />
-                    <span>السؤال رقم {currentIdx + 1} من {questions.length}</span>
+          {/* Main Question Card */}
+          <div className="glass-card rounded-3xl p-6 md:p-8 border space-y-6 shadow-lg">
+            
+            {/* Question Header */}
+            <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <span className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm font-black flex items-center gap-1.5">
+                  <HelpCircle className="w-4 h-4" />
+                  <span>السؤال رقم {currentIdx + 1} من {questions.length}</span>
+                </span>
+                {currentQ.cognitive_level && (
+                  <span className="px-2.5 py-1 rounded-lg theme-card-inner border text-xs font-bold theme-text-muted">
+                    {currentQ.cognitive_level}
                   </span>
-                  {currentQ.cognitive_level && (
-                    <span className="px-2.5 py-1 rounded-lg theme-card-inner border text-xs font-bold theme-text-muted">
-                      {currentQ.cognitive_level}
-                    </span>
-                  )}
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  {quizSettings.mode === 'exam' && timeLeft !== null && (
-                    <span className="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-mono font-bold flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>{formatTime(timeLeft)}</span>
-                    </span>
-                  )}
-                  <span className="text-xs font-bold theme-text-muted">
-                    المستوى: <b>{difficulty === 'hard' ? 'متقدم (Exam)' : difficulty === 'easy' ? 'مبتدئ' : 'متوسط'}</b>
-                  </span>
-                  {currentQ.topic && (
-                    <span className="text-xs font-bold theme-text-muted">
-                      • {currentQ.topic}
-                    </span>
-                  )}
-                </div>
+                )}
               </div>
+              
+              <div className="flex items-center gap-2">
+                {quizSettings.mode === 'exam' && timeLeft !== null && (
+                  <span className="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-mono font-bold flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>{formatTime(timeLeft)}</span>
+                  </span>
+                )}
+                <span className="text-xs font-bold theme-text-muted">
+                  المستوى: <b>{difficulty === 'hard' ? 'متقدم (Exam)' : difficulty === 'easy' ? 'مبتدئ' : 'متوسط'}</b>
+                </span>
+                {currentQ.topic && (
+                  <span className="text-xs font-bold theme-text-muted">
+                    • {currentQ.topic}
+                  </span>
+                )}
+                {history.length > 0 && (
+                  <button
+                    onClick={() => setIsHistoryOpen(true)}
+                    className="px-2.5 py-1 rounded-lg theme-card-inner border text-xs font-bold text-amber-500 hover:border-amber-500/50 transition flex items-center gap-1 cursor-pointer mr-2"
+                    title="سجل الاختبارات السابقة"
+                  >
+                    <History className="w-3.5 h-3.5" />
+                    <span>السجل ({history.length})</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Chapter Selector Dropdown if chapters exist */}
+            {quizData && quizData.chapters && quizData.chapters.length > 0 && (
+              <div className="space-y-1">
+                <select
+                  value={activeChapterIdx}
+                  onChange={(e) => {
+                    if (isReviewActive) return;
+                    handleChapterChange(e.target.value);
+                  }}
+                  disabled={isReviewActive}
+                  className="w-full text-xs font-bold theme-card-inner border rounded-xl p-2.5 outline-none focus:border-emerald-500 transition cursor-pointer theme-text-primary font-['Tajawal'] disabled:opacity-50"
+                >
+                  <option value="all">عرض الكل / All Chapters ({quizData.chapters.flatMap(c => c.questions || []).length} سؤال)</option>
+                  {quizData.chapters.map((ch, i) => (
+                    <option key={ch.id || i} value={i}>
+                      {ch.title || `الشابتر ${i + 1}`} ({ch.questions?.length || 0} أسئلة)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
               {/* Dynamic Question Text based on viewLang with KaTeX Support */}
               <div className="space-y-2.5">
@@ -1656,84 +1686,7 @@ export default function QuizView({
 
             </div>
           </div>
-
-          {/* Right Column */}
-          <div className="lg:col-span-4 space-y-4">
-
-            <div className="glass-card rounded-2xl p-5 border space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-extrabold text-xs theme-text-muted font-['Tajawal']">فهرس الأسئلة</h4>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 font-bold font-mono">
-                  {questions.length} سؤال
-                </span>
-              </div>
-
-              {/* Chapter Selector Dropdown */}
-              {quizData && quizData.chapters && quizData.chapters.length > 0 && (
-                <div className="space-y-1">
-                  <select
-                    value={activeChapterIdx}
-                    onChange={(e) => {
-                      if (isReviewActive) return;
-                      handleChapterChange(e.target.value);
-                    }}
-                    disabled={isReviewActive}
-                    className="w-full text-xs font-bold theme-card-inner border rounded-xl p-2.5 outline-none focus:border-cyan-500 transition cursor-pointer theme-text-primary font-['Tajawal'] disabled:opacity-50"
-                  >
-                    <option value="all">عرض الكل / All Chapters ({quizData.chapters.flatMap(c => c.questions || []).length} سؤال)</option>
-                    {quizData.chapters.map((ch, i) => (
-                      <option key={ch.id || i} value={i}>
-                        {ch.title || `الشابتر ${i + 1}`} ({ch.questions?.length || 0} أسئلة)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div className="grid grid-cols-5 gap-2">
-                {questions.map((q, idx) => {
-                  const isAns = activeAnswers[q.id] !== undefined;
-                  const isCorrect = isAns && activeAnswers[q.id] === q.correct_index;
-                  const isCur = currentIdx === idx;
-                  const isMarked = activeMarked[q.id];
-                  return (
-                    <div key={q.id || idx} className="relative">
-                      <button
-                        onClick={() => setCurrentIdx(idx)}
-                        className={`w-full h-9 rounded-xl font-bold text-xs transition ${
-                          isCur
-                            ? 'border-2 border-cyan-400 bg-cyan-500/20 text-cyan-300 font-extrabold shadow-sm ring-1 ring-cyan-400/20'
-                            : isAns
-                            ? isCorrect
-                              ? 'bg-emerald-600 dark:bg-emerald-600/90 text-white font-black shadow-sm'
-                              : 'bg-rose-600 dark:bg-rose-600/90 text-white font-black shadow-sm'
-                            : 'theme-card-inner theme-text-muted hover:theme-text-primary'
-                        }`}
-                      >
-                        {idx + 1}
-                      </button>
-                      {isMarked && (
-                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-500 border border-slate-900 animate-pulse shadow-sm shadow-rose-500/50"></span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {history.length > 0 && (
-                <button
-                  onClick={() => setIsHistoryOpen(true)}
-                  className="w-full py-2.5 px-3 rounded-xl theme-card-inner border text-xs font-bold text-amber-400 hover:border-amber-400/50 transition flex items-center justify-center gap-1.5 font-['Tajawal']"
-                >
-                  <History className="w-3.5 h-3.5" />
-                  <span>سجل الاختبارات السابقة ({history.length}) 📋</span>
-                </button>
-              )}
-            </div>
-          </div>
-
-        </div>
-      )}
+        )}
 
       {/* Completed Summary View */}
       {isCompleted && (
