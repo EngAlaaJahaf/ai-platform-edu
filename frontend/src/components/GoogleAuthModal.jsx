@@ -205,11 +205,14 @@ export default function GoogleAuthModal({ isOpen, onClose, user, onUserUpdated }
               <div className="flex items-center justify-between font-bold">
                 <span className="theme-text-secondary">استهلاك التوكنز الشهري:</span>
                 <span className="text-teal-600 dark:text-teal-300 font-mono font-black">
-                  {(user.tokens_used || 14200).toLocaleString()} / {(user.tokens_limit || 500000).toLocaleString()}
+                  {(user.tokens_used ?? 0).toLocaleString()} / {(user.tokens_limit || 500000).toLocaleString()}
                 </span>
               </div>
               <div className="w-full bg-slate-200 dark:bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-300 dark:border-white/5">
-                <div className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full w-[15%] rounded-full"></div>
+                <div
+                  className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, ((user.tokens_used || 0) / (user.tokens_limit || 500000)) * 100)}%` }}
+                ></div>
               </div>
             </div>
 
