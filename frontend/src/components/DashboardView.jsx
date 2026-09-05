@@ -219,27 +219,6 @@ export default function DashboardView({
             </div>
           </div>
         </div>
-
-        {/* Voting & Exhibition Project Banner */}
-        <div className="lg:col-span-4 glass-card rounded-2xl p-6 border border-amber-500/30 flex flex-col justify-between space-y-4">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400">
-                معرض IT 2026
-              </span>
-              <span className="text-xs font-bold theme-text-muted">المشروع</span>
-            </div>
-
-            <h4 className="text-lg font-black theme-text-primary mb-2">
-              صوّت لمشروع <span className="bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">ذكاء</span>
-            </h4>
-            <p className="text-xs theme-text-secondary leading-relaxed">
-              مشروع تخرج وتقنية مبتكرة تخدم آلاف الطلاب الجامعيين في استيعاب المقررات وتوليد الاختبارات بدقة بالغة.
-            </p>
-          </div>
-
-        </div>
-
       </div>
 
       {/* Student Analytics - Real progress_json */}
