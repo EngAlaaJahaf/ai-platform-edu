@@ -61,7 +61,20 @@ from backend.database import (
     log_activity,
     list_presentations,
     count_presentations,
-    update_presentation_status
+    update_presentation_status,
+    get_presentation,
+    delete_presentation,
+    create_team,
+    join_team_by_code,
+    list_user_teams,
+    get_team_details,
+    add_team_member,
+    change_member_role,
+    remove_team_member,
+    delete_team,
+    share_entity_with_team,
+    unshare_entity_from_team,
+    get_team_access,
 )
 
 router = APIRouter(prefix="/api")
@@ -79,6 +92,28 @@ def _require_admin(current_user: dict = Depends(_get_current_user)):
     if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="صلاحيات المدير مطلوبة (Admin only)")
     return current_user
+
+
+def _entity_edit_perm(user_id: str, entity_type: str, entity_id: str) -> Optional[str]:
+    """صلاحية التعديل على عنصر مستند/عرض:
+    - 'owner' → مالك العنصر (أو عنصر بلا مالك).
+    - 'editor' → عضو فريق (owner/admin/editor) يملك مشاركة عليه.
+    - None → لا صلاحية.
+    """
+    if entity_type == "document":
+        row = get_document(entity_id, user_id=user_id)
+    elif entity_type == "presentation":
+        row = get_presentation(entity_id, user_id=user_id)
+    else:
+        return None
+    if not row:
+        return None
+    if not row.get("user_id") or row.get("user_id") == user_id:
+        return "owner"
+    access = get_team_access(user_id, entity_type, entity_id)
+    if access and access["role"] in ("owner", "admin", "editor"):
+        return "team_editor"
+    return None
 
 # --- Simple in-memory rate limiter ---
 RATE_LIMIT_STORE: Dict[str, List[float]] = defaultdict(list)
@@ -239,6 +274,27 @@ class PresentationGenerateRequest(BaseModel):
 
 class PresentationDeckRequest(BaseModel):
     deck: Dict[str, Any]
+
+class TeamCreateRequest(BaseModel):
+    name: str
+
+class TeamJoinRequest(BaseModel):
+    invite_code: str
+
+class TeamMemberAddRequest(BaseModel):
+    user_id: str
+    role: Optional[str] = "viewer"
+
+class TeamRoleRequest(BaseModel):
+    role: str
+
+class TeamShareRequest(BaseModel):
+    entity_type: str  # 'document' | 'presentation'
+    entity_id: str
+
+class TeamUnshareRequest(BaseModel):
+    entity_type: str  # 'document' | 'presentation'
+    entity_id: str
 
 
 @router.get("/health")
@@ -939,16 +995,37 @@ def get_document_endpoint(doc_id: str, x_user_id: Optional[str] = Header(None)):
 
 @router.patch("/documents/{doc_id}")
 def update_document_endpoint(doc_id: str, req: UpdateDocumentRequest, x_user_id: Optional[str] = Header(None)):
-    """Rename or update document title with owner validation."""
-    success = update_document_title(doc_id, req.title.strip(), user_id=x_user_id)
+    """تعديل اسم المستند — المالك أو محرّر مخوّل من الفريق فقط."""
+    user = _get_current_user(x_user_id)
+    doc = get_document(doc_id, user_id=user["id"])
+    if not doc:
+        raise HTTPException(status_code=404, detail="المستند غير موجود أو لا تملك صلاحية الوصول إليه.")
+    if doc.get("user_id") == user["id"] or not doc.get("user_id"):
+        success = update_document_title(doc_id, req.title.strip(), user_id=user["id"])
+    else:
+        access = get_team_access(user["id"], "document", doc_id)
+        if not access or access["role"] not in ("owner", "admin", "editor"):
+            raise HTTPException(status_code=403, detail="صلاحية المحرر مطلوبة لتعديل هذا المستند")
+        success = update_document_title(doc_id, req.title.strip())
     if not success:
         raise HTTPException(status_code=404, detail="فشل تحديث المستند أو لم يتم العثور عليه في مكتبتك.")
     return {"success": True, "message": "تم تحديث اسم المستند بنجاح"}
 
 @router.delete("/documents/{doc_id}")
 def delete_document_endpoint(doc_id: str, x_user_id: Optional[str] = Header(None)):
-    """Delete document from database and storage with owner validation."""
-    success = delete_document(doc_id, user_id=x_user_id)
+    """حذف مستند — المالك أو محرّر مخوّل من الفريق فقط."""
+    user = _get_current_user(x_user_id)
+    doc = get_document(doc_id, user_id=user["id"])
+    if not doc:
+        raise HTTPException(status_code=404, detail="المستند غير موجود أو لا تملك صلاحية الوصول إليه.")
+    if doc.get("user_id") == user["id"] or not doc.get("user_id"):
+        success = delete_document(doc_id, user_id=user["id"])
+    else:
+        access = get_team_access(user["id"], "document", doc_id)
+        if not access or access["role"] not in ("owner", "admin", "editor"):
+            raise HTTPException(status_code=403, detail="صلاحية المحرر مطلوبة لحذف هذا المستند")
+        # حذف على مستوى العنصر (بدون فلتر المالك) مع التحقق فوق أن المستدعي محرر فريق
+        success = delete_document(doc_id)
     if not success:
         raise HTTPException(status_code=404, detail="المستند غير موجود في مكتبتك الخاصة.")
     return {"success": True, "message": "تم حذف المستند بنجاح"}
@@ -1029,8 +1106,11 @@ def presentation_save_deck_endpoint(
     req: PresentationDeckRequest,
     x_user_id: Optional[str] = Header(None),
 ):
-    """حفظ deck معدّل قبل الرندر."""
+    """حفظ deck معدّل قبل الرندر — المالك أو محرّر فريق مخوّل فقط."""
     user = _get_current_user(x_user_id)
+    perm = _entity_edit_perm(user["id"], "presentation", pres_id)
+    if not perm:
+        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
     try:
         result = PresentationService.update_deck_json(pres_id, user["id"], req.deck)
     except PresentationError as e:
@@ -1048,6 +1128,9 @@ def presentation_render_endpoint(
     if request:
         _check_rate_limit(f"pres_render:{x_user_id or request.client.host}", limit=3, window_sec=60)
     user = _get_current_user(x_user_id)
+    perm = _entity_edit_perm(user["id"], "presentation", pres_id)
+    if not perm:
+        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
     try:
         row = PresentationService.load(pres_id, user["id"])
     except PresentationError:
@@ -1055,9 +1138,11 @@ def presentation_render_endpoint(
     deck = row.get("deck")
     if not deck:
         raise HTTPException(status_code=404, detail="بيانات العرض غير متوفرة (deck.json ناقص).")
+    # الرندر دائماً في مجلد المالك كي تبقى المعاينات/التحميل للمشاركين متسقة
+    owner_id = row.get("user_id") or user["id"]
     update_presentation_status(pres_id, "rendering", error="")
     try:
-        result_dir = PresentationService.render_deck(pres_id, user["id"], deck, row.get("title", "presentation"))
+        result_dir = PresentationService.render_deck(pres_id, owner_id, deck, row.get("title", "presentation"))
     except PresentationError as e:
         raise HTTPException(status_code=500, detail=str(e))
     n = int(row.get("slide_count") or len(deck.get("slides", [])) or 0)
@@ -1080,6 +1165,98 @@ def presentation_list_endpoint(
     items = list_presentations(user["id"], limit=limit, offset=offset)
     total = count_presentations(user["id"])
     return {"presentations": items, "total": total}
+
+
+# -------------------------------------------------------------
+# Team Workspace Endpoints (مساحة الفريق — T3.1)
+# -------------------------------------------------------------
+
+@router.post("/teams")
+def team_create_endpoint(req: TeamCreateRequest, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    res = create_team(user["id"], req.name)
+    if not res["success"]:
+        raise HTTPException(status_code=400, detail=res.get("error", "فشل إنشاء الفريق"))
+    return res
+
+
+@router.post("/teams/join")
+def team_join_endpoint(req: TeamJoinRequest, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    res = join_team_by_code(user["id"], req.invite_code)
+    if not res["success"]:
+        raise HTTPException(status_code=400, detail=res.get("error", "فشل الانضمام إلى الفريق"))
+    return res
+
+
+@router.get("/teams")
+def team_list_endpoint(x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    return {"teams": list_user_teams(user["id"])}
+
+
+@router.get("/teams/{team_id}")
+def team_details_endpoint(team_id: str, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    details = get_team_details(team_id, user["id"])
+    if not details:
+        raise HTTPException(status_code=404, detail="الفريق غير موجود أو لست عضواً فيه")
+    return details
+
+
+@router.post("/teams/{team_id}/members")
+def team_add_member_endpoint(team_id: str, req: TeamMemberAddRequest, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    res = add_team_member(team_id, user["id"], req.user_id, req.role or "viewer")
+    if not res["success"]:
+        raise HTTPException(status_code=403, detail=res.get("error", "فشل إضافة العضو"))
+    return res
+
+
+@router.patch("/teams/{team_id}/members/{member_user_id}")
+def team_change_member_role_endpoint(team_id: str, member_user_id: str, req: TeamRoleRequest, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    res = change_member_role(team_id, user["id"], member_user_id, req.role)
+    if not res["success"]:
+        raise HTTPException(status_code=403, detail=res.get("error", "فشل تعديل الدور"))
+    return res
+
+
+@router.delete("/teams/{team_id}/members/{member_user_id}")
+def team_remove_member_endpoint(team_id: str, member_user_id: str, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    res = remove_team_member(team_id, user["id"], member_user_id)
+    if not res["success"]:
+        raise HTTPException(status_code=403, detail=res.get("error", "فشل إزالة العضو"))
+    return res
+
+
+@router.post("/teams/{team_id}/shares")
+def team_share_endpoint(team_id: str, req: TeamShareRequest, x_user_id: Optional[str] = Header(None)):
+    """مشاركة مستند/عرض مع الفريق — المالك أو مشرف/مدير الفريق."""
+    user = _get_current_user(x_user_id)
+    res = share_entity_with_team(team_id, req.entity_type, req.entity_id, user["id"])
+    if not res["success"]:
+        raise HTTPException(status_code=400, detail=res.get("error", "فشل مشاركة العنصر"))
+    return res
+
+
+@router.delete("/teams/{team_id}/shares")
+def team_unshare_endpoint(team_id: str, req: TeamUnshareRequest, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    res = unshare_entity_from_team(team_id, req.entity_type, req.entity_id, user["id"])
+    if not res["success"]:
+        raise HTTPException(status_code=400, detail=res.get("error", "فشل إلغاء المشاركة"))
+    return res
+
+
+@router.delete("/teams/{team_id}")
+def team_delete_endpoint(team_id: str, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    res = delete_team(team_id, user["id"])
+    if not res["success"]:
+        raise HTTPException(status_code=403, detail=res.get("error", "فشل حذف الفريق"))
+    return res
 
 
 # ---------------------------------------------------------------
@@ -1251,7 +1428,24 @@ def presentation_download_endpoint(
 @router.delete("/presentations/{pres_id}")
 def presentation_delete_endpoint(pres_id: str, x_user_id: Optional[str] = Header(None)):
     user = _get_current_user(x_user_id)
-    ok = PresentationService.remove(pres_id, user["id"])
+    perm = _entity_edit_perm(user["id"], "presentation", pres_id)
+    if not perm:
+        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
+    if perm == "owner":
+        ok = PresentationService.remove(pres_id, user["id"])
+    else:
+        info = delete_presentation(pres_id)
+        ok = bool(info)
+        if info:
+            for p in [info.get("deck_path"), info.get("result_dir")]:
+                if p and os.path.exists(p):
+                    try:
+                        if os.path.isdir(p):
+                            shutil.rmtree(p, ignore_errors=True)
+                        else:
+                            os.remove(p)
+                    except Exception:
+                        pass
     if not ok:
         raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
     return {"success": True, "message": "تم حذف العرض التقديمي"}
