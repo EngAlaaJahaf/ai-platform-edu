@@ -13,6 +13,7 @@ import PromptManagerModal from './components/PromptManagerModal';
 import DocumentLibraryView from './components/DocumentLibraryView';
 import AdminDashboardView from './components/AdminDashboardView';
 import TranslateView from './components/TranslateView';
+import TermsView from './components/TermsView';
 import DocumentFAB from './components/DocumentFAB';
 import AuthGateView from './components/AuthGateView';
 import { checkHealth, getUserProfile, getLatestDocument, fetchPublicSettings, setGoogleClientId } from './services/api';
@@ -21,7 +22,8 @@ import { ShieldAlert, ShieldCheck } from 'lucide-react';
 const VALID_TABS = [
   'dashboard', 
   'documents', 
-  'translate', 
+  'translate',
+  'terms', 
   'chat', 
   'summary', 
   'quiz', 

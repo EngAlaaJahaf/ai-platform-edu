@@ -262,3 +262,79 @@ class QuizFormatterService:
             df.to_excel(writer, index=False, sheet_name="Exam Questions")
         
         return output.getvalue()
+
+    # =============================================================
+    #  ACADEMIC TERMS FORMATTERS (Excel / CSV / TXT)
+    # =============================================================
+
+    @staticmethod
+    def to_terms_txt(terms_data: Any, chapter_title: str = "Academic Terms") -> str:
+        """Format academic terms list as clean bilingual plain text."""
+        if isinstance(terms_data, list):
+            terms_data = {"terms": terms_data}
+        terms = terms_data.get("terms", []) if isinstance(terms_data, dict) else []
+        lines = [
+            f"## قائمة المصطلحات الأكاديمية: {chapter_title}",
+            "## Academic Terms Glossary",
+            ""
+        ]
+        for t in terms:
+            if not isinstance(t, dict):
+                continue
+            lines.append(f"Term / المصطلح: {t.get('term_en', '')} | {t.get('term_ar', '')}")
+            lines.append(f"Definition / التعريف: {t.get('definition', '')}")
+            if t.get("example"):
+                lines.append(f"Example / مثال: {t.get('example', '')}")
+            if t.get("category"):
+                lines.append(f"Category / التصنيف: {t.get('category', '')}")
+            lines.append("")
+        return "\n".join(lines).strip()
+
+    @staticmethod
+    def to_terms_csv(terms_data: Any) -> str:
+        """Format academic terms list as CSV (UTF-8 BOM safe)."""
+        if isinstance(terms_data, list):
+            terms_data = {"terms": terms_data}
+        terms = terms_data.get("terms", []) if isinstance(terms_data, dict) else []
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow([
+            "#", "Term (English)", "Translation (Arabic)",
+            "Definition (Arabic)", "Example", "Category"
+        ])
+        for i, t in enumerate(terms, start=1):
+            if not isinstance(t, dict):
+                continue
+            writer.writerow([
+                t.get("id", i),
+                t.get("term_en", ""),
+                t.get("term_ar", ""),
+                t.get("definition", ""),
+                t.get("example", ""),
+                t.get("category", "")
+            ])
+        return output.getvalue()
+
+    @staticmethod
+    def to_terms_excel_bytes(terms_data: Any) -> bytes:
+        """Generate formatted Excel .xlsx workbook for academic terms."""
+        if isinstance(terms_data, list):
+            terms_data = {"terms": terms_data}
+        terms = terms_data.get("terms", []) if isinstance(terms_data, dict) else []
+        rows = []
+        for i, t in enumerate(terms, start=1):
+            if not isinstance(t, dict):
+                continue
+            rows.append({
+                "#": t.get("id", i),
+                "المصطلح (إنجليزي)": t.get("term_en", ""),
+                "الترجمة الأكاديمية (عربي)": t.get("term_ar", ""),
+                "التعريف": t.get("definition", ""),
+                "مثال / سياق": t.get("example", ""),
+                "التصنيف": t.get("category", "")
+            })
+        df = pd.DataFrame(rows)
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Academic Terms")
+        return output.getvalue()

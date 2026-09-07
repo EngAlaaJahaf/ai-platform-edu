@@ -1135,3 +1135,107 @@ class AIService:
                 ]
             }
 
+    @classmethod
+    def extract_terms(
+        cls,
+        full_text: str,
+        level: str = "medium",
+        count: int = 20,
+        language: str = "ar",
+        provider: str = "gemini",
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        model: Optional[str] = None,
+        custom_system_prompt: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Extract academic key terms with academic translations & definitions tuned to student level."""
+        level_labels = {
+            "weak": "طالب ضعيف (مبتدئ)",
+            "medium": "طالب متوسط",
+            "excellent": "طالب ممتاز (متقدم)"
+        }
+        level_label = level_labels.get(level, "طالب متوسط")
+
+        language_rule = (
+            "الترجمة الأكاديمية للمصطلحات تكون بالعربية الفصحى المعتمدة"
+            if language != "en"
+            else "الترجمة الأكاديمية للمصطلحات تكون باللغة الإنجليزية"
+        )
+
+        default_system_prompt = (
+            "أنت أستاذ جامعي خبير في التعليم الأكاديمي والصناعات اللغوية. مهمتك استخراج المصطلحات العلمية والمفاهيم الأساسية من المادة الأكاديمية المرفقة وتحويلها إلى قاموس مصطلحات أكاديمي مزدوج اللغة (إنجليزي - عربي) مضبوط وفق مستوى الطالب المستهدف.\n"
+            f"[مستوى الطالب المستهدف]: {level_label}\n\n"
+            "تعليمات صارمة:\n"
+            f"1. {language_rule} مع ضبط عمق التعريفات حسب المستوى المحدد: (ضعيف = مصطلحات أساسية وتعريفات مبسطة بوضوح، متوسط = مصطلحات متوسطة مع تعريفات تحليلية، ممتاز = مصطلحات متقدمة وتخصصية مع تعريفات معمقة دقيقة).\n"
+            "2. استخرج فقط المصطلحات والمفاهيم الجوهرية الموجودة فعلياً في النص وليست الكلمات الآلية العامة.\n"
+            f"3. عدد المصطلحات المطلوب استخراجها: {int(count)} مصطلحاً مرتبة حسب الأهمية من الأعلى إلى الأقل.\n"
+            "4. لكل مصطلح أرفق: (term_en) المصطلح الأصلي بالإنجليزية، (term_ar) الترجمة الأكاديمية المعتمدة، (definition) التعريف الأكاديمي الدقيق والمختصر، (example) مثال تطبيقي أو سياق من النص أو من إنشائك الأكاديمي، (category) التصنيف العلمي للمصطلح مثل: حاسبات، رياضيات، فيزياء، كيمياء، طب، إدارة، هندسة، إلخ.\n"
+            "5. اجعل التعريفات دقيقة علمياً وصحيحة ومناسبة تماماً لمستوى الطالب المحدد أعلاه.\n"
+            "أرجع النتيجة بصيغة JSON حصراً وفق الحقول التالية:\n"
+            "{\n"
+            '  "chapter_title": "العنوان المستخرج للشابتر أو الوحدة الدراسية",\n'
+            '  "document_title": "اسم المادة الدراسية المستخرجة من النص",\n'
+            '  "level": "' + level + '",\n'
+            '  "terms": [\n'
+            '    {\n'
+            '      "term_en": "المصطلح بالإنجليزية",\n'
+            '      "term_ar": "الترجمة الأكاديمية بالعربية",\n'
+            '      "definition": "التعريف الأكاديمي الدقيق",\n'
+            '      "example": "مثال تطبيقي أو سياق",\n'
+            '      "category": "التصنيف العلمي"\n'
+            '    }\n'
+            '  ]\n'
+            "}"
+        )
+
+        system_prompt = custom_system_prompt or default_system_prompt
+
+        # Limit sample size to avoid token limits on heavy models
+        content_sample = full_text[:60000]
+        user_prompt = f"المادة الأكاديمية المطلوب استخراج المصطلحات منها:\n{content_sample}"
+
+        try:
+            raw = cls.execute_chat_completion(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                provider=provider,
+                api_key=api_key,
+                base_url=base_url,
+                model=model,
+                json_mode=True
+            )
+            raw = re.sub(r'^```json\s*', '', raw.strip())
+            raw = re.sub(r'\s*```$', '', raw)
+            data = json.loads(raw)
+            if not isinstance(data, dict):
+                data = {}
+            terms = data.get("terms")
+            if not isinstance(terms, list):
+                terms = []
+            normalized = []
+            for i, t in enumerate(terms):
+                if not isinstance(t, dict):
+                    continue
+                if not t.get("term_en"):
+                    t["term_en"] = t.get("term_ar") or f"المصطلح {i + 1}"
+                if not t.get("category"):
+                    t["category"] = "عام"
+                t["id"] = i + 1
+                normalized.append(t)
+            data["terms"] = normalized
+            if not data.get("chapter_title"):
+                data["chapter_title"] = "قائمة المصطلحات الأكاديمية"
+            data["level"] = level
+            data["count"] = len(normalized)
+            data["language"] = language
+            return cls.sanitize_output(data)
+        except Exception as e:
+            return {
+                "chapter_title": "قائمة المصطلحات الأكاديمية",
+                "document_title": "",
+                "level": level,
+                "count": 0,
+                "terms": [],
+                "error": f"حدث خطأ في استخراج المصطلحات: {e}"
+            }
+

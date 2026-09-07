@@ -24,6 +24,7 @@ from backend.database import (
     delete_document,
     save_document_summary,
     save_document_quiz,
+    save_document_terms,
     save_document_progress,
     get_or_create_user, 
     authenticate_admin,
@@ -193,6 +194,18 @@ class QuizExportRequest(BaseModel):
 
 class QuizImportTextRequest(BaseModel):
     raw_text: str
+
+class TermsRequest(BaseModel):
+    doc_id: Optional[str] = None
+    level: Optional[str] = "medium"
+    count: Optional[int] = 20
+    language: Optional[str] = "ar"
+    custom_system_prompt: Optional[str] = None
+
+class TermsExportRequest(BaseModel):
+    terms_data: Any
+    format: str # 'txt', 'csv', 'xlsx', 'json'
+    chapter_title: Optional[str] = "Academic Terms"
 
 class DocxExportRequest(BaseModel):
     title: str
@@ -372,6 +385,83 @@ def import_quiz_text_endpoint(req: QuizImportTextRequest):
     if not parsed["questions"]:
         raise HTTPException(status_code=400, detail="لم يتم العثور على أسئلة مطابقة للصيغة في النص المدخل.")
     return parsed
+
+# --- Academic Terms Endpoints ---
+@router.post("/terms/extract")
+def extract_terms_endpoint(
+    req: TermsRequest,
+    x_ai_provider: Optional[str] = Header("gemini"),
+    x_gemini_api_key: Optional[str] = Header(None),
+    x_ai_base_url: Optional[str] = Header(None),
+    x_gemini_model: Optional[str] = Header(None),
+    x_user_id: Optional[str] = Header(None)
+):
+    """Extract academic key terms from the active chapter/document with level-aware translations."""
+    doc = None
+    if req.doc_id and req.doc_id not in ("undefined", "null", ""):
+        doc = get_document(req.doc_id, user_id=x_user_id)
+    if not doc:
+        doc = get_latest_document(user_id=x_user_id)
+
+    full_text = doc.get("full_text", "") if doc else ""
+    if not full_text:
+        raise HTTPException(status_code=400, detail="يرجى رفع أو اختيار مادة تعليمية لاستخراج المصطلحات أولاً.")
+
+    terms_data = AIService.extract_terms(
+        full_text=full_text,
+        level=req.level or "medium",
+        count=req.count or 20,
+        language=req.language or "ar",
+        provider=x_ai_provider or "gemini",
+        api_key=x_gemini_api_key,
+        base_url=x_ai_base_url,
+        model=x_gemini_model,
+        custom_system_prompt=req.custom_system_prompt
+    )
+    if doc and doc.get("id"):
+        save_document_terms(doc["id"], terms_data)
+    try:
+        import json as _json_terms
+        delta = estimate_tokens(full_text[:3000]) + estimate_tokens(_json_terms.dumps(terms_data, ensure_ascii=False))
+        increment_user_tokens(x_user_id, delta)
+    except Exception:
+        pass
+    return terms_data
+
+@router.post("/terms/export")
+def export_terms_endpoint(req: TermsExportRequest):
+    fmt = req.format.lower()
+    chapter_title = req.chapter_title or "Academic Terms"
+
+    if fmt in ("custom_text", "txt"):
+        content = QuizFormatterService.to_terms_txt(req.terms_data, chapter_title)
+        return {
+            "format": "txt",
+            "content": content,
+            "filename": f"Terms_{chapter_title}.txt"
+        }
+    elif fmt == "csv":
+        csv_text = QuizFormatterService.to_terms_csv(req.terms_data)
+        return {
+            "format": "csv",
+            "content": csv_text,
+            "filename": f"Terms_{chapter_title}.csv"
+        }
+    elif fmt == "xlsx":
+        excel_bytes = QuizFormatterService.to_terms_excel_bytes(req.terms_data)
+        return Response(
+            content=excel_bytes,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="Terms_{chapter_title}.xlsx"'}
+        )
+    elif fmt == "json":
+        return {
+            "format": "json",
+            "content": req.terms_data,
+            "filename": f"Terms_{chapter_title}.json"
+        }
+    else:
+        raise HTTPException(status_code=400, detail="الصيغة غير مدعومة. الصيغ المدعومة: txt, csv, xlsx, json")
 
 # --- Document & AI Endpoints (Multi-Format Support with Multi-Tenant User Isolation) ---
 @router.post("/upload")

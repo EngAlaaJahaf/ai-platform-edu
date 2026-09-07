@@ -79,6 +79,7 @@ def init_db():
         chunks_json TEXT NOT NULL,
         summary_json TEXT,
         quiz_json TEXT,
+        terms_json TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
     );
@@ -96,6 +97,10 @@ def init_db():
         pass
     try:
         cursor.execute("ALTER TABLE documents ADD COLUMN quiz_json TEXT;")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute("ALTER TABLE documents ADD COLUMN terms_json TEXT;")
     except sqlite3.OperationalError:
         pass
     
@@ -614,6 +619,10 @@ def get_document(doc_id: str, user_id: Optional[str] = None) -> Optional[Dict[st
         d["quiz_data"] = json.loads(d["quiz_json"]) if d.get("quiz_json") else None
     except Exception:
         d["quiz_data"] = None
+    try:
+        d["terms_data"] = json.loads(d["terms_json"]) if d.get("terms_json") else None
+    except Exception:
+        d["terms_data"] = None
     return d
 
 def list_all_documents(user_id: Optional[str] = None, limit: int = 50, offset: int = 0, search: Optional[str] = None) -> List[Dict[str, Any]]:
@@ -639,7 +648,7 @@ def list_all_documents(user_id: Optional[str] = None, limit: int = 50, offset: i
             SELECT id, user_id, filename, file_path, pages_count, words_count, 
                    substr(full_text, 1, 300) as preview_text,
                    created_at, length(chunks_json) as chunks_size,
-                   summary_json, quiz_json
+                   summary_json, quiz_json, terms_json
             FROM documents 
             {where_sql}
             ORDER BY created_at DESC
@@ -660,6 +669,10 @@ def list_all_documents(user_id: Optional[str] = None, limit: int = 50, offset: i
             d["quiz_data"] = json.loads(d["quiz_json"]) if d.get("quiz_json") else None
         except Exception:
             d["quiz_data"] = None
+        try:
+            d["terms_data"] = json.loads(d["terms_json"]) if d.get("terms_json") else None
+        except Exception:
+            d["terms_data"] = None
         docs.append(d)
     return docs
 
@@ -703,6 +716,10 @@ def get_latest_document(user_id: Optional[str] = None) -> Optional[Dict[str, Any
         d["quiz_data"] = json.loads(d["quiz_json"]) if d.get("quiz_json") else None
     except Exception:
         d["quiz_data"] = None
+    try:
+        d["terms_data"] = json.loads(d["terms_json"]) if d.get("terms_json") else None
+    except Exception:
+        d["terms_data"] = None
     return d
 
 def update_document_title(doc_id: str, new_title: str, user_id: Optional[str] = None) -> bool:
@@ -734,6 +751,16 @@ def save_document_quiz(doc_id: str, quiz_data: dict) -> bool:
     cursor = conn.cursor()
     quiz_json = json.dumps(quiz_data, ensure_ascii=False)
     cursor.execute("UPDATE documents SET quiz_json = ? WHERE id = ?", (quiz_json, doc_id))
+    affected = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return affected > 0
+
+def save_document_terms(doc_id: str, terms_data: dict) -> bool:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    terms_json = json.dumps(terms_data, ensure_ascii=False)
+    cursor.execute("UPDATE documents SET terms_json = ? WHERE id = ?", (terms_json, doc_id))
     affected = cursor.rowcount
     conn.commit()
     conn.close()
