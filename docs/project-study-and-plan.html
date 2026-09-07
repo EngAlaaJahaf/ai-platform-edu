@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دراسة شاملة ومنهجية تطوير — منصة EduAI</title>
+<style>
+  :root{
+    --bg:#0B0F19; --panel:#111827; --card:#141E33; --inner:#18223C;
+    --line:#233049; --text:#E5E7EB; --muted:#94A3B8; --faint:#64748B;
+    --emerald:#10B981; --teal:#14B8A6; --gold:#F5B301; --red:#F87171;
+    --amber:#FBBF24; --sky:#38BDF8; --violet:#A78BFA; --green:#4ADE80;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:"Segoe UI",Tahoma,"IBM Plex Sans Arabic","Noto Naskh Arabic",sans-serif;
+    line-height:1.85; font-size:15.5px;
+    background-image:
+      radial-gradient(1000px 500px at 90% -10%, rgba(16,185,129,.08), transparent 60%),
+      radial-gradient(800px 400px at 0% 10%, rgba(20,184,166,.06), transparent 60%);
+  }
+  .wrap{max-width:1080px; margin:0 auto; padding:28px 22px 80px;}
+  header.hero{
+    border:1px solid var(--line); border-radius:18px; padding:38px 32px;
+    background:linear-gradient(135deg,#0D1526 0%,#10263A 55%,#0B1626 100%);
+    position:relative; overflow:hidden; margin-bottom:26px;
+  }
+  header.hero::after{
+    content:"AI"; position:absolute; left:-20px; bottom:-60px; font-size:190px;
+    font-weight:900; color:rgba(16,185,129,.05); letter-spacing:-6px; font-family:Arial;
+  }
+  .badges{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;}
+  .badge{
+    font-size:11.5px; padding:3px 12px; border-radius:999px; border:1px solid var(--line);
+    background:var(--inner); color:var(--muted); letter-spacing:.3px;
+  }
+  .badge.g{color:var(--emerald); border-color:rgba(16,185,129,.35);}
+  h1{font-size:30px; font-weight:800; margin-bottom:10px; position:relative; z-index:1;}
+  h1 span{color:var(--emerald);}
+  .sub{color:var(--muted); font-size:15px; position:relative; z-index:1; max-width:760px;}
+  .meta-row{display:flex; gap:18px; flex-wrap:wrap; margin-top:18px; position:relative; z-index:1;}
+  .meta{font-size:12.5px; color:var(--faint);}
+  .meta b{color:var(--text); font-weight:600;}
+  h2{
+    font-size:21px; margin:44px 0 14px; padding-bottom:10px; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap:10px;
+  }
+  h2 .num{
+    background:linear-gradient(135deg,var(--emerald),var(--teal)); color:#04121a;
+    width:30px; height:30px; border-radius:9px; display:inline-flex; align-items:center;
+    justify-content:center; font-size:14px; font-weight:800; flex:none;
+  }
+  h3{font-size:17px; margin:26px 0 10px; color:#D1FAE5;}
+  h4{font-size:15px; margin:18px 0 8px; color:var(--sky);}
+  p{margin-bottom:10px; color:var(--text);}
+  ul,ol{margin:8px 0 14px 0; padding-right:24px;}
+  li{margin-bottom:5px;}
+  li::marker{color:var(--emerald);}
+  .cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px; margin:14px 0;}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:13px; padding:15px 16px;
+  }
+  .card .t{font-weight:700; margin-bottom:5px; font-size:14px; color:#D1FAE5;}
+  .card .d{font-size:12.8px; color:var(--muted);}
+  table{width:100%; border-collapse:collapse; margin:14px 0 20px; font-size:13.2px; background:var(--card); border-radius:12px; overflow:hidden;}
+  th,td{padding:9px 12px; text-align:right; border-bottom:1px solid var(--line); vertical-align:top;}
+  th{background:var(--inner); color:#D1FAE5; font-weight:700; white-space:nowrap;}
+  tr:hover td{background:#17233c;}
+  code,.mono{font-family:Consolas,"Cascadia Code",Monaco,monospace; direction:ltr; unicode-bidi:embed; background:var(--inner); border:1px solid var(--line); border-radius:5px; padding:1px 6px; font-size:12.5px; color:#7DD3FC;}
+  pre{direction:ltr; text-align:left; background:#0D1526; border:1px solid var(--line); border-radius:12px; padding:14px 16px; overflow-x:auto; margin:12px 0; font-size:12.5px; line-height:1.6;}
+  pre code{background:none; border:none; padding:0; color:#A5F3FC;}
+  .pill{display:inline-block; border-radius:999px; padding:1px 10px; font-size:11.5px; font-weight:700; white-space:nowrap;}
+  .pill.red{background:rgba(248,113,113,.12); color:var(--red); border:1px solid rgba(248,113,113,.3);}
+  .pill.amber{background:rgba(251,191,36,.12); color:var(--amber); border:1px solid rgba(251,191,36,.3);}
+  .pill.green{background:rgba(74,222,128,.12); color:var(--green); border:1px solid rgba(74,222,128,.3);}
+  .pill.sky{background:rgba(56,189,248,.12); color:var(--sky); border:1px solid rgba(56,189,248,.3);}
+  .pill.gray{background:rgba(148,163,184,.12); color:var(--muted); border:1px solid var(--line);}
+  .box{border-radius:13px; padding:14px 16px; margin:12px 0; border:1px solid var(--line);}
+  .box.critical{background:rgba(248,113,113,.07); border-color:rgba(248,113,113,.35);}
+  .box.warn{background:rgba(251,191,36,.06); border-color:rgba(251,191,36,.3);}
+  .box.ok{background:rgba(74,222,128,.05); border-color:rgba(74,222,128,.3);}
+  .box.info{background:rgba(56,189,248,.05); border-color:rgba(56,189,248,.3);}
+  .toc{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 22px; columns:2; column-gap:34px;}
+  .toc a{color:var(--muted); text-decoration:none; display:block; padding:3px 0; font-size:13.5px; break-inside:avoid;}
+  .toc a:hover{color:var(--emerald);}
+  .toc a b{color:var(--sky); margin-left:4px;}
+  .kv{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin:14px 0;}
+  .kv div{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px;}
+  .kv .k{font-size:11.5px; color:var(--faint); margin-bottom:3px;}
+  .kv .v{font-size:14px; font-weight:700;}
+  .kv .v.g{color:var(--emerald);} .kv .v.r{color:var(--red);} .kv .v.a{color:var(--amber);} .kv .v.s{color:var(--sky);}
+  .progress{background:var(--inner); border-radius:8px; height:10px; overflow:hidden; border:1px solid var(--line);}
+  .progress > div{height:100%; background:linear-gradient(90deg,var(--emerald),var(--teal));}
+  .status-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; margin:14px 0;}
+  .stat{background:var(--card); border:1px solid var(--line); border-radius:13px; padding:13px 15px;}
+  .stat .head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .stat .name{font-weight:700; font-size:13.5px;}
+  .small{font-size:12px; color:var(--faint);}
+  .tick{color:var(--green);} .cross{color:var(--red);} .half{color:var(--amber);}
+  .phase{border:1px solid var(--line); border-radius:14px; margin:16px 0; overflow:hidden; background:var(--card);}
+  .phase .ph-head{padding:13px 18px; background:var(--inner); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;}
+  .phase .ph-head .ph-title{font-weight:800; font-size:15.5px; color:#D1FAE5;}
+  .phase .ph-body{padding:16px 18px;}
+  .task{display:flex; gap:12px; padding:10px 0; border-bottom:1px dashed var(--line);}
+  .task:last-child{border-bottom:none;}
+  .task .cb{flex:none; width:20px; height:20px; border-radius:6px; border:2px solid var(--line); margin-top:3px;}
+  .task .tt{font-weight:700; font-size:13.6px; margin-bottom:2px;}
+  .task .td{font-size:12.6px; color:var(--muted);}
+  .eff{white-space:nowrap; font-size:11px; color:var(--faint); border:1px solid var(--line); border-radius:999px; padding:1px 9px; align-self:flex-start;}
+  footer{margin-top:56px; border-top:1px solid var(--line); padding-top:18px; color:var(--faint); font-size:12px; text-align:center;}
+  .scroll-top{position:fixed; bottom:20px; left:20px;}
+  @media(max-width:760px){ .toc{columns:1;} h1{font-size:24px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="badges">
+    <span class="badge g">دراسة تفصيلية شاملة</span>
+    <span class="badge">FastAPI · Python 3.11</span>
+    <span class="badge">React 19 · Vite · Tailwind v4</span>
+    <span class="badge">SQLite · Gemini / OpenAI 🔌</span>
+    <span class="badge">RAG · RTL · AI</span>
+  </div>
+  <h1>منصة <span>ذكاء | EduAI</span> — دراسة شاملة + خطة عمل وتطوير</h1>
+  <p class="sub">
+    وثيقة دراسة تحليلية متكاملة لوضع المشروع كما وصل إليه فريق التطوير (3 مطورين)، مع تشرّيح قاعدة
+    الكود، وتحليل تاريخ المساهمات وممارسات العمل الجماعي، وقياس الفجوات، وبناء خطة عمل وتطوير
+    مرتّبة بالأولوية وقابلة للتنفيذ على شكل مسارات وأسابيع.
+  </p>
+  <div class="meta-row">
+    <div class="meta">📅 تاريخ الإعداد: <b>2026-09-08</b></div>
+    <div class="meta">🧭 الفرع المُعدّ لها: <b>docs/project-study-and-plan</b></div>
+    <div class="meta">🗂️ عدد الالتزامات: <b>69 commit</b></div>
+    <div class="meta">🚀 نضج الميزات: <b>مرتفع · الأمان: حرج</b></div>
+  </div>
+</header>
+
+<!-- ================= TOC ================= -->
+<h2><span class="num">☰</span> جدول المحتويات</h2>
+<div class="toc">
+  <a href="#s1"><b>1.</b> الملخص التنفيذي</a>
+  <a href="#s2"><b>2.</b> هوية المشروع والرؤية</a>
+  <a href="#s3"><b>3.</b> المعمارية التقنية ومسارات البيانات</a>
+  <a href="#s4"><b>4.</b> تشريح الكود — الباك إند</a>
+  <a href="#s5"><b>5.</b> تشريح الكود — الفرونت إند</a>
+  <a href="#s6"><b>6.</b> محرك العروض (Presentation Engine / Deck Studio)</a>
+  <a href="#s7"><b>7.</b> دراسة تاريخ الفريق وطريقة العمل</a>
+  <a href="#s8"><b>8.</b> الوضع الراهن: المنجز مقابل المتبقي</a>
+  <a href="#s9"><b>9.</b> التقرير الأمني المفصّل</a>
+  <a href="#s10"><b>10.</b> جودة الكود والاختبارات</a>
+  <a href="#s11"><b>11.</b> خارطة طريق العمل والتطوير</a>
+  <a href="#s12"><b>12.</b> الأولويات الفورية (افعلها أولاً)</a>
+  <a href="#s13"><b>13.</b> مقاييس النجاح وDefinition of Done</a>
+  <a href="#s14"><b>14.</b> التوصيات النهائية وسير العمل</a>
+  <a href="#s15"><b>15.</b> الملاحق التقنية</a>
+</div>
+
+<!-- ================= 1 ================= -->
+<h2 id="s1"><span class="num">1</span> الملخص التنفيذي</h2>
+<p>
+  <b>منصة EduAI</b> هي منصة تعليمية ذكية عربية (مشروع تخرج) متكاملة ومُنتجة، جمعت بين المحادثة
+  التوثيقية (RAG)، والتلخيص والخرائط الذهنية، واستوديو الاختبارات، والتدقيق الأكاديمي، والترجمة
+  الأكاديمية، ومولّد العروض التقديمية بسير عمل آلي (HTML ← Chrome headless ← PPTX/PDF/PNG).
+</p>
+<div class="kv">
+  <div><div class="k">خطوط الكود (Backend)</div><div class="v">≈ 6,500 سطر</div></div>
+  <div><div class="k">خطوط الكود (Frontend)</div><div class="v">≈ 16,500 سطر</div></div>
+  <div><div class="k">Endpoints في الـ API</div><div class="v g">≈ 60 endpoint</div></div>
+  <div><div class="k">الاختبارات الآلية</div><div class="v r">0 اختبار</div></div>
+  <div><div class="k">تغطية الفروع بمستودع</div><div class="v">‏3 مسارات + 2 أثرية</div></div>
+  <div><div class="k">أعضاء الفريق النشطون</div><div class="v">3 مطوّرين</div></div>
+</div>
+
+<div class="box critical">
+  <b>🔴 الخلاصة بأربع نقاط:</b>
+  <ol style="margin-top:6px">
+    <li><b>المنتج شبه مكتمل وظيفياً</b> — جميع الأدوات تعمل محلياً، وDeck Studio (نظام الهويات البصرية) متقدم جداً.</li>
+    <li><b>الأمان في حالة حرجة</b> — تسجيل دخول بلا كلمة مرور (<code>student-login</code>)، وترقية ذاتية للمستخدم لدور <code>admin</code> عند التسجيل، وهيوية <code>X-User-Id</code> قابلة للتزوير، وفتحة في تحقق Google JWT.</li>
+    <li><b>جودة الاختبارات صفر</b> — لا pytest ولا vitest ولا ruff، وCI «يبتلع» الأخطاء عبر <code>|| true</code> فلا يفشل أبداً.</li>
+    <li><b>مسارات العمل الثلاثة فروع فارغة</b> — «الفرق» لم يبدأ أي مهمة فعلية بعد؛ الفروع موجودة لكنها نسخ من <code>main</code> بلا أي كود.</li>
+  </ol>
+</div>
+
+<p>
+  هذه الدراسة أُعدّت عبر ثلاث زوايا بحث متوازية (باك إند، فرونت إند، تاريخ <code>git</code> ومنهجية الفريق)
+  ثم دُمجت في هذا المستند. الخط الموصى به: <b>إغلاق الثغرات الحرجة أسبوعياً قبل أي ميزة جديدة</b> ثم رفع
+  الجودة بالاختبارات ثم تمكين التعاون الجماعي والنشر.
+</p>
+
+<!-- ================= 2 ================= -->
+<h2 id="s2"><span class="num">2</span> هوية المشروع والرؤية</h2>
+<p>
+  بحسب <code>VISION.md</code> و<code>README.md</code>: منصة مساعد أكاديمي ذكي موجّهة للطلاب والباحثين الجامعيين
+  تنشر عبر الواجهة لغة عربيّة كاملة (RTL) بهوية «Obsidian Studio» البصرية الداكنة بلمسات زمردية/تركوازية.
+</p>
+<h3>الأدوات المبنية حالياً</h3>
+<table>
+  <thead><tr><th>الأداة</th><th>الوصف</th><th>الحالة</th></tr></thead>
+  <tbody>
+    <tr><td>💬 محادثة RAG</td><td>رفع PDF/Word/PPT → فهرسة → تجزئة ذكية → أجوبة موثّقة برقم الصفحة + كشف «خارج النطاق» + Streaming + زر إيقاف</td><td><span class="pill green">تعمل</span></td></tr>
+    <tr><td>📑 ملخص + خريطة ذهنية</td><td>3 مستويات (سريع/متكامل/عميق)، خريطة SVG تفاعلية بأسلوب NotebookLM، تصدير متعدد</td><td><span class="pill green">تعمل</span></td></tr>
+    <tr><td>🎯 استوديو الاختبارات</td><td>MCQ ثنائي اللغة، تصحيح فوري، Flashcards، بطاقات، تنبؤ درجة، عدّاد زمن، حجز تقدّم</td><td><span class="pill green">تعمل</span></td></tr>
+    <tr><td>✍️ التدقيق الأكاديمي</td><td>Originality/grammar score + قائمة أخطاء + إعادة صياغة</td><td><span class="pill green">تعمل</span></td></tr>
+    <tr><td>🌐 الترجمة الأكاديمية</td><td>3 أنماط (هدف فقط/صفحة بصفحة/سطر بسطر) + تصدير Word</td><td><span class="pill green">تعمل</span></td></tr>
+    <tr><td>📚 استخراج المصطلحات</td><td>معجم أكاديمي تلقائي + تصدير (أحدث ميزة، من المساهم المُنبثق)</td><td><span class="pill green">تعمل</span></td></tr>
+    <tr><td>🎨 Deck Studio</td><td>مولّد عروض: معرض قوالب، توليد هوية بالذكاء، استيراد من PPTX، إعادة تلوين كاملة بالهوية عبر CSS vars</td><td><span class="pill green">تعمل</span></td></tr>
+    <tr><td>📊 لوحات طالب / أدمن</td><td>مستخدمون/إعدادات/سجلات/برومبتات، إحصاءات، بنك برومبتات، مزودات متعددة</td><td><span class="pill amber">تعمل جزئياً</span></td></tr>
+    <tr><td>🔐 المصادقة</td><td>بريد+كلمة مرور، Google OAuth، دخول طالب سريع، أدوار</td><td><span class="pill red">خطرة</span></td></tr>
+  </tbody>
+</table>
+
+<div class="box info">
+  <b>ملاحظة:</b> النسخة المعلنة في الـ API هي <code>2.1.0</code> في <code>main.py</code> بينما <code>get_admin_metrics</code>
+  يعيد <code>2.4.0 (Enterprise Academic)</code> — تناقض بسيط في رقمنة الإصدار يجدر توحيده.
+</div>
+
+<!-- ================= 3 ================= -->
+<h2 id="s3"><span class="num">3</span> المعمارية التقنية ومسارات البيانات</h2>
+<div class="kv">
+  <div><div class="k">الواجهة الأمامية</div><div class="v">React 19 + Vite 6 + Tailwind v4 + Lucide + KaTeX</div></div>
+  <div><div class="k">الواجهة الخلفية</div><div class="v">Python 3.11 + FastAPI + Uvicorn + SQLite</div></div>
+  <div><div class="k">مزود الإبداع</div><div class="v">Google Gemini + OpenRouter/Groq/DeepSeek/Ollama (متوافقة OpenAI)</div></div>
+  <div><div class="k">معالجة المستندات</div><div class="v">PyMuPDF · python-docx · python-pptx · openpyxl · pdfplumber</div></div>
+  <div><div class="k">المحرك البصري</div><div class="v">HTML → Chrome headless → PNG 2560×1440 → PPTX/PDF</div></div>
+</div>
+
+<h3>3.1 الرسم المعماري العام</h3>
+<pre><code>┌─────────────────────────────┐        ┌─────────────────────────────────────┐
+│   Frontend (React 19, :5173)│  /api  │   Backend (FastAPI, :8001)          │
+│  App.jsx (No Router, tabs)  │ ─────► │  routes/api.py (≈60 endpoint)      │
+│  api.js  (headers:          │        │   ├─ services/ai_service.py (Gemini)│
+│   X-User-Id, X-Gemini-Key) │        │   ├─ services/rag_service.py (TFIDF) │
+│  exportService.js (PDF/HTML)│        │   ├─ services/document_service.py   │
+└─────────────────────────────┘        │   ├─ services/presentation_service │
+                                        │   ├─ presentation_engine/engine.py │
+                                        │   │      └─ Chrome headless ⚙      │
+                                        │   ├─ database.py (SQLite + pbkdf2) │
+                                        │   └─ uploads/ · presentations/     │
+                                        └─────────────────────────────────────┘</code></pre>
+
+<h3>3.2 مسار البيانات الرئيسي (RAG)</h3>
+<ol>
+  <li><code>POST /api/upload</code> ← <code>DocumentService.extract_text_and_pages</code> (حسب الامتداد) ← <code>chunk_document(250 word, overlap 50)</code> ← حفظ في <code>documents.chunks_json</code>.</li>
+  <li><code>POST /api/chat</code> / <code>/api/chat/stream</code> ← <code>RAGService.search_relevant_chunks</code> (≤100 قطعة: يعيد الكل؛ &gt;100: TF-IDF أو كلمات مفتاحية) ← <code>AIService.answer_with_rag(_stream)</code>.</li>
+  <li>الإجابة تُعالَج بـ <code>sanitize_text</code> (إصلاح hallucinations معروفة، تجريد GS الفرق في الترميزات، ترقيم الاقتباسات) وتُعرض مع <code>[المصدر: صفحة N]</code>.</li>
+</ol>
+
+<h3>3.3 مسار العروض (Deck Studio)</h3>
+<ol>
+  <li><code>POST /api/presentations/generate</code> ← <code>PresentationService.create → generate_deck</code> (AI ينتج JSON وفق 8 قوالب شرائح).</li>
+  <li>المستخدم يعدّل الـ Deck JSON عبر <code>PUT /api/presentations/{id}/deck</code>.</li>
+  <li><code>POST /api/presentations/{id}/render</code> ← <code>render_deck</code> ← subprocess <code>engine.py</code>: build HTML → Chrome screenshots → <code>python-pptx</code> + <code>PIL</code> PDF.</li>
+  <li>الهوية البصرية (قالب أو مولّد أو مستورَد من PPTX) تُحوَّل إلى <code>_identity_css_override</code> لتصبغ كل الشرائح بالـ CSS variables.</li>
+</ol>
+
+<h3>3.4 نقاط القوة المعمارية</h3>
+<ul>
+  <li>فصل واضح: <code>routes / services / database / presentation_engine</code>.</li>
+  <li>دعم متعدد المزودات عبر <code>execute_chat_completion</code> (Gemini ↔ OpenAI-compatible) مع تجربة اتصال (<code>/api/validate-key</code>, <code>/api/fetch-models</code>).</li>
+  <li>محرك عرض كامل منظّم بالمعاملات: القالب + <code>colors/fonts/accent</code> → CSS override → تلوين شامل.</li>
+  <li>قاعدة بيانات صريحة مع تجزئة كلمات مرور <code>pbkdf2_sha256$150000$…</code> وترحيل تلقائي للقديم.</li>
+</ul>
+
+<!-- ================= 4 ================= -->
+<h2 id="s4"><span class="num">4</span> تشريح الكود — الباك إند</h2>
+<p>مجموع الملفات: <b>~6,500 سطر</b>. الملفات الكبرى الثلاثة (<code>api.py</code> 1,389، <code>ai_service.py</code> 1,326، <code>database.py</code> 1,261) تشكّل ~60% من الكود — وتحتاج تقسيماً لاحقاً.</p>
+
+<h3>4.1 خريطة الملفات</h3>
+<table>
+  <thead><tr><th>الملف</th><th>الأسطر</th><th>الدور</th></tr></thead>
+  <tbody>
+    <tr><td><code>routes/api.py</code></td><td>1,389</td><td>كل الـ Endpoints (~60)؛ يحوي أيضاً منطق RATE_LIMIT وأدوات المساعدة <code>_get_current_user</code> / <code>_require_admin</code> — ملف ضخم يستحق التقسيم.</td></tr>
+    <tr><td><code>services/ai_service.py</code></td><td>1,326</td><td>ولاية AI: المزودون، <code>execute_chat_completion(_stream)</code>، RAG، التلخيص، الاختبارات، التدقيق، الترجمة، المصطلحات، توليد القوالب والبرومبتات، <code>sanitize_text</code> (تصحيح hallucinations).</td></tr>
+    <tr><td><code>database.py</code></td><td>1,261</td><td>مخطط SQLite كامل (9 جداول)، الهاش والتسجيل، إدارة المستخدمين والأدمن، المستندات، القوالب، السجلات، المقاييس، الحصص.</td></tr>
+    <tr><td><code>presentation_engine/engine.py</code></td><td>711</td><td>محرك HTML/CSS للشرائح (قالبا academic & dark-tech + هويات مخصصة) + Screenshot + تجميع PPTX/PDF.</td></tr>
+    <tr><td><code>services/presentation_service.py</code></td><td>634</td><td>توليد الـ Deck بالنماذج، تطبيعها، إدارة ملفات العروض، إيجاد Chrome، التشغيل الفرعي.</td></tr>
+    <tr><td><code>services/quiz_formatter.py</code></td><td>340</td><td>تصدير/استيراد الاختبارات والمصطلحات (نص/CSV/XLSX/JSON).</td></tr>
+    <tr><td><code>services/document_service.py</code></td><td>198</td><td>استخراج النص من PDF/DOCX/PPTX/TXT/CSV/XLSX + التجزئة.</td></tr>
+    <tr><td><code>services/pptx_theme_extractor.py</code></td><td>189</td><td>استخراج هوية بصرية من OOXML theme (ألوان/خطوط/base).</td></tr>
+    <tr><td><code>presentation_engine/artgen.py</code></td><td>134</td><td>توليد خلفيات الشرائح الخمس عشرة (OpenAI gpt-image-1 أو Pillow بديل).</td></tr>
+    <tr><td><code>services/rag_service.py</code></td><td>131</td><td>التطبيع + البحث (TF-IDF اختياري / كلمات مفتاحية).</td></tr>
+    <tr><td><code>services/pdf_service.py</code></td><td>73</td><td><span class="pill red">كود ميت</span> — لم يُستورد في أي مكان (كان مكرراً لـ document_service).</td></tr>
+    <tr><td><code>services/auth_service.py</code></td><td>53</td><td>تحقق Google JWT — فيه فتحة أمنية (انظر §9).</td></tr>
+    <tr><td><code>main.py</code> / <code>config.py</code></td><td>46/17</td><td>تطبيق FastAPI + CORS + ContextVar؛ قراءة env.</td></tr>
+  </tbody>
+</table>
+
+<h3>4.2 مخطط قاعدة البيانات (9 جداول)</h3>
+<table>
+  <thead><tr><th>الجدول</th><th>الأعمدة الأساسية</th></tr></thead>
+  <tbody>
+    <tr><td><code>users</code></td><td>id (TEXT PK), google_id, email (UNIQUE), name, picture, api_key, provider, base_url, preferred_model, subscription_tier, tokens_used, tokens_limit, role, password_hash, permissions_json, token_period</td></tr>
+    <tr><td><code>documents</code></td><td>id, user_id, filename, file_path, pages_count, words_count, full_text, chunks_json, summary_json, quiz_json, quiz_progress_json, terms_json</td></tr>
+    <tr><td><code>prompts</code></td><td>id, user_id (system), category, title, description, system_prompt, is_default</td></tr>
+    <tr><td><code>system_settings</code></td><td>key (PK), value_json, updated_at</td></tr>
+    <tr><td><code>activity_logs</code></td><td>id, action, details (redacted), level, doc_id, created_at</td></tr>
+    <tr><td><code>presentations</code></td><td>id, user_id, title, theme, status (draft/rendering/rendered/error), slide_count, deck_path, result_dir, error</td></tr>
+    <tr><td><code>templates</code></td><td>id, user_id, title, description, base, colors_json, fonts_json, accent, preview_b64, is_default</td></tr>
+  </tbody>
+</table>
+<p class="small">
+  تُنشأ الجداول في <code>init_db()</code> مع ترقيات عبر <code>ALTER TABLE</code> داخل try/except (بلا <code>schema_migrations</code> — مطلوب في T1.8).
+</p>
+
+<h3>4.3 فئات الـ Endpoints الرئيسية</h3>
+<ul>
+  <li><b>المصادقة:</b> <code>POST /api/auth/register</code> · <code>/login</code> · <code>/admin-login</code> · <code>/student-login</code> · <code>/google/verify</code> · <code>GET /api/user/me</code></li>
+  <li><b>المستندات:</b> <code>POST /api/upload</code> · <code>GET /api/documents</code> · <code>GET/PATCH/DELETE /api/documents/{doc_id}</code> · <code>GET/POST .../progress</code> · <code>GET /api/documents/latest</code></li>
+  <li><b>الأدوات الذكية:</b> <code>POST /api/chat</code> · <code>/api/chat/stream</code> · <code>/api/summarize</code> · <code>/api/generate-quiz</code> · <code>/api/proofread</code> · <code>/api/translate</code> · <code>/api/terms/extract</code> · <code>/api/export/docx</code></li>
+  <li><b>العروض والقوالب:</b> <code>/api/presentations/*</code> (generate, deck, render, list, get, slides, download, delete) · <code>/api/templates/*</code> (list, save, delete, generate, from-pptx)</li>
+  <li><b>الأدمن:</b> <code>/api/admin/*</code> (stats, settings, users, logs, clear-cache) — محمي بـ <code>_require_admin</code> (role==admin).</li>
+</ul>
+
+<!-- ================= 5 ================= -->
+<h2 id="s5"><span class="num">5</span> تشريح الكود — الفرونت إند</h2>
+<p>~38 ملفاً و<code>≈16,500</code> سطر JSX/JS. لا يوجد Router ولا TypeScript ولا إطار اختبارات. التنقّل «تبويبات» تُدار يدوياً في <code>App.jsx</code> مع حفظ <code>activeTab</code>.</p>
+
+<h3>5.1 بنية التطبيق</h3>
+<ul>
+  <li><code>main.jsx</code>: StrictMode + KaTeX CSS + <code>&lt;App/&gt;</code> — لا ErrorBoundary ولا تسجيل Service Worker.</li>
+  <li><code>App.jsx</code> (407): جدول <code>VALID_TABS</code> (11 تبويباً)، <code>getTabFromUrl()</code> (pathname ← hash ← localStorage)، keep-alive لكل التبويبات (السجل الأخير يبقى في DOM)، غيّر البوابة «ثغرة ‏auth» عميلية فقط إن <code>user</code> موجود.</li>
+  <li><code>services/api.js</code> (~1,043): <b>≈70 دالة</b>؛ يرفع الهوية <code>X-User-Id</code> والمفتاح <code>X-Gemini-API-Key</code> كنصوص من localStorage.</li>
+  <li><code>services/exportService.js</code> (2,553): محرك تصدير كامل في المتصفح (HTML أكاديمي + Markdown → HTML يدوي + PDF عبر الطباعة + CSV/XLSX + خريطة تفاعلية + اختبار تفاعلي).</li>
+</ul>
+
+<h3>5.2 مخزون المكوّنات (الأبرز)</h3>
+<table>
+  <thead><tr><th>المكوّن</th><th>الأسطر</th><th>الوظيفة والملاحظات</th></tr></thead>
+  <tbody>
+    <tr><td><code>ChatView.jsx</code></td><td>~1,994</td><td>المساعد RAG: شريط جلسات، Streaming SSE، KaTeX، اقتباسات، زر إيقاف (AbortController)، استمرار الرد بعد التحديث. <span class="pill amber">أكبر مكوّن — يحتاج تقسيماً (P2)</span></td></tr>
+    <tr><td><code>QuizView.jsx</code></td><td>~1,883</td><td>بنك أسئلة + Flashcards + امتحان تفاعلي بعدّاد + حفظ تقدّم (debounce). <span class="pill amber">يحتاج تقسيماً (P3)</span></td></tr>
+    <tr><td><code>PresentationView.jsx</code></td><td>~937</td><td>Deck Studio: مصدر نص/مستند/نطاق صفحات، قوالب، محرر Deck، عرض، مكتبة، تنزيل pptx/pdf/zip. يتعامل مع <code>theme</code> نصياً أو ككائن — تعقيد فرعي.</td></tr>
+    <tr><td><code>SummaryView.jsx</code></td><td>~873</td><td>ملخص بسبعة أقسام + خريطة ذهنية.</td></tr>
+    <tr><td><code>TermsView.jsx</code></td><td>~790</td><td>معجم المصطلحات (أحدث ميزة).</td></tr>
+    <tr><td><code>NotebookLMMindMap.jsx</code></td><td>~664</td><td>خريطة ذهنية SVG تفاعلية: Zoom، طي، بحث، RTL/LTR، تصدير SVG/PNG/HTML.</td></tr>
+    <tr><td><code>TranslateView.jsx</code></td><td>~679</td><td>ترجمة سطرية/صفحية/هدف فقط مع عرض متوازٍ.</td></tr>
+    <tr><td><code>ApiKeyModal.jsx</code></td><td>~572</td><td>إعدادات المفتاح/المزود/النموذج + اختبار اتصال. <span class="pill amber">مكرر منطقياً مع AISettings الأدمن</span></td></tr>
+    <tr><td><code>TemplateModal.jsx</code></td><td>~468</td><td>معرض القوالب + توليد AI + استيراد PPTX + تحرير الهوية يدوياً.</td></tr>
+    <tr><td><code>GoogleAuthModal.jsx</code></td><td>~453</td><td>Google One-Tap + نموذج يدوي — فيه <span class="pill red">المسار الأمني الضعيف</span> (انظر §9).</td></tr>
+    <tr><td><code>AuthGateView.jsx</code></td><td>~414</td><td>تسجيل دخول/إنشاء حساب/أدمن؛ قائمة أدوار عند التسجيل.</td></tr>
+    <tr><td><code>AdminDashboardView.jsx</code></td><td>~361</td><td>لوحة أدمن كاملة مع استطلاع كل 30 ثانية (setInterval).</td></tr>
+    <tr><td><code>StudentAnalytics.jsx</code></td><td>~96</td><td><span class="pill amber">نمط N+1</span> — يستدعي <code>fetchQuizProgress</code> لكل مستند تتابعياً.</td></tr>
+    <tr><td><code>Header.jsx</code> / <code>ChatSidebar.jsx</code> / <code>DashboardView.jsx</code> / <code>FileUploadModal.jsx</code> / <code>PromptManagerModal.jsx</code> / <code>ExportModal.jsx</code> / <code>SubscriptionView.jsx</code> / <code>ProofreadView.jsx</code> / <code>DocumentLibraryView.jsx</code></td><td>متوسط</td><td>التنقل، الجلسات، لوحة البداية، الرفع، البرومبتات، التصدير، الاشتراك، التدقيق، المكتبة.</td></tr>
+  </tbody>
+</table>
+
+<div class="box warn">
+  <b>🟡 ملفات ميتة مؤكدة (~1,873 سطراً):</b>
+  <code>AdminDashboardModal.jsx</code> (1,129 — مستبدلة بـ AdminDashboardView) ·
+  <code>DocumentLibraryModal.jsx</code> (431 — مستبدلة بـ DocumentLibraryView) ·
+  <code>DocumentFAB.jsx</code> (129 — مستورد لكنه غير معروض) ·
+  <code>App.css</code> (184 — ورقة Vite التجريبية غير المستوردة). ← تنظيفها مهمة T1.6.
+</div>
+
+<!-- ================= 6 ================= -->
+<h2 id="s6"><span class="num">6</span> محرك العروض (Presentation Engine / Deck Studio)</h2>
+<p>
+  أكثر مكوّن تقدمّاً وتمايزاً في المشروع، أُنشئ مؤخراً (2016-09-07، الالتزامان <code>1b7ff06</code> و<code>7d5b0cb</code>).
+</p>
+<h3>6.1 كيف يعمل</h3>
+<ol>
+  <li><b>التوليد بالذكاء:</b> <code>PresentationService.generate_deck</code> يطلب من LLM JSON وفق 8 قوالب شرائح (<code>cover/content/twocol/stats/chart/timeline/table/closing</code>) مع قواعد جودة وwhitelist للأيقونات والفنون.</li>
+  <li><b>الهوية البصرية:</b> نظام <code>templates</code> في DB + <code>generate_template_theme</code> (AI) + <code>extract_pptx_theme</code> (من ملف PPTX) + تسجيل ألوان/خطوط/accent.</li>
+  <li><b>الرندر:</b> <code>engine.py</code> يحوّل الشرائح إلى HTML (قوالب academic / dark-tech + CSS override للهوية المخصصة)، ثم Chrome headless يلتقط PNG بدقة 2560×1440، ثم <code>python-pptx</code> يجمعها في <code>.pptx</code> وتخرج <code>.pdf</code> متعدد الصفحات عبر PIL، ويمكن تنزيل ملف مصغّرات PNG مضغوطاً.</li>
+  <li><b>الفن:</b> <code>artgen.py</code> يولد 15 خلفية (gpt-image-1) أو صوراً بديلة Pillow؛ يُربط صبغ الهوية عبر <code>--art-tint</code> (الأولوية T3.2).</li>
+</ol>
+<div class="box info">
+  <b>نقاط ضعف قائمة:</b> (G9) خلفيات <code>art</code> لا تُصبغ حالياً بألوان الهوية؛ (G10) الترجمة/التلخيص تُقتطع عند ~8000 حرف؛ (G3) لا قفل على الرندر المتزامن لنفس العرض (TOCTOU).
+</div>
+
+<!-- ================= 7 ================= -->
+<h2 id="s7"><span class="num">7</span> دراسة تاريخ الفريق وطريقة العمل</h2>
+<div class="kv">
+  <div><div class="k">إجمالي الالتزامات</div><div class="v">69</div></div>
+  <div><div class="k">مُطوِّري AlaaDev</div><div class="v g">49 (71%)</div></div>
+  <div><div class="k">مُطوِّر AlaaJahaf (دمج)</div><div class="v s">15 (22%)</div></div>
+  <div><div class="k">مساهمة r30204380-ux</div><div class="v a">5 (7%)</div></div>
+</div>
+
+<h3>7.1 الخط الزمني (بدأ: 2026-09-03)</h3>
+<table>
+  <thead><tr><th>المرحلة</th><th>التاريخ</th><th>أبرز ما أنجز</th></tr></thead>
+  <tbody>
+    <tr><td><b>A · الولادة</b></td><td>09-03</td><td>الالتزام الأول <code>31308a1</code>: الهيكل الكامل (RAG، اختبارات، تلخيص، ترجمة، تدقيق، مكتبة). ثم البنية التحتية للفريق (CODEOWNERS/PR/CI/auto-review).</td></tr>
+    <tr><td><b>B · دمج PRs</b></td><td>09-03</td><td>14 PR مُدمجة بواسطة AlaaJahaf (#2–#15): .env.example، صفحة هبوط، تقوية عامة، chat sidebar.</td></tr>
+    <tr><td><b>C · انطلاقة مباشرة</b></td><td>09-03→09-04</td><td>~40 التزاماً مباشراً على main: شريط جلسات، بحث وتسليط، حذف رسائل، زر الإيقاف، KaTeX، إعادة تصميم Quiz/Chat/Summary بهوية canva/obsidian، أرقام حقيقية للأدمن، تصفير حصص شهري.</td></tr>
+    <tr><td><b>D · معرض</b></td><td>09-05→06</td><td>إزالة بانر التصويت، وكتابة سكربت الفيديو؛ دخول المساهم المُنبثق <code>r30204380-ux</code>.</td></tr>
+    <tr><td><b>E · Deck Studio + انطلاق الفريق</b></td><td>09-07</td><td>مولّد العروض + نظام الهويات البصرية + ROADMAP (3 مسارات) + VISION + 3 مهارات opencode + جُلِبَ الكود السابق <code>feature/sync-upstream-updates</code> إلى main.</td></tr>
+    <tr><td><b>F · نهاية 09-07</b></td><td>09-07 ليلاً</td><td>استخراج المصطلحات الأكاديمية + TermsView (34d1bdb)؛ ومَسار رابع (UX) على فرع <code>feat/ux-redesign</code> (مخطط «دراسة هادئة» + مهارة، بلا كود بعد).</td></tr>
+  </tbody>
+</table>
+
+<h3>7.2 تقسيم الأدوار حسب المساهم</h3>
+<table>
+  <thead><tr><th>المساهم</th><th>حصته</th><th>ما قام به</th></tr></thead>
+  <tbody>
+    <tr><td><b>AlaaDev</b></td><td>49 commit</td><td>كل كود الإنتاج تقريباً (الهيكل، Deck Studio، التصاميم، Chat، حدود الحصص، أدوات CI)، ووثائق الفريق وأدواره.</td></tr>
+    <tr><td><b>AlaaJahaf</b></td><td>15 commit</td><td>دور الدمج/المالك: 14 squash-merge للـ PRs المبكرة + صاحب الالتزام «المصطلحات» (بمشاركة r30204380-ux).</td></tr>
+    <tr><td><b>r30204380-ux</b></td><td>5 commit</td><td>سلسلة المزامنة العلوية: استخراج المصطلحات + TermsView + ربطها بالواجهة (على فروع side، ثم وصلت main بصفتها الرئيسية).</td></tr>
+  </tbody>
+</table>
+
+<h3>7.3 حالة الفروع في المستودع</h3>
+<table>
+  <thead><tr><th>الفرع</th><th>المحتوى</th><th>التقييم</th></tr></thead>
+  <tbody>
+    <tr><td><code>origin/main</code></td><td>34d1bdb — مرجع الحقيقة</td><td><span class="pill green">محدث</span></td></tr>
+    <tr><td><code>feat/security</code></td><td>0 التزامات (شجرة مطابقة لـ main)</td><td><span class="pill red">فارغ — لم يُبدأ</span></td></tr>
+    <tr><td><code>feat/quality</code></td><td>0 التزامات (شجرة مطابقة لـ main)</td><td><span class="pill red">فارغ — لم يُبدأ</span></td></tr>
+    <tr><td><code>feat/collab</code></td><td>0 التزامات (شجرة مطابقة لـ main)</td><td><span class="pill red">فارغ — لم يُبدأ</span></td></tr>
+    <tr><td><code>feat/ux-redesign</code></td><td>2 التزامات: مخططات UX + مهارة المرحلة 4 + تحديثات ROADMAP/VISION</td><td><span class="pill sky">مخطط فقط — بلا كود</span></td></tr>
+    <tr><td><code>feat/canva-docs-redesign-obsidian-theme</code></td><td>نقطة قديمة من main (متخلف بـ 5)</td><td><span class="pill amber">أثرية/مضللة الاسم</span></td></tr>
+    <tr><td><code>feature/sync-upstream-updates</code></td><td>تاريخ موازٍ بنفس محتوى main</td><td><span class="pill amber">مكرر — لا قيمة إضافية</span></td></tr>
+  </tbody>
+</table>
+
+<h3>7.4 منهجية العمل المتبعة</h3>
+<ul>
+  <li><b>الإيجابيات:</b> رسائل Conventional Commits غالباً، توثيق فريق ممتاز (VISION/ROADMAP/المهارات)، تقسيم عمل صريح مبني على «من يلمس أي ملف»، وصفة GitHub كاملة في VISION.</li>
+  <li><b>السلبيات:</b> ~40 التزاماً مباشراً لـ main رغم «حماية main» الموعودة (خارج نطاق Git، وإنفاذ حماية الفرع هو إعداد GitHub يجب تفعيله فعلياً)؛ 3 أفرع عمل فارغة؛ ~18 رسالة التزام بلا بادئة نوع؛ المهارات كانت أكثرها عند القراءة بصياغة ترميز متعثرة على Windows (UTF-8).</li>
+</ul>
+
+<div class="box ok">
+  <b>الخلاصة عن الفريق:</b> فريق صغير (3) تشغّلوا فعلياً أولاً ثم وثّقوا، والمنتج الحقيقي مكتمل وظيفياً إلى حد بعيد. التحدي الحقيقي الآن ليس «صناعة الميزات» بل <b>تأمينها ورفع جودتها وتمكين التعاون والنشر</b> — وهذا بالضبط ما تخطط له المسارات 1-2-3.
+</div>
+
+<!-- ================= 8 ================= -->
+<h2 id="s8"><span class="num">8</span> الوضع الراهن: المنجز مقابل المتبقي</h2>
+
+<h3>8.1 مصفوفة تقدم المسارات (وفق ROADMAP)</h3>
+<div class="status-grid">
+  <div class="stat">
+    <div class="head"><span class="name">المسار 1 — جودة الأكواد (T1.1–T1.9)</span><span class="pill red">0%</span></div>
+    <div class="progress"><div style="width:0%"></div></div>
+    <p class="small">لا pytest، لا vitest، لا ruff، لا pyproject، لا schema_migrations، لا ErrorBoundary، CI يبتلع الأخطاء، الكود الميت قائم.</p>
+  </div>
+  <div class="stat">
+    <div class="head"><span class="name">المسار 2 — الأمان (T2.1–T2.9)</span><span class="pill red">~5%</span></div>
+    <div class="progress"><div style="width:5%"></div></div>
+    <p class="small">أُنجز «بشكل جانبي»: تصفير شهري لـ tokens، أرقام حقيقية في اللوحة، دمج رؤوس تسجيل الدخول. الباقي (جلسات/Bearer، JWT، حد الحصص مفروضاً، مفتاح الأدمن، MIME، rate-limit ثابت، CORS) معلّق.</p>
+  </div>
+  <div class="stat">
+    <div class="head"><span class="name">المسار 3 — التعاون والنشر (T3.1–T3.6)</span><span class="pill red">0%</span></div>
+    <div class="progress"><div style="width:0%"></div></div>
+    <p class="small">لا جداول teams، لا /api/teams، لا صبغ art حسب الهوية، لا تحليلات حقيقية، لا Docker/nginx/DEPLOY، التوثيق الناقصة، الاشتراك غير مفعّل.</p>
+  </div>
+  <div class="stat">
+    <div class="head"><span class="name">المسار 4 — إعادة تصميم UX</span><span class="pill sky">~10%</span></div>
+    <div class="progress"><div style="width:10%"></div></div>
+    <p class="small">المخططات (Calm Study، 8 مراحل P0–P8) والمهارة جاهزة على feat/ux-redesign، لكن صفر كود على main.</p>
+  </div>
+</div>
+
+<h3>8.2 الفجوات المُعلنة في VISION (G1–G12) ومطابقتها</h3>
+<table>
+  <thead><tr><th>#</th><th>المجال</th><th>الوصف</th><th>الأولوية</th><th>الحالة</th></tr></thead>
+  <tbody>
+    <tr><td>G1</td><td>أمان</td><td>X-User-Id غير موقّعة</td><td><span class="pill red">حرجة</span></td><td><span class="cross">✗ قائمة</span></td></tr>
+    <tr><td>G2</td><td>أمان</td><td>تجاوز Google JWT</td><td><span class="pill red">حرجة</span></td><td><span class="cross">✗ قائمة</span></td></tr>
+    <tr><td>G3</td><td>أمان</td><td>حد التوكنز غير مفروض</td><td><span class="pill amber">عالية</span></td><td><span class="cross">✗ قائمة</span></td></tr>
+    <tr><td>G4</td><td>أمان</td><td>مفتاح أدمن افتراضي + .env مرتكب</td><td><span class="pill amber">عالية</span></td><td><span class="half">◐ جُعل prepare (توليد تلقائي مشروط) — لازالت الافتراضي موجوداً في config</span></td></tr>
+    <tr><td>G5</td><td>جودة</td><td>صفر اختبارات + CI يبتلع الأخطاء</td><td><span class="pill amber">عالية</span></td><td><span class="cross">✗ قائمة</span></td></tr>
+    <tr><td>G6</td><td>جودة</td><td>كود ميت + لا ErrorBoundary + حالات ناقصة</td><td><span class="pill amber">متوسطة</span></td><td><span class="cross">✗ قائمة</span></td></tr>
+    <tr><td>G7</td><td>جودة</td><td>ترقيات DB بلا تتبع</td><td><span class="pill amber">متوسطة</span></td><td><span class="cross">✗ قائمة</span></td></tr>
+    <tr><td>G8</td><td>تعاون</td><td>لا مساحات عمل مشتركة</td><td><span class="pill amber">مطلوبة</span></td><td><span class="cross">✗ قائمة</span></td></tr>
+    <tr><td>G9</td><td>رندر</td><td>خلفيات art ثابتة الألوان</td><td><span class="pill amber">متوسطة</span></td><td><span class="cross">✗ قائمة</span></td></tr>
+    <tr><td>G10</td><td>رندر</td><td>اقتطاع ترجمة/تلخيص عند 8000 حرف</td><td><span class="pill amber">متوسطة</span></td><td><span class="cross">✗ قائمة</span></td></tr>
+    <tr><td>G11</td><td>تشغيل</td><td>لا Docker/nginx؛ تحليلات ثابتة؛ اشتراك غير مفعّل</td><td><span class="pill amber">متوسطة</span></td><td><span class="half">◐ تحليلات: أُضيفت total_users/total_tokens — الحقيقي الكامل معلّق</span></td></tr>
+    <tr><td>G12</td><td>متفرقات</td><td>3 ملفات DB مكررة؛ CORS عريض؛ rate-limit في الذاكرة</td><td><span class="pill gray">منخفضة</span></td><td><span class="cross">✗ قائمة</span></td></tr>
+  </tbody>
+</table>
+
+<h3>8.3 باختصار: ماذا تبقّى ليعمل الفريق</h3>
+<ul>
+  <li><b>الأمان:</b> كل T2.1–T2.9 عملياً (مع 3 ثغرات جديدة كشفتها الدراسة، انظر §9).</li>
+  <li><b>الجودة:</b> كل T1.1–T1.9 من الصفر.</li>
+  <li><b>التعاون والنشر:</b> كل T3.1–T3.6 + جزء من G9/G10.</li>
+  <li><b>الواجهة:</b> كل P0–P8 للمسار الرابع (بعد تثبيت الأمن).</li>
+  <li><b>نظافة المستودع:</b> حذف الفروع الأثرية (<code>feat/canva-docs-…</code>, <code>feature/sync-upstream-updates</code>) أو التعامل معها بوضوح.</li>
+</ul>
+
+<!-- ================= 9 ================= -->
+<h2 id="s9"><span class="num">9</span> التقرير الأمني المفصّل</h2>
+<p class="small">أُجري مسح فعلي لملفات الكود دعم كل نتيجة بموضع ملف/سطر. الترتيب حسب الخطورة.</p>
+
+<h3>9.1 ثغرات حرجة</h3>
+<table>
+  <thead><tr><th>#</th><th>الثغرة</th><th>الموقع</th><th>الخطة</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>C1</td>
+      <td><b>ترقية دور ذاتي عند التسجيل</b> — العميل يحجز <code>role:"admin"</code> في الطلب ويُنشأ حساب أدمن كامل التحكم.</td>
+      <td><code>routes/api.py:288</code> ← <code>register_user(...req.role or "student")</code> (وخط 1315 مثله في admin_create_user رغم أنه محمي)</td>
+      <td>T2.x: تجاهل role الواردة من العميل في register (student دائماً).</td>
+    </tr>
+    <tr>
+      <td>C2</td>
+      <td><b>دخول طالب بلا كلمة مرور مطلقاً</b> — إرسال أي بريد إلكتروني ينشئ/يعيد مستخدماً صالحاً فوراً.</td>
+      <td><code>routes/api.py:307-318</code> (<code>POST /api/auth/student-login</code>)</td>
+      <td>فرض <code>registration_enabled</code> وطلب معرّف/رمز مؤقت أو إزالته في الإنتاج.</td>
+    </tr>
+    <tr>
+      <td>C3</td>
+      <td><b>هوية X-User-Id ملفقة</b> — إرسال <code>X-User-Id</code> لأي مستخدم مطابق يمنح صلاحياته (خطيرة خصوصاً إن عُرف معرّف أدمن).</td>
+      <td><code>routes/api.py:_get_current_user</code> ≈ السطر 69+</td>
+      <td>T2.1: جلسات موقّعة Bearer token.</td>
+    </tr>
+    <tr>
+      <td>C4</td>
+      <td><b>تجاوز تحقق Google JWT</b> — المسار الاحتياطي يفك ترميز الـ JWT (base64) ويقبل أي <code>{email, sub}</code> بلا تحقق توقيع/audience/صلاحية → يستطيع المهاجم خلق حساب بأي بريد.</td>
+      <td><code>services/auth_service.py:33-50</code> + الجانب العميل <code>GoogleAuthModal.jsx</code> يرجع إلى <code>jwtDecode</code> عند فشل الخادم</td>
+      <td>T2.2: إزالة المسار الاحتياطي كلياً; التحقق حصراً عبر الخادم.</td>
+    </tr>
+    <tr>
+      <td>C5</td>
+      <td><b>SSRF بلا قيود</b> — <code>POST /api/validate-key</code> و<code>/api/fetch-models</code> تقبلان <code>base_url</code> اعتباطياً ويقوم الخادم بطلبات HTTP إليها (استطلاع الشبكة الداخلية).</td>
+      <td><code>routes/api.py</code> + <code>ai_service.fetch_available_models</code></td>
+      <td>قائمة مضيفة allowlist، منع IP الخاص/الحلقة، أو إعادة خلف وكيل موثوق.</td>
+    </tr>
+    <tr>
+      <td>C6</td>
+      <td><b>حد التوكنز مسجَّل لكنه غير مفروض</b> — <code>tokens_used</code>/<code>tokens_limit</code> تُحدَّث لكن لا توجد أي مقارنة قبل استدعاء الذكاء.</td>
+      <td><code>database.py</code> + <code>ai_service</code> (لا point في الاستدعاء)</td>
+      <td>T2.5: فحص قبل أي استدعاء + إرجاع <code>429</code>.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>9.2 ثغرات عالية / متوسطة</h3>
+<table>
+  <thead><tr><th>#</th><th>المشكلة</th><th>الموقع</th><th>الخطة</th></tr></thead>
+  <tbody>
+    <tr><td>H1</td><td>Path Traversal في اسم الملف المرفوع (لا تعقيم).</td><td><code>routes/api.py</code> (upload: <code>f"{doc_id}_{file.filename}"</code>)</td><td>T2.7 (تعقيم + تحقق MIME).</td></tr>
+    <tr><td>H2</td><td>تسريب عابر للمستأجرين: قراءة أي مستند بـ doc_id دون ملكية.</td><td><code>database.get_document(doc_id, user_id=None)</code> وendpoints برأس-user اختياري</td><td>فرض <code>user_id</code> وتقييد الوصول في كل endpoints.</td></tr>
+    <tr><td>H3</td><td>إساءة استدعاء AI بلا مصادقة واستهلاك مفتاح الخادم (chat/summarize/quiz/proofread/translate/terms/generate-prompt).</td><td><code>routes/api.py</code></td><td>إجبار user_id + تطبيق الحصص وrate-limit الدائم.</td></tr>
+    <tr><td>H4</td><td>مفتاح الأدمن الافتراضي الثابت <code>AdminEduAI2026!</code> وقبول أي <code>sk_admin_*</code>&gt;20 حرفاً عند غياب env.</td><td><code>config.py:15</code> · <code>database.py:302-314</code></td><td>T2.3–T2.4: توليد عشوائي إجباري عند الغياب + إزالة الخطاف.</td></tr>
+    <tr><td>H5</td><td>مفاتيح المستخدمين نص في localStorage + مرسلة بكل طلب.</td><td><code>api.js</code> (getApiKey/setApiKey)</td><td>T2.6: تخزين مشفّر في الخادم.</td></tr>
+    <tr><td>H6</td><td>rate-limit في الذاكرة فقط وقابل للتحايل بعناوين IP متعددة.</td><td><code>routes/api.py</code> (RATE_LIMIT_STORE)</td><td>T2.8: تخزين ثابت + قفل.</td></tr>
+    <tr><td>M1</td><td>CORS عريض (methods/headers = <code>*</code>).</td><td><code>main.py:16-22</code></td><td>T2.9.</td></tr>
+    <tr><td>M2</td><td>استبدال قوالب النظام بقيمة <code>is_default</code> عبر تحرير <code>templates</code>.</td><td><code>templates endpoints</code></td><td>منع ID النظام من الواجهة.</td></tr>
+    <tr><td>M3</td><td>حقن محتوى AI غير مهرب إلى HTML الشريحة (تأثير على الصور المنقولة فقط لا على الطلب).</td><td><code>engine.py render_slide</code></td><td>توليد DOM آمن/escaping.</td></tr>
+    <tr><td>M4</td><td><code>/api/templates/from-pptx</code> دون حدّ حجم (RAM DoS).</td><td><code>routes/api.py</code></td><td>حدّ الحجم والعدد.</td></tr>
+    <tr><td>M5</td><td>وضع الصيانة/الإعدادات التسجيلية «تجميلية» — غير مُفعّلة في أي مسار.</td><td><code>maintenance_mode/registration_enabled</code></td><td>فرضها في middleware/endpoints.</td></tr>
+  </tbody>
+</table>
+
+<div class="box critical">
+  <b>أهم 5 خطوات أمنية لها أثر فوري (أسبوع واحد):</b>
+  <ol>
+    <li>تجاهل <code>role</code> من العميل في التسجيل (C1).</li>
+    <li>إزالة مسار Google الاحتياطي والمُرقّم (C4).</li>
+    <li>تطبيق حد التوكنز <code>429</code> (C6).</li>
+    <li>فرض هوية عبر جلسة (C3) كأولوية قصوى للمسار 2.</li>
+    <li>تعقيم أسماء الملفات + فحص MIME (H1).</li>
+  </ol>
+</div>
+
+<!-- ================= 10 ================= -->
+<h2 id="s10"><span class="num">10</span> جودة الكود والاختبارات</h2>
+<div class="kv">
+  <div><div class="k">اختبارات Backend</div><div class="v r">صفر</div></div>
+  <div><div class="k">اختبارات Frontend</div><div class="v r">صفر (لا vitest)</div></div>
+  <div><div class="k">Linter Python (ruff)</div><div class="v r">غير موجود</div></div>
+  <div><div class="k">Linter JS (oxlint)</div><div class="v a">قواعد قليلة جداً</div></div>
+  <div><div class="k">CI يعمل فعلياً؟</div><div class="v r">لا — <code>|| true</code></div></div>
+  <div><div class="k">TypeScript</div><div class="v r">غير مستخدم</div></div>
+</div>
+<h3>10.1 أين تُبتلع الأخطاء</h3>
+<pre><code># .github/workflows/ci.yml (3 مواضع || true)
+python -m py_compile backend/main.py backend/database.py backend/routes/api.py || true
+npm run build || npm run lint || true</code></pre>
+<p class="small">
+  البناء الفوري (<code>auto-review.yml</code>) يتحقق من الصياغة والأسرار فقط (ويكون جاداً باستثناء أسرار <code>set +e</code>).
+  لا يوجد <code>npm test</code> أصلاً في package.json.
+</p>
+<h3>10.2 عيوب البنية وصيانتها</h3>
+<ul>
+  <li>ملفات ضخمة تحتاج تقسيماً: <code>ChatView</code> ~1,994 · <code>QuizView</code> ~1,883 · <code>ai_service</code> 1,326 · <code>routes/api.py</code> 1,389 · <code>database.py</code> 1,261 · <code>exportService</code> 2,553.</li>
+  <li>لا ErrorBoundary عام — أي خطأ React يفشل التطبيق بصمت.</li>
+  <li>حالات فارغة/تحميل ناقصة في عديد الواجهات (Dashboard, Chat empty-state).</li>
+  <li>Router وMarkdown-renderer وMindMap مبنية يدوياً — رهينة اليد وصيانتها مرتفعة التكلفة.</li>
+  <li>PWA مُعطَّل عملياً: <code>vite-plugin-pwa</code> مضبوط لكن لا تسجيل <code>registerSW()</code>.</li>
+  <li>منطق إعدادات الأدمن مكرر/مبعثر في 3 مكوّنات (SystemPolicies/AdvancedSettings/BrandingSettings + ApiKeyModal/AISettings).</li>
+</ul>
+
+<!-- ================= 11 ================= -->
+<h2 id="s11"><span class="num">11</span> خارطة طريق العمل والتطوير</h2>
+<p>
+  هذه الخطة تُرتب ما ورد في ROADMAP/VISION مع إضافات ناتجة عن هذه الدراسة، وتضبط الأسبقية الزمنية
+  بواقعية: <b>الأمان أولاً، الجودة ثانياً، التعاون/النشر ثالثاً، الواجهة رابعاً</b>. الشكل التنفيذي:
+  5 أسابيع رئيسية متوازية بمسار واحد لكل مطوّر.
+</p>
+
+<div class="phase">
+  <div class="ph-head">
+    <div class="ph-title">المرحلة الصفرية (أسبوع 0) — إيقاف النزيف والتجهيز <span class="pill red">قبل أي شيء</span></div>
+    <span class="eff">2–3 أيام</span>
+  </div>
+  <div class="ph-body">
+    <div class="task"><div class="cb"></div><div><div class="tt">S0.1 إغلاق C1 + C2 — منع ترقية الأدوار الذاتية وإغلاق دخول الطالب بلا كلمة مرور</div><div class="td">edit <code>routes/api.py:288</code> + endpoint <code>student-login</code>. اختبار يدوي فوري.</div></div><span class="eff">ساعتان</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">S0.2 إزالة المسار الاحتياطي في تحقق Google (C4) وعدم السماح بالاعتماد على jwtDecode العميلي</div><div class="td">edit <code>auth_service.py</code> + <code>GoogleAuthModal.jsx</code> لتقديم الخطأ وفقط.</div></div><span class="eff">3 ساعات</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">S0.3 فرض حد التوكنز قبل أي استدعاء AI (C6) + رسالة بالعربية</div><div class="td">helper في <code>ai_service</code>/مسارات الأدوات؛ إرجاع 429/رسالة «انتهت حصتك».</div></div><span class="eff">4 ساعات</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">S0.4 تعقيم أسماء الملفات + فحص MIME عند الرفع (H1) + رفض قراءة مستندات غير مملوكة (H2)</div><div class="td">edit <code>routes/api.py</code> upload/get_document؛ إجبار user_id في كل مسارات المستندات.</div></div><span class="eff">4 ساعات</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">S0.5 حذف <code>backend/.env</code> إن وُجد من git + إجبار مفتاح أدمن من البيئة (G4)</div><div class="td">اتبع T2.3–T2.4؛ تحقق: <code>git ls-files | findstr .env</code>.</div></div><span class="eff">ساعتان</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">S0.6 إنفاذ حماية <code>main</code> فعلياً (GitHub Settings) + تنظيف الفروع الأثرية</div><div class="td">راجِع <code>EngAlaaJahaf</code> لتفعيل Require PR + CI.</div></div><span class="eff">ساعة</span></div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="ph-head">
+    <div class="ph-title">الأسابيع 1–2 — العمق: المسارات 1 و2 و3 بالتوازي</div>
+    <div class="badges" style="margin:0">
+      <span class="badge">مسار 1: جودة</span>
+      <span class="badge">مسار 2: أمان</span>
+      <span class="badge">مسار 3: تعاون/نشر</span>
+    </div>
+  </div>
+  <div class="ph-body">
+    <h4>الأسبوع 1</h4>
+    <div class="task"><div class="cb"></div><div><div class="tt">مسار 1 · T1.1+T1.4: اختبارات الـ API (<code>pytest</code>+<code>httpx.TestClient</code>) وتهيئة <code>pyproject.toml</code> + <code>ruff</code> في CI</div><div class="td">conftest.py (X-User-Id header للجلسة) و test_auth/test_documents/test_presentations/test_templates/test_admin.</div></div><span class="eff">1.5 يوم</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">مسار 2 · T2.1: جلسات موقّعة — جدول <code>sessions</code> + Bearer token + تحديث <code>_get_current_user</code> و<code>api.js</code> + الاعتماد عليه كلياً</div><div class="td">معيار: إرسال X-User-Id مزور يرفضه الخادم 401.</div></div><span class="eff">1.5 يوم</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">مسار 2 · T2.2: إغلاق تجاوز Google نهائياً + توليد مفتاح أدمن إجباري</div><div class="td">إزالة المسار الاحتياطي + رفض القيمة الافتراضية + إلغاء خطاف sk_admin_.</div></div><span class="eff">نصف يوم</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">مسار 3 · T3.1 (شطر الجداول): جداول <code>teams</code>+<code>team_members</code>+<code>team_shares</code> وكود دعوة قصير</div><div class="td">دوال DB فقط؛ تتوازى مع T2.1 لأنها لا تلامس auth.</div></div><span class="eff">يوم</span></div>
+    <h4>الأسبوع 2</h4>
+    <div class="task"><div class="cb"></div><div><div class="tt">مسار 1 · T1.2: اختبارات الخدمات (ai_service sanitize، rag، presentation normalize/resolve_theme، pptx_theme_extractor)</div><div class="td">مركزة على الوحدات الحساسة بدل الكتلة كلها.</div></div><span class="eff">يوم ونصف</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">مسار 2 · T2.5+T2.8: فرض التوكنز (مُحمَّل من S0.3) + rate-limit ثابت بالـ DB</div><div class="td">نافذة/ثوانٍ لكل مفتاح: user_id+IP.</div></div><span class="eff">يوم</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">مسار 3 · T3.1 (شطر الواجهة): /api/teams/* + شاشة الفرق في الواجهة بأدوار (owner/admin/editor/viewer)</div><div class="td">DashboardView + DocumentLibraryView + PresentationView بحذر (ملفات مشتركة: أعلن في القناة).</div></div><span class="eff">1.5 يوم</span></div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="ph-head">
+    <div class="ph-title">الأسابيع 3–4 — الاستقرار والإثراء</div>
+    <span class="eff">أسبوعان</span>
+  </div>
+  <div class="ph-body">
+    <h4>الأسبوع 3</h4>
+    <div class="task"><div class="cb"></div><div><div class="tt">مسار 1 · T1.3+T1.5+T1.6+T1.7: vitest للمكوّنات الرئيسية + تشديد oxlint + تنظيف الملفات الميتة + ErrorBoundary/حالات تحميل</div><div class="td">حذف AdminDashboardModal/DocumentLibraryModal/DocumentFAB/App.css (~1,873 سطراً) بعد تأكيد أنهم غير مستندين إليها.</div></div><span class="eff">1.5 يوم</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">مسار 2 · T2.6+T2.7+T2.9: مفاتيح API من الخادم (جدول user_api_keys مشفرة) + MIME/تعقيم مطبق نهائياً + تضييق CORS</div><div class="td">باستخدام قائمة <code>allow_methods</code>/<code>allow_headers</code> محددة في main.py.</div></div><span class="eff">يوم ونصف</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">مسار 3 · T3.2: صبغ خلفيات art حسب الهوية + خطوط أوسع + تقديم مرحلي للترجمة/التلخيص بدل الاقتطاع</div><div class="td">artgen/engine مع <code>--art-tint</code> وتقطيع 8000 حرف إلى دفعات.</div></div><span class="eff">1.5 يوم</span></div>
+    <h4>الأسبوع 4</h4>
+    <div class="task"><div class="cb"></div><div><div class="tt">مسار 1 · T1.8+T1.9: جدول <code>schema_migrations</code> + CI حقيقي ينهار على الفشل + شارة تغطية README</div><div class="td">بإزالة كل <code>|| true</code> نهائياً.</div></div><span class="eff">يوم</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">مسار 3 · T3.3: <code>GET /api/admin/stats</code> حقيقي (مستندات/شرائح/دقائق/جلسات) وربطه باللوحة</div><div class="td">يعالج أيضاً N+1 في StudentAnalytics (نقطة تجميع واحدة).</div></div><span class="eff">نصف يوم</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">مسار 3 · T3.4: Dockerfile (backend uvicorn) + بناء frontend عبر nginx + docker-compose + DEPLOY.md</div><div class="td">راجع إعداد pm2/nginx اختيارياً للجهاز.</div></div><span class="eff">يوم ونصف</span></div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="ph-head">
+    <div class="ph-title">الأسبوع 5 فصاعداً — التوسع والمسار الرابع</div>
+    <span class="eff">أسبوعان+</span>
+  </div>
+  <div class="ph-body">
+    <div class="task"><div class="cb"></div><div><div class="tt">مراجعة شاملة + توثيق أمان (T2.10) + تقارير تغطية · تحديث README/CONTRIBUTING (T3.5)</div><div class="td">أن تجعل الشجرة والوثائق تعكس الواقع الفعلي (frontend/README.md غير مفيد حالياً).</div></div><span class="eff">مرن</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">بدء المسار 4 (feat/ux-redesign): P0 ثم P1 (AppShell)… حتى P8</div><div class="td">بعد ثبات الأمان؛ لا تعدّل backend أبداً في هذا المسار.</div></div><span class="eff">أسبوع ونصف+</span></div>
+    <div class="task"><div class="cb"></div><div><div class="tt">T3.6 (اختياري): اشتراكات فعلية <code>subscription_expires_at</code> + بوابة دفع</div><div class="td">مرحلة لاحقة بعد النشر.</div></div><span class="eff">مرن</span></div>
+  </div>
+</div>
+
+<h3>11.1 لماذا هذا الترتيب؟</h3>
+<ul>
+  <li>المرحلة الصفرية تغلق ثغرات يمكن استغلالها فوراً (رفع الأدوار مزوّر = سيطرة كاملة) بأقل جهد.</li>
+  <li>T2.1 (الجلسات) يسبق أي ميزة مشاركة حتى لا تُبنى مساحات العمل على هوية ملفقة.</li>
+  <li>تأجيل المسار 4 (UX) بعد الأمان والجودة يمنع بناء واجهات جديدة على أرضٍ هشة.</li>
+  <li>كل مسار يظل في فروع منفصلة بملفات «شبه منفصلة» لتقليل التعارضات مع <code>routes/api.py</code> و<code>database.py</code> و<code>api.js</code> (انظر §14).</li>
+</ul>
+
+<!-- ================= 12 ================= -->
+<h2 id="s12"><span class="num">12</span> الأولويات الفورية (افعلها أولاً اليوم)</h2>
+<ol>
+  <li>استنساخ + بناء الفرع الحالي وتشغيل <code>run_dev.bat</code> محلياً والتأكد من الخلف والأمام يعملان.</li>
+  <li>تنفيذ S0.1–S0.5 (إغلاق 5 ثغرات) واختبار يدوي لكل مسار مستخدم.</li>
+  <li>مزامنة الفروع (<code>feat/security</code> ← أسبوع S0) و<code>feat/quality</code> و<code>feat/collab</code> من أحدث main.</li>
+  <li>فتح أول PR أمني واحد فقط (مثلاً «fix: block role escalation at register») لتأكيد تدفّق المراجعة.</li>
+  <li>تفعيل GitHub Branch Protection + طلب مراجعة زميل قبل أي دمج.</li>
+</ol>
+<div class="box ok">
+  <b>تعريف «مكتمل» للمرحلة الصفرية:</b> لا مسار تسجيل يمنح admin ذاتياً · لا دخول طالب بلا معرّف · لا قبول JWT بلا توقيع · حصص مفروضة · لا رفع بلا MIME · و<code>git ls-files</code> لا يعرض أي <code>.env</code>.
+</div>
+
+<!-- ================= 13 ================= -->
+<h2 id="s13"><span class="num">13</span> مقاييس النجاح وDefinition of Done</h2>
+<table>
+  <thead><tr><th>المسار</th><th>مؤشر الإنجاز</th></tr></thead>
+  <tbody>
+    <tr><td><b>المسار 1</b></td><td><code>pytest</code>+<code>vitest</code> يعملان محلياً؛ CI أخضر فعلياً (بلا <code>|| true</code>)؛ لا ملفات ميتة في القائمة؛ <code>schema_migrations</code> يعمل؛ تغطية API ≥ 80%.</td></tr>
+    <tr><td><b>المسار 2</b></td><td>لا اعتماد على <code>X-User-Id</code>؛ تجاوز Google معطَّل؛ حد التوكنز يفرض 429؛ لا مفتاح API في localStorage؛ CORS/MIME/rate-limit مفعّلة ومفحوصة.</td></tr>
+    <tr><td><b>المسار 3</b></td><td>مشاركة فرق حية من طرفين بأدوار؛ خلفيات art مصبوغة بالهوية؛ <code>/api/admin/stats</code> حقيقي؛ حزمة Docker تبني؛ README محدَّث.</td></tr>
+    <tr><td><b>المسار 4</b></td><td>جميع مراحل P0–P8 منفذة، قبل/بعد لقطات عند 800/1280/1920 + 390 موبايل بثيمين، و<code>npm run lint && npm run build</code> أخضر.</td></tr>
+  </tbody>
+</table>
+
+<!-- ================= 14 ================= -->
+<h2 id="s14"><span class="num">14</span> التوصيات النهائية وسير العمل</h2>
+<h3>14.1 سير عمل Git الموصى به (مختصر)</h3>
+<pre><code># بداية الجلسة
+git fetch origin
+git checkout main && git pull origin main
+git checkout feat/your-track && git merge main
+
+# إنجاز مهمة واحدة ثم:
+git add &lt;الملفات&gt;
+git commit -m "security: enforce token quota before AI calls"   # Conventional
+git push origin feat/your-track
+gh pr create --base main --title "..." --body "أنجزت T2.5"</code></pre>
+<div class="box warn">
+  <b>قاعدة التعارضات:</b> من يلمس <code>routes/api.py</code> أو <code>database.py</code> أو <code>api.js</code> يعلن في قناة الفريق أولاً، ويكمل فرعَه سريعاً ثم يدمجه لتقليل التصادم.
+</div>
+<h3>14.2 توصيات هندسية شاملة</h3>
+<ul>
+  <li><b>قسّم الملفات الضخمة أولاً بالاستقرار</b>: فصل الراوتر الفرعي (auth/documents/presentations/admin)، وفصل AI service إلى أداة واحدة لكل وظيفة، وشغل ChatView/QuizView/exportService.</li>
+  <li><b>وحِّد المصادقة في طبقة واحدة</b> (dependency FastAPI) بدل Header مبعثرة في كل endpoint.</li>
+  <li><b>اجعل الـ CORS واقعياً للإنتاج</b>: methods/headers كقائمة بيضاء + نطاقات بيضاء change من env.</li>
+  <li><b>التصحيح المقترح للبرومبتات:</b> تجاهل دور العميل، استخدم قائمة <code>SUPPORTED_ROLES</code>.</li>
+  <li><b>تحقق الفوري وnot بدون:</b> <code>registration_enabled</code>/<code>maintenance_mode</code> فعّلاً في middleware.</li>
+  <li><b>أضف ErrorBoundary عام + وحّد سياسة حالات تحميل/فارغة/خطأ.</b></li>
+  <li><b>الـ PWA:</b> سجّل <code>registerSW()</code> أو أزل الادعاء «أوفلاين» من المانيفست.</li>
+  <li><b>ارتقِ أمان المفاتيح:</b> خادم يجدد مفاتيح <code>Bearer</code> قصيرة العمر، أو وكيل موثوق إلى مزود الإبداع بدل إرسال مفتاح العميل.</li>
+</ul>
+
+<!-- ================= 15 ================= -->
+<h2 id="s15"><span class="num">15</span> الملاحق التقنية</h2>
+<h3>15.1 لائحة Endpoints (خلاصة)</h3>
+<table>
+  <thead><tr><th>المجموعة</th><th>الـ Endpoints</th></tr></thead>
+  <tbody>
+    <tr><td>صحة/اتصال</td><td><code>GET /api/health</code> · <code>POST /api/validate-key</code> · <code>POST /api/fetch-models</code></td></tr>
+    <tr><td>مصادقة</td><td><code>POST /api/auth/google/verify</code> · <code>/register</code> · <code>/login</code> · <code>/admin-login</code> · <code>/student-login</code> · <code>GET /api/user/me</code></td></tr>
+    <tr><td>مستندات</td><td><code>POST /api/upload</code> · <code>GET /api/documents</code> + <code>/latest</code> · <code>GET/PATCH/DELETE /{id}</code> · <code>GET/POST /{id}/progress</code></td></tr>
+    <tr><td>أدوات ذكية</td><td><code>POST /api/chat</code> · <code>/chat/stream</code> · <code>/summarize</code> · <code>/generate-quiz</code> · <code>/proofread</code> · <code>/translate</code> · <code>/terms/extract</code> · <code>/terms/export</code> · <code>/quiz/export</code> · <code>/quiz/import-text</code> · <code>/export/docx</code></td></tr>
+    <tr><td>برومبتات</td><td><code>GET/POST /api/prompts</code> · <code>DELETE /api/prompts/{id}</code> · <code>POST /api/generate-prompt</code></td></tr>
+    <tr><td>عروض</td><td><code>POST /api/presentations/generate</code> · <code>GET /api/presentations</code> · <code>GET /{id}</code> · <code>PUT /{id}/deck</code> · <code>POST /{id}/render</code> · <code>GET /{id}/slides/{i}</code> · <code>GET /{id}/download</code> · <code>DELETE /{id}</code></td></tr>
+    <tr><td>قوالب</td><td><code>GET/POST /api/templates</code> · <code>DELETE /{id}</code> · <code>POST /generate</code> · <code>POST /from-pptx</code></td></tr>
+    <tr><td>إعدادات عامة</td><td><code>GET /api/settings/public</code></td></tr>
+    <tr><td>أدمن</td><td><code>GET /api/admin/stats</code> · <code>GET/POST /settings</code> · <code>GET/POST /users</code> + <code>PATCH/DELETE /users/{id}</code> + reset-password/reset-tokens/tokens · <code>GET/DELETE /logs</code> · <code>POST /clear-cache</code></td></tr>
+  </tbody>
+</table>
+
+<h3>15.2 خلاصة الجداول المطلوب إنشاؤها مستقبلاً (من الخطة)</h3>
+<table>
+  <thead><tr><th>المسار</th><th>جداول/ملفات جديدة</th></tr></thead>
+  <tbody>
+    <tr><td>أمان (T2.1)</td><td><code>sessions</code> (token, user_id, expires_at)</td></tr>
+    <tr><td>أمان (T2.6)</td><td><code>user_api_keys</code> (مشفرة)</td></tr>
+    <tr><td>أمان (T2.8)</td><td><code>rate_limits</code> (user_id, window, hits)</td></tr>
+    <tr><td>جودة (T1.8)</td><td><code>schema_migrations</code> (version, applied_at)</td></tr>
+    <tr><td>تعاون (T3.1)</td><td><code>teams</code> · <code>team_members</code> · <code>team_shares</code> (إن استُخدمت)</td></tr>
+    <tr><td>توسع (T3.6)</td><td><code>subscriptions</code> / عمود <code>subscription_expires_at</code></td></tr>
+  </tbody>
+</table>
+
+<h3>15.3 مرجع سريع للأوامر</h3>
+<pre><code># تشغيل محلي
+run_dev.bat                     # نافذتان: backend:8001 + frontend:5173
+# أو يدوياً
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8001 --reload
+cd frontend && npm run dev
+
+# توثيق الـ API
+http://localhost:8001/docs      # Swagger
+http://localhost:8001/redoc     # ReDoc</code></pre>
+
+<footer>
+  أُعدّت هذه الدراسة من تحليل مباشر لمستودع <code>ai-platform-edu</code> (69 commit، 3 مطوّرين) —
+  الأدلة بالملفات والأسطر داخل الصفحة. آخر نقاط مرجعية: <code>main@34d1bdb</code>.
+  للأسئلة/الغموض: افتح Issue في المستودع أو راجع VISION.md / ROADMAP.md.
+</footer>
+
+</div>
+</body>
+</html>
