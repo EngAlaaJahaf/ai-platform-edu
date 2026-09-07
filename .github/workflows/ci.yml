@@ -2,29 +2,67 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/quality]
   pull_request:
     branches: [main]
 
 jobs:
-  backend-check:
+  backend-tests:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      - run: pip install -r backend/requirements.txt 2>/dev/null || pip install fastapi uvicorn python-dotenv 2>/dev/null || true
-      - run: python -m py_compile backend/main.py backend/database.py backend/routes/api.py || true
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      
+      - name: Run ruff linter
+        run: |
+          pip install ruff
+          ruff check backend/
+      
+      - name: Run pytest with coverage
+        run: |
+          python -m pytest backend/tests/ -v --cov=backend --cov-report=term-missing --cov-report=xml
+      
+      - name: Upload coverage reports
+        if: matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
 
-  frontend-check:
+  frontend-tests:
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - working-directory: frontend
-        run: npm ci || npm install
-      - working-directory: frontend
-        run: npm run build || npm run lint || true
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+      
+      - name: Run oxlint
+        working-directory: frontend
+        run: npx oxlint src/ || true
+      
+      - name: Build
+        working-directory: frontend
+        run: npm run build
