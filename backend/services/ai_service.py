@@ -14,6 +14,39 @@ from backend.config import GEMINI_API_KEY as ENV_GEMINI_KEY, DEFAULT_MODEL as EN
 use_base_rules_var = ContextVar("use_base_rules", default=True)
 
 class AIService:
+    # T3.2 — حدود التقسيم المرحلي للوثائق الطويلة (تلخيص/ترجمة بدل الاقتطاع)
+    CHUNK_CHARS = 6000
+    CHUNK_OVERLAP = 400
+    MAX_SUMMARY_CHUNKS = 6
+    MAX_TRANSLATE_CHUNKS = 6
+
+    @staticmethod
+    def _split_text_chunks(text: str, chunk_chars: int = 6000, overlap: int = 400) -> List[str]:
+        """تقسيم نص طويل إلى مقاطع على حدود الفقرات مع تداخل يحفظ السياق."""
+        text = (text or "").strip()
+        if len(text) <= chunk_chars:
+            return [text] if text else []
+        paras = [p.strip() for p in text.split("\n") if p.strip()]
+        if not paras:
+            paras = [text[i:i + chunk_chars] for i in range(0, len(text), chunk_chars)]
+        chunks, current = [], ""
+        for p in paras:
+            candidate = (current + "\n" + p).strip() if current else p
+            if len(candidate) > chunk_chars and current:
+                chunks.append(current)
+                # تداخل: ذيل المقطع السابق يمهّد للاحق
+                tail = current[-overlap:] if overlap > 0 else ""
+                current = (tail + "\n" + p).strip() if tail else p
+            else:
+                current = candidate
+            # فقرة واحدة أطول من الحد: قصّها قسراً
+            while len(current) > chunk_chars * 2:
+                chunks.append(current[:chunk_chars])
+                current = current[chunk_chars - overlap:]
+        if current.strip():
+            chunks.append(current.strip())
+        return chunks
+
     @staticmethod
     def clean_model_name(model_name: Optional[str]) -> str:
         if not model_name:
@@ -599,30 +632,8 @@ class AIService:
                 "sources": context_chunks[:3]
             }
 
-    @classmethod
-    def generate_summary_and_mindmap(
-        cls, 
-        full_text: str, 
-        level: str = "full",
-        language: str = "ar",
-        provider: str = "gemini",
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
-        model: Optional[str] = None,
-        custom_system_prompt: Optional[str] = None
-    ) -> Dict[str, Any]:
-        if not full_text.strip():
-            return {
-                "title": "لا يوجد مستند مرفوع",
-                "overview": "يرجى رفع ملف المحاضرة أولاً.",
-                "key_points": ["ارفع الملف لبدء التلخيص."],
-                "definitions": [],
-                "comparisons": [],
-                "exam_traps": [],
-                "formulas_rules": [],
-                "mindmap": {"label": "ارفع ملفاً", "children": []}
-            }
-
+    @staticmethod
+    def _summary_system_prompt(level: str, language: str, custom_system_prompt: Optional[str] = None) -> str:
         lang_instruction = {
             "ar": "يجب كتابة كامل محتوى التلخيص (العناوين، النظرة العامة، المحاور والشروحات، المقارنات، ومصائد الامتحانات، وقاموس المصطلحات، وشجرة الخريطة الذهنية) باللغة العربية الفصحى الأكاديمية الواضحة والثرية حتى لو كان المستند الأصلي مكتوباً بالإنجليزية.",
             "en": "All summary sections (Title, Overview, Pillars, Comparisons, Exam Traps, Definitions, Formulas, Mindmap) must be written strictly and entirely in clear academic English.",
@@ -708,7 +719,122 @@ class AIService:
             "يُمنع منعاً باتاً ومطلقاً إخراج أي حروف أو رموز آسيوية أو صينية (مثل 电子邮件 أو 软件 أو 善良) أو أي تشوهات دمج الكلمات (مثل searchي أو defacesي) في أي حقل أو في أي عقدة من عقد الخريطة الذهنية. يجب أن تكون كل النصوص إما باللغة العربية الفصحى السليمة أو باللغة الإنجليزية الأكاديمية للمصطلحات اللاتينية فقط."
         )
 
+        return system_prompt
+
+    @classmethod
+    def _summarize_long(
+        cls,
+        full_text: str,
+        char_limit: int,
+        level: str,
+        language: str,
+        system_prompt: str,
+        provider: str,
+        api_key: Optional[str],
+        base_url: Optional[str],
+        model: Optional[str],
+    ) -> Dict[str, Any]:
+        """T3.2 — تلخيص مرحلي (map-reduce) للوثائق الأطول من حد المستوى بدل اقتطاعها."""
+        all_chunks = cls._split_text_chunks(full_text, chunk_chars=char_limit, overlap=400)
+        truncated = len(all_chunks) > cls.MAX_SUMMARY_CHUNKS
+        chunks = all_chunks[:cls.MAX_SUMMARY_CHUNKS]
+        partials = []
+        for i, ch in enumerate(chunks, 1):
+            try:
+                raw = cls.execute_chat_completion(
+                    system_prompt=(
+                        "أنت مساعد تلخيص أكاديمي. لخص المقطع التالي بإيجاز وأرجع JSON فقط "
+                        "بهذا الشكل: {\"part_overview\": \"فقرة موجزة\", "
+                        "\"key_points\": [\"نقطة\", ...], \"core_terms\": [\"مصطلح\", ...]}. "
+                        f"اللغة المطلوبة: {language}."
+                    ),
+                    user_prompt=f"المقطع {i} من {len(chunks)} من المادة التعليمية:\n{ch}",
+                    provider=provider,
+                    api_key=api_key,
+                    base_url=base_url,
+                    model=model,
+                    json_mode=True,
+                )
+                raw = re.sub(r'^```json\s*', '', raw.strip())
+                raw = re.sub(r'\s*```$', '', raw)
+                try:
+                    part = json.loads(raw)
+                except json.JSONDecodeError:
+                    match = re.search(r'\{[\s\S]*\}', raw)
+                    part = json.loads(match.group(0)) if match else {"part_overview": raw[:1000]}
+                if isinstance(part, dict):
+                    partials.append(part)
+            except Exception:
+                continue
+        if not partials:
+            raise ValueError("تعذر تلخيص المقاطع المرحلية للمستند الطويل.")
+        merged = []
+        for i, p in enumerate(partials, 1):
+            bullets = "\n".join(f"- {b}" for b in (p.get("key_points") or [])[:8])
+            terms = ", ".join((p.get("core_terms") or [])[:10])
+            merged.append(f"=== الجزء {i} ===\n{p.get('part_overview', '')}\n{bullets}\nالمصطلحات: {terms}")
+        user_prompt = (
+            "لديك ملخصات جزئية لمادة تعليمية طويلة. ادمجها في ملخص أكاديمي واحد متكامل "
+            "وفق المخطط المطلوب تماماً، دون تكرار، وبنفس اللغة والمستوى:\n\n" + "\n\n".join(merged)
+        )
+        raw = cls.execute_chat_completion(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            provider=provider,
+            api_key=api_key,
+            base_url=base_url,
+            model=model,
+            json_mode=True,
+        )
+        raw = re.sub(r'^```json\s*', '', raw.strip())
+        raw = re.sub(r'\s*```$', '', raw)
+        parsed_json = json.loads(raw)
+        result = cls.sanitize_output(parsed_json)
+        if isinstance(result, dict):
+            result["based_on_parts"] = len(partials)
+            result["truncated"] = truncated
+        return result
+
+    @classmethod
+    def generate_summary_and_mindmap(
+        cls,
+        full_text: str,
+        level: str = "full",
+        language: str = "ar",
+        provider: str = "gemini",
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        model: Optional[str] = None,
+        custom_system_prompt: Optional[str] = None
+    ) -> Dict[str, Any]:
+        if not full_text.strip():
+            return {
+                "title": "لا يوجد مستند مرفوع",
+                "overview": "يرجى رفع ملف المحاضرة أولاً.",
+                "key_points": ["ارفع الملف لبدء التلخيص."],
+                "definitions": [],
+                "comparisons": [],
+                "exam_traps": [],
+                "formulas_rules": [],
+                "mindmap": {"label": "ارفع ملفاً", "children": []}
+            }
+
         char_limit = 8000 if level == "quick" else (16000 if level == "deep" else 12000)
+        system_prompt = cls._summary_system_prompt(level, language, custom_system_prompt)
+
+        # T3.2 — الوثائق الأطول من الحد تُلخص مرحلياً بدل اقتطاع ذيلها
+        if len(full_text) > char_limit:
+            try:
+                return cls._summarize_long(
+                    full_text, char_limit, level, language, system_prompt,
+                    provider, api_key, base_url, model,
+                )
+            except Exception as e:
+                err_str = str(e)
+                if "timed out" in err_str.lower() or "timeout" in err_str.lower():
+                    raise ValueError("استغرق خادم الذكاء الاصطناعي وقتاً أطول من المعتاد لمعالجة المستند الكامل. تم رفع المهلة، ويمكنك تجربة 'ملخص سريع' أو اختيار نموذج فائق السرعة مثل Gemini Flash أو Groq.")
+                raise ValueError(f"تعذر استخراج الملخص الأكاديمي: {err_str}")
+
         user_prompt = f"نص المادة التعليمية المطلوب تلخيصها استناداً إلى محتواها العلمي حصراً:\n{full_text[:char_limit]}"
 
         try:
@@ -1109,6 +1235,48 @@ class AIService:
             }
 
     @classmethod
+    def _translate_single(
+        cls,
+        system_prompt: str,
+        content: str,
+        source_lang: str,
+        target_lang: str,
+        mode: str,
+        provider: str,
+        api_key: Optional[str],
+        base_url: Optional[str],
+        model: Optional[str],
+    ) -> Dict[str, Any]:
+        """ترجمة مقطع واحد عبر النموذج (JSON). تُستخدم للممر المفرد والمرحلي."""
+        user_prompt = f"المستند المطلوب ترجمته:\n{content}"
+        raw = cls.execute_chat_completion(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            provider=provider,
+            api_key=api_key,
+            base_url=base_url,
+            model=model,
+            json_mode=True
+        )
+        raw = re.sub(r'^```json\s*', '', raw.strip())
+        raw = re.sub(r'\s*```$', '', raw)
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            # Try locating the outermost JSON object if model included extraneous text
+            match = re.search(r'\{[\s\S]*\}', raw)
+            if match:
+                data = json.loads(match.group(0))
+            else:
+                raise
+        if not isinstance(data, dict):
+            data = {"full_translated_text": str(data)}
+        data["source_lang"] = source_lang
+        data["target_lang"] = target_lang
+        data["mode"] = mode
+        return data
+
+    @classmethod
     def translate_document(
         cls,
         full_text: str,
@@ -1167,37 +1335,58 @@ class AIService:
         )
 
         system_prompt = custom_system_prompt or default_system_prompt
-        
+
+        # T3.2 — الوثائق الطويلة تُترجم مرحلياً (مقطعاً مقطعاً) بدل اقتطاع ذيلها
+        if len(full_text or "") > 8000:
+            all_chunks = cls._split_text_chunks(full_text, chunk_chars=6000, overlap=200)
+            chunks = all_chunks[:cls.MAX_TRANSLATE_CHUNKS]
+            truncated = len(all_chunks) > len(chunks)
+            merged_text, merged_units, merged_pages = [], [], []
+            page_num = 0
+            for ch in chunks:
+                try:
+                    part = cls._translate_single(
+                        system_prompt, ch, source_lang, target_lang, mode,
+                        provider, api_key, base_url, model,
+                    )
+                except Exception:
+                    continue
+                if part.get("full_translated_text"):
+                    merged_text.append(part["full_translated_text"])
+                for u in part.get("units") or []:
+                    if isinstance(u, dict):
+                        merged_units.append(u)
+                for pg in part.get("parallel_pages") or []:
+                    if isinstance(pg, dict):
+                        page_num += 1
+                        merged_pages.append({
+                            "page_num": page_num,
+                            "original_text": pg.get("original_text", ""),
+                            "translated_text": pg.get("translated_text", ""),
+                        })
+            if merged_text or merged_units:
+                return cls.sanitize_output({
+                    "source_lang": source_lang,
+                    "target_lang": target_lang,
+                    "mode": mode,
+                    "translated_title": "ترجمة المستند الأكاديمي (مرحلية)",
+                    "summary_overview": f"تُرجمت الوثيقة على {len(chunks)} مقاطع لطولها.",
+                    "full_translated_text": "\n\n".join(merged_text),
+                    "units": merged_units,
+                    "parallel_pages": merged_pages,
+                    "chunks_count": len(chunks),
+                    "truncated": truncated,
+                })
+            # تعذّرت كل المقاطع: نسقط للمسار المفرد (عينة البداية) أدناه
+
         # Take first ~7500 chars to avoid token limits on heavy models
         content_sample = full_text[:8000]
-        user_prompt = f"المستند المطلوب ترجمته:\n{content_sample}"
 
         try:
-            raw = cls.execute_chat_completion(
-                system_prompt=system_prompt,
-                user_prompt=user_prompt,
-                provider=provider,
-                api_key=api_key,
-                base_url=base_url,
-                model=model,
-                json_mode=True
+            data = cls._translate_single(
+                system_prompt, content_sample, source_lang, target_lang, mode,
+                provider, api_key, base_url, model,
             )
-            raw = re.sub(r'^```json\s*', '', raw.strip())
-            raw = re.sub(r'\s*```$', '', raw)
-            try:
-                data = json.loads(raw)
-            except json.JSONDecodeError:
-                # Try locating the outermost JSON object if model included extraneous text
-                match = re.search(r'\{[\s\S]*\}', raw)
-                if match:
-                    data = json.loads(match.group(0))
-                else:
-                    raise
-            if not isinstance(data, dict):
-                data = {"full_translated_text": str(data)}
-            data["source_lang"] = source_lang
-            data["target_lang"] = target_lang
-            data["mode"] = mode
             return cls.sanitize_output(data)
         except Exception as e:
             # Fallback structure

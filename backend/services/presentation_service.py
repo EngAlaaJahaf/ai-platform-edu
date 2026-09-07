@@ -55,8 +55,8 @@ ARTS = [
     "market", "competition", "advantage", "pricing", "journey", "ops",
     "finance", "closing",
 ]
-TEMPLATES_ACADEMIC = ["cover", "content", "twocol", "stats", "table", "chart", "timeline", "closing"]
-TEMPLATES_DARK = ["cover", "content", "twocol", "stats", "table", "steps", "closing"]
+TEMPLATES_ACADEMIC = ["cover", "content", "twocol", "stats", "table", "chart", "timeline", "closing", "quote"]
+TEMPLATES_DARK = ["cover", "content", "twocol", "stats", "table", "steps", "closing", "quote"]
 
 AR_DEFAULT_SLIDE_ORDER = "cover؛ خلفية المشكلة؛ الحل؛ المنتج؛ القيمة؛ الرؤية؛ السوق؛ المنافسون؛ التميز؛ نموذج الإيرادات؛ رحلة العميل؛ التشغيل؛ الخطة المالية؛ closing"
 
@@ -80,6 +80,7 @@ DECK_SYSTEM_PROMPT = """أنت استراتيجي محتوى عروض تقديم
 6. timeline (خط زمني): {"template":"timeline","kicker":"...","title":"...","lead":"...","steps":[{"t":"المرحلة","d":"شرح"}],"takeaway":"..."}
 7. table (جدول): {"template":"table","kicker":"...","title":"...","headers":["عمود","عمود"],"rows":[["خ1","خ2"],["..."]],"note":"...","takeaway":"..."}
 8. closing (الشريحة الأخيرة): {"template":"closing","kicker":"الخاتمة","title":"شكراً لكم","message":"جملة ختامية بأسلوب مؤثر — استثمر في ...","chips":["كلمة","كلمة"]}
+9. quote (اقتباس): {"template":"quote","kicker":"اقتباس ملهم","quote":"نص الاقتباس الحرفي","author":"اسم القائل","takeaway":"..."}
 
 ## الحقول الإجبارية
 - كل شريحة يجب أن تحمل "takeaway" (خلاصة في سطر) و "num" (رقم تسلسلي بصيغة "01").
@@ -489,6 +490,11 @@ class PresentationService:
                 "title": st("title", "شكراً لكم"),
                 "message": st("message", f"استثمر في هذا المشروع اليوم — {st('title')}."),
                 "chips": slist("chips") or ["فريق متخصص", "سوق ينتظر", "نموذج مالي"],
+            })
+        elif tmpl == "quote":
+            slide.update({
+                "quote": st("quote", "العلم في الصغر كالنقش على الحجر."),
+                "author": st("author", ""),
             })
         return slide
 

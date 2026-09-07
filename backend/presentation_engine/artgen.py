@@ -6,25 +6,64 @@
   ويُستبدل لاحقاً تلقائياً بالصور الحقيقية عند توفر المفتاح (إعادة تشغيل نفس الأمر).
 
 الاستخدام:
-    python artgen.py              # تلقائي: حقيقي إن وُجد مفتاح، وإلا احتياطي
+    python artgen.py              # تلقائي: حقيقي إن وُجد مفتاح، وإلا احتياطي (لوحة academic في art/)
     python artgen.py --real       # فرض الاستدعاء الحقيقي
+    python artgen.py --palette dark-tech            # خلفيات بهوية داكنة في art/dark-tech/
+    python artgen.py --colors "#101828,#E3B341,#4CC2FF,#3A4A63" --outdir art/custom
+    python artgen.py --list-palettes
 
 الإعداد:
     setx OPENAI_API_KEY "sk-..."      # على مستوى المستخدم
     setx OPENAI_BASE_URL "..."        # اختياري: مزود متوافق مع OpenAI
 """
+# T3.2: see module docstring — --palette/--colors/--outdir tint backgrounds
+# with the active visual identity instead of the fixed academic palette.
 import sys, os, json, base64, io, urllib.request, pathlib
 from PIL import Image, ImageDraw
 
 sys.stdout.reconfigure(encoding="utf-8")
 BASE = os.path.dirname(os.path.abspath(__file__))
 
-PROMPT_BASE = (
-    "Flat vector line-art illustration in a clean corporate university style. "
-    "Use ONLY the colors: warm ivory background #F8F7F2, dark navy #0F2D4A and teal #20B2AA (and light gray #E3E8EE). "
-    "Keep at least 60% of the canvas as plain ivory #F8F7F2 so text can be overlaid on top. "
-    "Simple 2D forms, thin smooth strokes, soft flat shapes, generous negative space, no photo, no 3D, no photorealistic render. "
-)
+# T3.2 — لوحات الهوية للخلفيات (bg = الخلفية، primary/secondary = الأشكال، gray = محايد)
+PALETTES = {
+    "academic": {
+        "bg": "#F8F7F2", "primary": "#20B2AA", "secondary": "#0F2D4A", "gray": "#C3CDD7",
+    },
+    "dark-tech": {
+        "bg": "#0B1220", "primary": "#E3B341", "secondary": "#4CC2FF", "gray": "#3A4A63",
+    },
+}
+
+
+def _hex_to_rgb(h):
+    h = h.lstrip("#")
+    return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+
+
+def _mix_rgb(a, b, t):
+    return tuple(round(x + (y - x) * t) for x, y in zip(a, b))
+
+
+def resolve_palette(name=None, colors=None):
+    """يعيد (palette_name, palette_dict). --colors بصيغة bg,primary,secondary,gray."""
+    if colors:
+        parts = [p.strip() for p in colors.split(",")]
+        if len(parts) != 4 or any(not p.startswith("#") or len(p) != 7 for p in parts):
+            raise SystemExit("صيغة --colors يجب أن تكون: bg,primary,secondary,gray بصيغة #RRGGBB (4 ألوان).")
+        return (name or "custom"), {"bg": parts[0], "primary": parts[1], "secondary": parts[2], "gray": parts[3]}
+    name = name or "academic"
+    if name not in PALETTES:
+        raise SystemExit(f"اللوحة '{name}' غير معروفة. المتاح: {', '.join(PALETTES)} أو استخدم --colors.")
+    return name, dict(PALETTES[name])
+
+
+def build_prompt(palette):
+    return (
+        "Flat vector line-art illustration in a clean corporate university style. "
+        f"Use ONLY the colors: background {palette['bg']}, primary {palette['primary']} and secondary {palette['secondary']} (and neutral gray {palette['gray']}). "
+        f"Keep at least 60% of the canvas as plain {palette['bg']} so text can be overlaid on top. "
+        "Simple 2D forms, thin smooth strokes, soft flat shapes, generous negative space, no photo, no 3D, no photorealistic render. "
+    )
 NO_TEXT = ("ABSOLUTE CONSTRAINT: the image MUST contain NO text, NO words, NO letters, NO numbers, "
            "NO digits, NO logos, NO watermarks, NO signatures — illustration-only background.")
 RATIO = "Wide landscape 16:9 composition, decorative elements only at the edges."
@@ -69,13 +108,20 @@ def crop16x9(raw):
     return im.resize((1280, 720), Image.LANCZOS)
 
 
-def fallback_art(key, brief):
-    im = Image.new("RGB", (1280, 720), (248, 247, 242))
+def fallback_art(key, brief, palette=None, out_dir=None):
+    pal = palette or PALETTES["academic"]
+    bg = _hex_to_rgb(pal["bg"])
+    primary = _hex_to_rgb(pal["primary"])
+    secondary = _hex_to_rgb(pal["secondary"])
+    gray = _hex_to_rgb(pal["gray"])
+    # تدرج رأسي لطيف: من لون الخلفية نحو نسخة أغمق قليلاً
+    bg_end = _mix_rgb(bg, (0, 0, 0), 0.04)
+    im = Image.new("RGB", (1280, 720), bg)
     d = ImageDraw.Draw(im)
     for y in range(720):
         t = y / 720
-        d.line([(0, y), (1280, y)], fill=(248 - int(6 * t), 247 - int(8 * t), 242 - int(4 * t)))
-    teal, navy, gray = (144, 206, 202), (80, 106, 136), (195, 205, 215)
+        d.line([(0, y), (1280, y)], fill=tuple(round(a + (b - a) * t) for a, b in zip(bg, bg_end)))
+    teal, navy = primary, secondary
     def blob(cx, cy, r, col):
         d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=col)
     def ring(cx, cy, r, col, w=2):
@@ -104,28 +150,45 @@ def fallback_art(key, brief):
             r = 34
             col = teal if i % 2 == 0 else navy
             d.ellipse([x - r, y - r, x + r, y + r], fill=col)
-            d.ellipse([x - r // 2, y - r // 2, x + r // 2, y + r // 2], outline=(248, 247, 242), width=2)
+            d.ellipse([x - r // 2, y - r // 2, x + r // 2, y + r // 2], outline=bg, width=2)
             if i < 6:
                 d.line([(x + r + 12, y + 3), (x + r + 114, y + 3)], fill=gray, width=3)
-    im.save(os.path.join(BASE, "art", f"bg_{key}.png"))
+    target_dir = out_dir or os.path.join(BASE, "art")
+    os.makedirs(target_dir, exist_ok=True)
+    im.save(os.path.join(target_dir, f"bg_{key}.png"))
+
+
+def _cli_arg(name):
+    if name in sys.argv:
+        i = sys.argv.index(name)
+        if i + 1 < len(sys.argv) and not sys.argv[i + 1].startswith("--"):
+            return sys.argv[i + 1]
+    return None
 
 
 def main():
+    if "--list-palettes" in sys.argv:
+        for name, pal in PALETTES.items():
+            print(f" {name}: bg={pal['bg']} primary={pal['primary']} secondary={pal['secondary']} gray={pal['gray']}")
+        return
     real = "--real" in sys.argv
-    os.makedirs(os.path.join(BASE, "art"), exist_ok=True)
+    pal_name, palette = resolve_palette(_cli_arg("--palette"), _cli_arg("--colors"))
+    out_dir = _cli_arg("--outdir") or (os.path.join(BASE, "art") if pal_name == "academic" else os.path.join(BASE, "art", pal_name))
+    os.makedirs(out_dir, exist_ok=True)
     use_ai = bool(os.environ.get("OPENAI_API_KEY"))
     if real and not use_ai:
         raise SystemExit("المفتاح غير موجود ولا يمكن فرض الوضع الحقيقي.")
+    prompt_base = build_prompt(palette)
     for key, b in art_briefs().items():
-        prompt = PROMPT_BASE + "\n" + b.get("brief", "") + "\n" + NO_TEXT + "\n" + RATIO
-        out = os.path.join(BASE, "art", f"bg_{key}.png")
+        prompt = prompt_base + "\n" + b.get("brief", "") + "\n" + NO_TEXT + "\n" + RATIO
+        out = os.path.join(out_dir, f"bg_{key}.png")
         if use_ai:
             crop16x9(call_openai(prompt)).save(out)
             print(" [AI]       ", key)
         else:
-            fallback_art(key, b)
+            fallback_art(key, b, palette=palette, out_dir=out_dir)
             print(" [fallback] ", key)
-    print("اكتمل توليد الخلفيات في art/")
+    print(f"اكتمل توليد الخلفيات ({pal_name}) في {out_dir}")
     if not use_ai:
         print("ملاحظة: الوضع الاحتياطي. لتوليد صور حقيقية اضبط OPENAI_API_KEY ثم: python artgen.py --real")
 

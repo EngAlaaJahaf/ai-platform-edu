@@ -345,12 +345,22 @@ def acad_closing(d):
 </section>"""
 
 
+def acad_quote(d):
+    return f"""
+<section class="slide closing2">
+  <span class="kicker">{d.get('kicker','اقتباس ملهم')}</span>
+  <div class="bigline" style="font-size:34px;line-height:1.9">“{d.get('quote','')}”</div>
+  <div class="chips"><span class="chip">— {d.get('author','')}</span></div>
+  <div class="anchor" style="background:var(--navy)"><span class="lab">الخلاصة</span><span class="txt">{d.get('takeaway','')}</span><span class="page">{d.get('num','')}</span></div>
+</section>"""
+
+
 ACAD = {
     "css": ACAD_CSS,
     "templates": {
         "cover": acad_cover, "content": acad_content, "twocol": acad_twocol,
         "stats": acad_stats, "table": acad_table, "chart": acad_chart,
-        "timeline": acad_timeline, "closing": acad_closing,
+        "timeline": acad_timeline, "closing": acad_closing, "quote": acad_quote,
     },
 }
 
@@ -365,7 +375,7 @@ body{font-family:'Cairo Fe',"Segoe UI","Tahoma",sans-serif;background:var(--bgDa
 .slide{--main:#e3b341;--main-soft:#e3b3411a;--main-line:#e3b34155;--main-glow:rgba(227,179,65,.20);
   --surface2:#0e1628;--line-dim:#ffffff12;--line-dim2:#ffffff0d;--text-dim:#66738c;--text-mid:#9fa9be;
   --text-bright:#c6cfe0;--text-strong:#eef2fa;--text-chip:#dbe3f2;--wm2:#ffffff08;--grid:#ffffff05;
-  --chip-bg2:#ffffff0a;--bars:#3d4b6b;
+  --chip-bg2:#ffffff0a;--bars:#3d4b6b;--art-tint:rgba(11,18,32,.78);
   position:relative;width:1280px;height:720px;padding:64px 84px 58px;overflow:hidden;background:var(--bgDark)}
 .a-sky{--main:#4cc2ff;--main-soft:#4cc2ff1a;--main-line:#4cc2ff55;--main-glow:rgba(76,194,255,.18)}
 .a-purple{--main:#9b6bff;--main-soft:#9b6bff1a;--main-line:#9b6bff55;--main-glow:rgba(155,107,255,.18)}
@@ -501,11 +511,22 @@ def dark_closing(d):
 </section>"""
 
 
+def dark_quote(d):
+    return f"""
+<section class="slide a-{d.get('accent','gold')}">
+  <span class="kicker">{d.get('kicker','اقتباس ملهم')}</span>
+  <div class="bigline">“{d.get('quote','')}”</div>
+  <div class="chips"><span class="chip">— {d.get('author','')}</span></div>
+  <div class="footer"><span>{d.get('takeaway','')}</span><span>{d.get('num','')}</span></div>
+</section>"""
+
+
 DARK = {
     "css": DARK_CSS,
     "templates": {
         "cover": dark_cover, "content": dark_content, "twocol": dark_twocol,
         "stats": dark_stats, "table": dark_table, "steps": dark_steps, "closing": dark_closing,
+        "quote": dark_quote,
     },
 }
 
@@ -547,7 +568,8 @@ def _identity_css_override(identity, base):
                       f"--surface2:{surface2};--line-dim:{_rgba(text,.08)};--line-dim2:{_rgba(text,.05)};"
                       f"--text-dim:{_rgba(text,.5)};--text-mid:{_rgba(text,.68)};--text-bright:{_rgba(text,.84)};"
                       f"--text-strong:{text};--text-chip:{text};--wm2:{_rgba(text,.04)};--grid:{_rgba(text,.03)};"
-                      f"--chip-bg2:{_rgba(text,.05)};--bars:{_mix(text,'#000',.55)};color:{text}}}")
+                      f"--chip-bg2:{_rgba(text,.05)};--bars:{_mix(text,'#000',.55)};color:{text};"
+                      f"--art-tint:{_rgba(bgDark,.78)}}}")
         for cls, m in _DARK_ACCENT_MAIN.items():
             formed.append(f".slide.a-{cls}{{--main:{m};--main-soft:{m}1a;--main-line:{m}55;--main-glow:{_rgba(m,.18)}}}")
         formed.append(f"body{{background:{bgDark}}}")
@@ -596,7 +618,7 @@ def _identity_css_override(identity, base):
 
 def _font_safe(name):
     import re as _re
-    n = _re.sub(r"[^0-9A-Za-z\u0600-\u06FF \-]", "", str(name)).strip()
+    n = _re.sub(r"[^0-9A-Za-z\u0600-\u06FF _.\-]", "", str(name)).strip()
     return n or "Cairo Fe"
 
 
@@ -620,6 +642,33 @@ def _mix(hex_from, hex_to, t):
 
 
 # ==================================================== بناء/تصدير/تجميع
+def _art_path(art, theme_name):
+    """مسار خلفية art حسب الهوية: art/{theme}/ أولاً ثم art/ القديم (توافق)."""
+    themed = os.path.join(BASE, "art", theme_name, f"bg_{art}.png")
+    if os.path.isfile(themed):
+        return themed
+    legacy = os.path.join(BASE, "art", f"bg_{art}.png")
+    return legacy if os.path.isfile(legacy) else None
+
+
+def available_fonts():
+    """عائلات الخطوط المتاحة في fonts/ (اسم العائلة = اسم الملف)."""
+    try:
+        return sorted({p.stem for p in pathlib.Path(os.path.join(BASE, "fonts")).glob("*.ttf")})
+    except Exception:
+        return []
+
+
+def extra_font_faces():
+    """‎@font-face لأي خط إضافي في fonts/ (المضمّنة افتراضياً تُتجاهل)."""
+    faces = []
+    for stem in available_fonts():
+        if stem in ("Cairo-VF", "Changa-VF"):
+            continue
+        faces.append(f"@font-face{{font-family:'{stem}';src:url('../../fonts/{stem}.ttf') format('truetype');font-display:swap}}")
+    return "\n".join(faces)
+
+
 def render_slide(d, css, theme_name):
     t = THEMES[theme_name]["templates"]
     fn = t.get(d.get("template"))
@@ -627,8 +676,9 @@ def render_slide(d, css, theme_name):
         raise SystemExit(f"قالب غير معروف {d.get('template')} لهوية {theme_name}")
     html = fn(d)
     art = d.get("art")
-    if art and os.path.isfile(os.path.join(BASE, "art", f"bg_{art}.png")):
-        url = pathlib.Path(os.path.join(BASE, "art", f"bg_{art}.png")).resolve().as_uri()
+    art_file = _art_path(art, theme_name) if art else None
+    if art_file:
+        url = pathlib.Path(art_file).resolve().as_uri()
         html = html.replace('<section class="slide',
                             f'<section class="slide hasart" style="background-image:url(\'{url}\');background-size:cover;background-position:center"', 1)
     return f'<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>{css}</style></head><body>{html}</body></html>'
@@ -681,7 +731,7 @@ def main():
     deck = json.load(open(sys.argv[1], encoding="utf-8"))
     theme_name, css_override = resolve_theme(deck)
     theme = THEMES[theme_name]
-    css = theme["css"] + ("\n" + css_override if css_override else "")
+    css = theme["css"] + ("\n" + extra_font_faces() if available_fonts() else "") + ("\n" + css_override if css_override else "")
     out_prefix = None
     if "--out" in sys.argv:
         out_prefix = sys.argv[sys.argv.index("--out") + 1]
