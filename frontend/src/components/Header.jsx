@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Languages, 
   BrainCircuit, 
@@ -20,6 +20,7 @@ import {
   Menu, 
   X, 
   BookOpen, 
+  BookMarked,
   ShieldAlert,
   Presentation 
 } from 'lucide-react';
@@ -55,6 +56,7 @@ export default function Header({
   // Primary 4 Core Study Tabs
   const primaryTabs = [
     { id: 'translate', label: 'ترجمة المقررات', icon: Languages },
+    { id: 'terms', label: 'المصطلحات الأكاديمية', icon: BookMarked },
     { id: 'quiz', label: 'استوديو الاختبارات', icon: BrainCircuit },
     { id: 'chat', label: 'المحادثة الذكية', icon: MessageSquareText },
     { id: 'summary', label: 'التلخيص والخريطة', icon: FileText }
