@@ -1,26 +1,27 @@
 ﻿import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Languages, 
-  BrainCircuit, 
-  MessageSquareText, 
-  FileText, 
-  LayoutDashboard, 
-  CheckCheck, 
-  Crown, 
-  Upload, 
-  User, 
-  Wand2, 
-  Sun, 
-  Moon, 
-  Settings, 
-  ChevronDown, 
-  FolderOpen, 
-  MoreHorizontal, 
-  GraduationCap, 
-  Menu, 
-  X, 
-  BookOpen, 
-  ShieldAlert 
+import {
+  Languages,
+  BrainCircuit,
+  MessageSquareText,
+  FileText,
+  LayoutDashboard,
+  CheckCheck,
+  Crown,
+  Upload,
+  User,
+  Wand2,
+  Sun,
+  Moon,
+  Settings,
+  ChevronDown,
+  FolderOpen,
+  MoreHorizontal,
+  GraduationCap,
+  Menu,
+  X,
+  BookOpen,
+  BookMarked,
+  ShieldAlert
 } from 'lucide-react';
 import { getApiKey, getAIProvider, getSelectedModel } from '../services/api';
 
@@ -54,6 +55,7 @@ export default function Header({
   // Primary 4 Core Study Tabs
   const primaryTabs = [
     { id: 'translate', label: 'ترجمة المقررات', icon: Languages },
+    { id: 'terms', label: 'المصطلحات الأكاديمية', icon: BookMarked },
     { id: 'quiz', label: 'استوديو الاختبارات', icon: BrainCircuit },
     { id: 'chat', label: 'المحادثة الذكية', icon: MessageSquareText },
     { id: 'summary', label: 'التلخيص والخريطة', icon: FileText }
