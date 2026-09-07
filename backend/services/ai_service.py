@@ -1024,6 +1024,91 @@ class AIService:
             }
 
     @classmethod
+    def generate_template_theme(
+        cls,
+        identity_goal: str,
+        topic: Optional[str] = None,
+        provider: str = "gemini",
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        model: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Design a visual-identity/theme blueprint for the presentation renderer using AI.
+
+        Returns a JSON blueprint:
+        {
+          "name": "...", "description": "...",
+          "base": "academic"|"dark-tech",
+          "colors": {...},          # CSS color tokens matching the chosen base
+          "fonts": {"fh": "...", "fb": "..."},
+          "accent": "gold"|"sky"|"purple"|"teal"|"rose"
+        }
+        """
+        meta_prompt = (
+            "أنت مصمم هويات بصرية (Visual Identity Designer) خبير في العروض التقديمية الأكاديمية والاحترافية العربية. "
+            "صمم هوية بصرية مخصّصة لقالب عرض تقديمي. يجب أن تكون الألوان متناسقة، جذابة، وقابلة للقراءة (تباين عالٍ للنص).\n"
+            "أرجع النتيجة بنص JSON حصراً بدون أي شرح خارجي:\n"
+            "{\n"
+            '  "name": "اسم عربي جذاب للهوية",\n'
+            '  "description": "وصف مختصر للهوية في سطر واحد",\n'
+            '  "base": "academic" أو "dark-tech",\n'
+            '  "colors": {\n'
+            '     "navy": "لون أساسي HEX", "teal": "لون مميز/ثانوي HEX", "bg": "لون الخلفية HEX",\n'
+            '     "bg2": "خلفية ثانوية HEX", "card": "لون البطاقات HEX", "gray": "لون النص الثانوي HEX", "line": "لون الحدود HEX"\n'
+            '  } إذا كانت base=academic،\n'
+            '  أو {"main":"اللون المميز HEX","bgDark":"خلفية داكنة HEX","surface":"سطح داكن HEX","text":"نص فاتح HEX"} إذا كانت base=dark-tech،\n'
+            '  "fonts": {"fh": "Changa Fe", "fb": "Cairo Fe"},\n'
+            '  "accent": "gold" أو "sky" أو "purple" أو "teal" أو "rose"\n'
+            "}"
+        )
+        builder = f"الهوية البصرية المطلوبة: {identity_goal}"
+        if topic:
+            builder += f"\nموضوع العرض الذي ستخدمه هذه الهوية: {topic}"
+        builder += (
+            "\nملاحظات تقنية: استخدم ألوان HEX فقط. تدرّج ارتباطاً بالموضوع (تقني=داكن أزرق/بنفسجي/سماوي، "
+            "أكاديمي=فاتح نقي، طبي=فاتح مع سماوي/أخضر، مالي=كحلي/ذهبي، تسويق=نابض ملون). "
+            "لا تستخدم sina/نصوص في الألوان."
+        )
+        try:
+            raw = cls.execute_chat_completion(
+                system_prompt=meta_prompt,
+                user_prompt=builder,
+                provider=provider,
+                api_key=api_key,
+                base_url=base_url,
+                model=model,
+                json_mode=True,
+                temperature=0.7,
+            )
+            raw = re.sub(r'^```json\s*', '', raw.strip())
+            raw = re.sub(r'\s*```$', '', raw)
+            blueprint = json.loads(raw)
+            if not isinstance(blueprint, dict) or "base" not in blueprint:
+                raise ValueError("مفتاح base مفقود")
+            blueprint["base"] = blueprint.get("base") if blueprint.get("base") in ("academic", "dark-tech") else "academic"
+            return blueprint
+        except Exception as e:
+            dark = any(k in (identity_goal + (topic or "")).lower() for k in
+                       ["داكن", "تقني", "تكنولوجي", "برمجي", "سايبر", "ذكاء اصطناعي", "dark", "tech", "ai"])
+            if dark:
+                return {
+                    "name": "تقني داكن",
+                    "description": f"هوية داكنة تقنية مناسبة لموضوع: {topic or identity_goal}",
+                    "base": "dark-tech",
+                    "colors": {"main": "#4cc2ff", "bgDark": "#0b1220", "surface": "#121c33", "text": "#e8edf5"},
+                    "fonts": {"fh": "Changa Fe", "fb": "Cairo Fe"},
+                    "accent": "sky",
+                }
+            return {
+                "name": "هوية أكاديمية",
+                "description": f"هوية فاتحة نظيفة مناسبة لموضوع: {topic or identity_goal}",
+                "base": "academic",
+                "colors": {"navy": "#0F2D4A", "teal": "#20B2AA", "bg": "#F8F7F2", "bg2": "#F1F4F8", "card": "#FFFFFF", "gray": "#5A6E7F", "line": "#E3E8EE"},
+                "fonts": {"fh": "Changa Fe", "fb": "Cairo Fe"},
+                "accent": "navy",
+            }
+
+    @classmethod
     def translate_document(
         cls,
         full_text: str,

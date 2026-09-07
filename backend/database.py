@@ -160,6 +160,47 @@ def init_db():
     );
     """)
 
+    # Templates table (مكتبة قوالب/هويات بصرية لإنشاء العروض)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS templates (
+        id TEXT PRIMARY KEY,
+        user_id TEXT DEFAULT 'system',  -- 'system' = built-in
+        title TEXT NOT NULL,
+        description TEXT DEFAULT '',
+        base TEXT NOT NULL DEFAULT 'academic',  -- 'academic' | 'dark-tech'
+        colors_json TEXT NOT NULL DEFAULT '{}',
+        fonts_json TEXT NOT NULL DEFAULT '{}',
+        accent TEXT DEFAULT 'gold',
+        preview_b64 TEXT,
+        is_default INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
+    # Seed built-in templates (the two existing visual identities)
+    cursor.execute("SELECT COUNT(*) FROM templates WHERE user_id='system'")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("""
+        INSERT INTO templates (id, user_id, title, description, base, colors_json, fonts_json, accent, is_default)
+        VALUES (?,?,?,?,?,?,?,?,?)
+        """, (
+            'tpl_academic', 'system', 'أكاديمي هادئ',
+            'أزرق فاتح، نظيف، مناسب للمقررات والمشاريع الجامعية',
+            'academic',
+            '{"navy":"#0F2D4A","teal":"#20B2AA","bg":"#F8F7F2","bg2":"#F1F4F8","card":"#FFFFFF","gray":"#5A6E7F","line":"#E3E8EE"}',
+            '{"fh":"Changa Fe","fb":"Cairo Fe"}', 'navy', 1,
+        ))
+        cursor.execute("""
+        INSERT INTO templates (id, user_id, title, description, base, colors_json, fonts_json, accent, is_default)
+        VALUES (?,?,?,?,?,?,?,?,?)
+        """, (
+            'tpl_dark_tech', 'system', 'تقني داكن',
+            'واجهات داكنة، أنيق لعروض الابتكار ومشاريع التخرج التقنية',
+            'dark-tech',
+            '{"main":"#e3b341","bgDark":"#0b1220","surface":"#121c33","text":"#e8edf5"}',
+            '{"fh":"Changa Fe","fb":"Cairo Fe"}', 'gold', 1,
+        ))
+
     # Safe Schema Migrations for users table (role & password_hash)
     try:
         cursor.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'student';")
@@ -824,6 +865,106 @@ def delete_prompt(prompt_id: str):
     conn.commit()
     conn.close()
     log_activity("delete_prompt", f"تم حذف قالب التوجيه {prompt_id}", "warn")
+
+# -------------------------------------------------------------
+# Templates (visual-identity/theme library for presentations)
+# -------------------------------------------------------------
+
+def list_templates(user_id: Optional[str] = None, include_system: bool = True) -> List[Dict[str, Any]]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    import json as _json
+    if include_system and user_id:
+        cursor.execute("""
+            SELECT * FROM templates
+            WHERE user_id = 'system' OR user_id = ?
+            ORDER BY is_default DESC, created_at DESC
+        """, (user_id,))
+    elif include_system:
+        cursor.execute("SELECT * FROM templates ORDER BY is_default DESC, created_at DESC")
+    else:
+        cursor.execute("SELECT * FROM templates WHERE user_id = ? ORDER BY created_at DESC", (user_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    out = []
+    for r in rows:
+        t = dict(r)
+        try:
+            t["colors"] = _json.loads(t.pop("colors_json") or "{}")
+        except Exception:
+            t["colors"] = {}
+        try:
+            t["fonts"] = _json.loads(t.pop("fonts_json") or "{}")
+        except Exception:
+            t["fonts"] = {}
+        out.append(t)
+    return out
+
+def save_template(payload: Dict[str, Any], user_id: str = "custom") -> Dict[str, Any]:
+    import json as _json
+    tid = payload.get("id") or f"tpl_{uuid.uuid4().hex[:10]}"
+    title = payload.get("title", "قالب مخصص")
+    description = payload.get("description", "")
+    base = payload.get("base", "academic")
+    colors = _json.dumps(payload.get("colors") or {}, ensure_ascii=False)
+    fonts = _json.dumps(payload.get("fonts") or {}, ensure_ascii=False)
+    accent = payload.get("accent", "gold")
+    preview = payload.get("preview_b64") or ""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    row = cursor.execute("SELECT id FROM templates WHERE id = ?", (tid,)).fetchone()
+    is_default = 0
+    if row:
+        is_default = cursor.execute("SELECT is_default FROM templates WHERE id = ?", (tid,)).fetchone()[0]
+    cursor.execute("""
+        INSERT OR REPLACE INTO templates
+        (id, user_id, title, description, base, colors_json, fonts_json, accent, preview_b64, is_default, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT created_at FROM templates WHERE id = ?), CURRENT_TIMESTAMP))
+    """, (tid, user_id, title, description, base, colors, fonts, accent, preview, is_default, tid))
+    conn.commit()
+    cursor.execute("SELECT * FROM templates WHERE id = ?", (tid,))
+    saved = dict(cursor.fetchone())
+    conn.close()
+    log_activity("save_template", f"تم حفظ قالب/هوية: {title}", "info")
+    try:
+        saved["colors"] = _json.loads(saved.pop("colors_json") or "{}")
+        saved["fonts"] = _json.loads(saved.pop("fonts_json") or "{}")
+    except Exception:
+        saved["colors"] = {}
+        saved["fonts"] = {}
+    return saved
+
+def get_template(tid: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    import json as _json
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if user_id:
+        cursor.execute("SELECT * FROM templates WHERE id = ? AND (user_id = 'system' OR user_id = ?)", (tid, user_id))
+    else:
+        cursor.execute("SELECT * FROM templates WHERE id = ?", (tid,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    t = dict(row)
+    try:
+        t["colors"] = _json.loads(t.pop("colors_json") or "{}")
+        t["fonts"] = _json.loads(t.pop("fonts_json") or "{}")
+    except Exception:
+        t["colors"] = {}
+        t["fonts"] = {}
+    return t
+
+def delete_template(tid: str, user_id: Optional[str] = None):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if user_id:
+        cursor.execute("DELETE FROM templates WHERE id = ? AND is_default = 0 AND (user_id = ? OR user_id = 'system')", (tid, user_id))
+    else:
+        cursor.execute("DELETE FROM templates WHERE id = ? AND is_default = 0", (tid,))
+    conn.commit()
+    conn.close()
+    log_activity("delete_template", f"تم حذف القالب {tid}", "warn")
 
 # -------------------------------------------------------------
 # System Settings & Activity Logs

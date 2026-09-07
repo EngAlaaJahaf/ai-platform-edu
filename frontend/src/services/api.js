@@ -807,7 +807,7 @@ export async function clearAdminCache() {
 // Presentation Generator API (مولّد العروض التقديمية)
 // -------------------------------------------------------------
 
-export async function generatePresentation({ text, theme = 'academic', docId = null, startPage = null, endPage = null } = {}) {
+export async function generatePresentation({ text, theme = 'academic', docId = null, startPage = null, endPage = null, slideMin = 8, slideMax = 15 } = {}) {
   const res = await fetch(`${API_BASE}/presentations/generate`, {
     method: 'POST',
     headers: getHeaders(),
@@ -816,7 +816,9 @@ export async function generatePresentation({ text, theme = 'academic', docId = n
       theme,
       doc_id: docId || null,
       start_page: startPage != null ? startPage : null,
-      end_page: endPage != null ? endPage : null
+      end_page: endPage != null ? endPage : null,
+      slide_min: slideMin != null ? slideMin : 8,
+      slide_max: slideMax != null ? slideMax : 15
     })
   });
   if (!res.ok) {
@@ -908,4 +910,72 @@ export async function downloadPresentation(presId, format = 'pptx', filename = '
   link.click();
   document.body.removeChild(link);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// -------------------------------------------------------------
+// Templates API (مكتبة القوالب / الهويات البصرية)
+// -------------------------------------------------------------
+
+export async function fetchTemplates() {
+  const res = await fetch(`${API_BASE}/templates`, { headers: getHeaders() });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل جلب القوالب');
+  }
+  return await res.json();
+}
+
+export async function saveTemplate(payload) {
+  const res = await fetch(`${API_BASE}/templates`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل حفظ القالب');
+  }
+  return await res.json();
+}
+
+export async function deleteTemplate(templateId) {
+  const res = await fetch(`${API_BASE}/templates/${templateId}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل حذف القالب');
+  }
+  return await res.json();
+}
+
+export async function generateTemplate({ goal = '', topic = null } = {}) {
+  const res = await fetch(`${API_BASE}/templates/generate`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ goal, topic })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل توليد الهوية البصرية');
+  }
+  return await res.json();
+}
+
+export async function extractTemplateFromPptx(file) {
+  const form = new FormData();
+  form.append('file', file);
+  const headers = getHeaders();
+  delete headers['Content-Type'];
+  const res = await fetch(`${API_BASE}/templates/from-pptx`, {
+    method: 'POST',
+    headers,
+    body: form
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل استخراج الهوية من الملف');
+  }
+  return await res.json();
 }

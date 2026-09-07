@@ -40,12 +40,14 @@ import {
   downloadPresentation,
   presentationSlideUrl,
   fetchDocuments,
-  getApiKey
+  getApiKey,
+  fetchTemplates
 } from '../services/api';
+import TemplateModal from './TemplateModal';
 
 const THEMES = [
-  { id: 'academic', label: 'أكاديمي هادئ', desc: 'أزرق فاتح، نظيف، مناسب للمقررات والمشاريع الجامعية', swatches: 'from-sky-500 to-blue-700' },
-  { id: 'dark-tech', label: 'تقني داكن', desc: 'واجهات داكنة، أنيق لعروض الابتكار ومشاريع التخرج التقنية', swatches: 'from-slate-800 to-slate-950' }
+  { id: 'academic', label: 'أكاديمي هادئ', desc: 'أزرق فاتح، نظيف، مناسب للمقررات والمشاريع الجامعية', swatches: 'from-sky-500 to-blue-700', base: 'academic' },
+  { id: 'dark-tech', label: 'تقني داكن', desc: 'واجهات داكنة، أنيق لعروض الابتكار ومشاريع التخرج التقنية', swatches: 'from-slate-800 to-slate-950', base: 'dark-tech' }
 ];
 
 const SOURCES = [
@@ -122,11 +124,16 @@ function InlineNotice({ msg }) {
 
 export default function PresentationView({ onOpenApiKey }) {
   const [text, setText] = useState('');
-  const [theme, setTheme] = useState('academic');
+  const [theme, setTheme] = useState('academic'); // 'academic' | 'dark-tech' | identity object
+  const [slideMin, setSlideMin] = useState(8);
+  const [slideMax, setSlideMax] = useState(15);
   const [generating, setGenerating] = useState(false);
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
+  const [customTemplates, setCustomTemplates] = useState([]);
 
   const [currentId, setCurrentId] = useState(null);
   const [currentTitle, setCurrentTitle] = useState('');
@@ -179,6 +186,17 @@ export default function PresentationView({ onOpenApiKey }) {
 
   useEffect(() => { loadLibrary(); }, []);
 
+  const loadCustomTemplates = async () => {
+    try {
+      const data = await fetchTemplates();
+      setCustomTemplates(data.templates || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => { loadCustomTemplates(); }, []);
+
   const loadDocs = async () => {
     setLoadingDocs(true);
     try {
@@ -229,6 +247,24 @@ export default function PresentationView({ onOpenApiKey }) {
     }
   };
 
+  const handleApplyTemplate = async (tpl) => {
+    setTheme((prev) => {
+      const identity = {
+        base: tpl.base || (tpl.id === 'tpl_dark_tech' ? 'dark-tech' : 'academic'),
+        id: tpl.id,
+        name: tpl.title,
+        description: tpl.description,
+        colors: tpl.colors || {},
+        fonts: tpl.fonts || {},
+        accent: tpl.accent || (tpl.base === 'dark-tech' ? 'sky' : 'navy')
+      };
+      return identity;
+    });
+    setTemplateModalOpen(false);
+    setNotice(`استخدمت الهوية: ${tpl.title || tpl.name || 'قالب مخصص'}.`);
+    await loadCustomTemplates();
+  };
+
   const handleGenerate = async () => {
     setError('');
     setNotice('');
@@ -254,12 +290,16 @@ export default function PresentationView({ onOpenApiKey }) {
       const docId = (source === 'doc_full' || source === 'doc_pages') ? selectedDocId : null;
       const sp = source === 'doc_pages' ? (parseInt(startPage) || 1) : null;
       const ep = source === 'doc_pages' ? parseInt(endPage) : null;
+      const sMin = parseInt(slideMin) || 8;
+      const sMax = parseInt(slideMax) || 15;
       const result = await generatePresentation({
         text: source === 'text' ? text.trim() : '',
         theme,
         docId,
         startPage: sp,
-        endPage: ep
+        endPage: ep,
+        slideMin: sMin,
+        slideMax: sMax
       });
       setCurrentId(result.deck_id);
       setCurrentTitle(result.title || 'عرض تقديمي');
@@ -359,7 +399,11 @@ export default function PresentationView({ onOpenApiKey }) {
   };
 
   const slideCount = deckJson && Array.isArray(deckJson.slides) ? deckJson.slides.length : 0;
-  const themeLabel = THEMES.find(t => t.id === theme)?.label || theme;
+  const themeLabel = typeof theme === 'string'
+    ? (THEMES.find(t => t.id === theme)?.label || theme)
+    : (theme?.name || theme?.title || theme?.base || 'هوية مخصصة');
+  const activeIdentity = typeof theme === 'object' && theme !== null;
+  const isDarkIdentity = typeof theme === 'string' ? theme === 'dark-tech' : theme?.base === 'dark-tech';
   const stepActive = (n) => {
     if (n === 1) return true;
     if (n === 2) return !!currentId;
@@ -544,9 +588,18 @@ export default function PresentationView({ onOpenApiKey }) {
             )}
 
             {/* الهوية البصرية */}
-            <p className="text-[11px] font-black theme-text-primary mt-5 mb-2.5 flex items-center gap-1.5">
-              <LayoutGrid className="w-3.5 h-3.5 text-emerald-500" /> الهوية البصرية
-            </p>
+            <div className="flex items-center justify-between mt-5 mb-2.5">
+              <p className="text-[11px] font-black theme-text-primary flex items-center gap-1.5">
+                <LayoutGrid className="w-3.5 h-3.5 text-emerald-500" /> الهوية البصرية
+              </p>
+              <button
+                type="button"
+                onClick={() => setTemplateModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/15 text-violet-500 text-[11px] font-bold hover:bg-violet-500/25 transition cursor-pointer"
+              >
+                <Library className="w-3 h-3" /> معرض القوالب والألوان
+              </button>
+            </div>
             <div className="grid sm:grid-cols-2 gap-2.5">
               {THEMES.map((t) => (
                 <button
@@ -565,6 +618,64 @@ export default function PresentationView({ onOpenApiKey }) {
                   <span className="block text-[11px] theme-text-secondary mt-1 leading-relaxed">{t.desc}</span>
                 </button>
               ))}
+            </div>
+
+            {/* القوالب المخصصة المختارة */}
+            {isDarkIdentity && (
+              <div className="flex items-center gap-2 rounded-2xl p-3 border theme-card-inner mt-2.5">
+                <span className="w-3 h-3 rounded-full" style={{ background: (theme?.colors?.main || '#4cc2ff') }}></span>
+                <span className="text-[11px] font-black theme-text-primary flex-1">{theme?.name || theme?.title || 'هوية مخصصة'}</span>
+                <button
+                  type="button"
+                  onClick={() => setTheme('academic')}
+                  className="text-[10px] font-bold text-rose-500 hover:text-rose-400 transition cursor-pointer"
+                >
+                  إزالة
+                </button>
+              </div>
+            )}
+            {activeIdentity && !isDarkIdentity && (
+              <div className="flex items-center gap-2 rounded-2xl p-3 border theme-card-inner mt-2.5">
+                <span className="w-3 h-3 rounded-full" style={{ background: (theme?.colors?.navy || '#0F2D4A') }}></span>
+                <span className="text-[11px] font-black theme-text-primary flex-1">{theme?.name || theme?.title || 'هوية مخصصة'}</span>
+                <button
+                  type="button"
+                  onClick={() => setTheme('academic')}
+                  className="text-[10px] font-bold text-rose-500 hover:text-rose-400 transition cursor-pointer"
+                >
+                  إزالة
+                </button>
+              </div>
+            )}
+
+            {/* نطاق عدد الشرائح */}
+            <p className="text-[11px] font-black theme-text-primary mt-5 mb-2 flex items-center gap-1.5">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-500" /> عدد الشرائح
+            </p>
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] theme-text-secondary">من</span>
+                <input
+                  type="number"
+                  min={5}
+                  max={30}
+                  value={slideMin}
+                  onChange={(e) => { const v = Math.min(30, Math.max(5, parseInt(e.target.value) || 5)); setSlideMin(v); setSlideMax((m) => Math.max(v, parseInt(m) || v)); }}
+                  className="w-16 rounded-xl theme-card-inner border p-2 text-center text-xs theme-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                />
+              </div>
+              <span className="text-[11px] theme-text-muted">إلى</span>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  min={5}
+                  max={30}
+                  value={slideMax}
+                  onChange={(e) => { const v = Math.min(30, Math.max(5, parseInt(e.target.value) || 5)); setSlideMax(v); setSlideMin((m) => Math.min(v, parseInt(m) || v)); }}
+                  className="w-16 rounded-xl theme-card-inner border p-2 text-center text-xs theme-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                />
+                <span className="text-[11px] theme-text-muted">شريحة</span>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 mt-5">
@@ -815,6 +926,12 @@ export default function PresentationView({ onOpenApiKey }) {
           </div>
         </Collapsible>
       </div>
+
+      <TemplateModal
+        isOpen={templateModalOpen}
+        onClose={() => setTemplateModalOpen(false)}
+        onApply={handleApplyTemplate}
+      />
     </div>
   );
 }

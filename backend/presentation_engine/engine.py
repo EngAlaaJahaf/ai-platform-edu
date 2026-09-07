@@ -73,21 +73,27 @@ ACAD_CSS = """
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:1280px;height:720px;overflow:hidden}
 body{font-family:'Cairo Fe','Segoe UI','Tahoma',sans-serif}
-.slide{--navy:#0F2D4A;--teal:#20B2AA;--bg:#F8F7F2;--bg2:#F1F4F8;--card:#FFFFFF;--gray:#5A6E7F;--line:#E3E8EE;--fh:'Changa Fe','Segoe UI',sans-serif;--fb:'Cairo Fe','Segoe UI',sans-serif;
+.slide{--navy:#0F2D4A;--teal:#20B2AA;--bg:#F8F7F2;--bg2:#F1F4F8;--card:#FFFFFF;--gray:#5A6E7F;--line:#E3E8EE;
+  --glowA:rgba(32,178,170,.13);--glowB:rgba(15,45,74,.06);--fadeA:rgba(32,178,170,0);--wm:rgba(15,45,74,.04);
+  --shadow:rgba(15,45,74,.06);--badge-bg:rgba(32,178,170,.12);--navy-badge-bg:rgba(15,45,74,.08);--badge-soft-bg:rgba(32,178,170,.1);
+  --line2:#EFF2F6;--text2:#3A4A5A;--text3:#E7EEF6;--note-bg:rgba(32,178,170,.07);--note-line:rgba(32,178,170,.25);
+  --row:#FBFCFD;--track:#E9EDF2;--fill-gray:#AEBBC7;--teal-mid:rgba(32,178,170,.22);--dot-ring:rgba(32,178,170,.15);
+  --chip-line:rgba(32,178,170,.5);--chip-bg:rgba(255,255,255,.06);--illu-shadow:rgba(15,45,74,.12);--art-tint:rgba(248,247,242,.75);
+  --fh:'Changa Fe','Segoe UI',sans-serif;--fb:'Cairo Fe','Segoe UI',sans-serif;
   position:relative;width:1280px;height:720px;padding:44px 80px 30px;overflow:hidden;color:var(--navy);
   background:
-   radial-gradient(circle at 92% -8%, rgba(32,178,170,.13), transparent 40%),
-   radial-gradient(circle at -4% 108%, rgba(15,45,74,.06), transparent 42%),
+   radial-gradient(circle at 92% -8%, var(--glowA), transparent 40%),
+   radial-gradient(circle at -4% 108%, var(--glowB), transparent 42%),
    var(--bg)}
 .slide::after{content:"";position:absolute;left:80px;right:80px;top:0;height:5px;
-  background:linear-gradient(90deg,var(--teal),rgba(32,178,170,0));border-radius:0 0 6px 6px}
+  background:linear-gradient(90deg,var(--teal),var(--fadeA));border-radius:0 0 6px 6px}
 .head{margin-bottom:22px}
 .kicker{display:inline-flex;align-items:center;gap:10px;color:var(--teal);font-size:15px;font-weight:800;letter-spacing:2px;margin-bottom:10px}
 .kicker::before{content:"";width:26px;height:3px;background:var(--teal);border-radius:2px}
 .title{font-size:46px;font-weight:800;line-height:1.15;letter-spacing:-.5px;color:var(--navy)}
 .uline{width:56px;height:5px;border-radius:3px;background:var(--teal);margin-top:14px}
 .lead{font-size:19px;line-height:1.6;color:var(--gray);max-width:940px;margin-top:14px}
-.watermark{position:absolute;left:22px;bottom:64px;font-size:220px;font-weight:800;color:rgba(15,45,74,.04);line-height:1;font-family:Georgia,serif;pointer-events:none}
+.watermark{position:absolute;left:22px;bottom:64px;font-size:220px;font-weight:800;color:var(--wm);line-height:1;font-family:Georgia,serif;pointer-events:none}
 /* شريط الخلاصة السفلي */
 .anchor{position:absolute;left:0;right:0;bottom:0;height:58px;background:var(--navy);display:flex;align-items:center;gap:16px;padding:0 80px;z-index:2}
 .anchor .lab{color:var(--teal);font-size:13px;font-weight:800;letter-spacing:1.5px}
@@ -96,84 +102,88 @@ body{font-family:'Cairo Fe','Segoe UI','Tahoma',sans-serif}
 /* بطاقات */
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-top:24px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 18px;
-  box-shadow:0 6px 16px rgba(15,45,74,.06);display:flex;flex-direction:column;gap:12px}
+  box-shadow:0 6px 16px var(--shadow);display:flex;flex-direction:column;gap:12px}
 .card h3{font-size:18px;font-weight:800;color:var(--navy)}
 .card p{font-size:14.5px;line-height:1.55;color:var(--gray)}
 .badge{width:46px;height:46px;border-radius:50%;flex:none;display:grid;place-items:center;
-  background:rgba(32,178,170,.12);color:var(--teal)}
+  background:var(--badge-bg);color:var(--teal)}
 .badge svg{width:23px;height:23px}
-.badge.navy{background:rgba(15,45,74,.08);color:var(--navy)}
-.badge.soft{width:34px;height:34px;background:rgba(32,178,170,.1);color:var(--teal)}
+.badge.navy{background:var(--navy-badge-bg);color:var(--navy)}
+.badge.soft{width:34px;height:34px;background:var(--badge-soft-bg);color:var(--teal)}
 .badge.soft svg{width:17px;height:17px}
 /* صفوف أيقونية */
 .rows{margin-top:20px}
-.row{display:flex;gap:16px;align-items:flex-start;padding:11px 0;border-bottom:1px solid #EFF2F6}
+.row{display:flex;gap:16px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line2)}
 .rt h4{font-size:18px;font-weight:800;color:var(--navy)}
 .rt p{font-size:14.5px;color:var(--gray);line-height:1.5;margin-top:2px}
 /* عمودان */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 22px;
-  box-shadow:0 6px 16px rgba(15,45,74,.06)}
+  box-shadow:0 6px 16px var(--shadow)}
 .panel .h{display:flex;gap:12px;align-items:center;margin-bottom:12px}
 .panel .h h3{font-size:18.5px;font-weight:800;color:var(--navy)}
 .panel ul{list-style:none}
-.panel ul li{position:relative;padding:7px 22px 7px 0;font-size:15.5px;line-height:1.5;color:#3A4A5A}
+.panel ul li{position:relative;padding:7px 22px 7px 0;font-size:15.5px;line-height:1.5;color:var(--text2)}
 .panel ul li::before{content:"";position:absolute;right:0;top:14px;width:8px;height:8px;border-radius:50%;background:var(--teal)}
 /* إحصائيات */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:24px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 18px;text-align:center;
-  box-shadow:0 6px 16px rgba(15,45,74,.06)}
+  box-shadow:0 6px 16px var(--shadow)}
 .stat .v{font-family:Georgia,'IBM Plex Sans Arabic',serif;font-size:44px;font-weight:800;color:var(--navy);line-height:1.05}
 .stat .v em{color:var(--teal);font-style:normal}
 .stat .l{font-size:14.5px;color:var(--gray);margin-top:8px}
-.note{font-size:14.5px;color:var(--gray);line-height:1.6;margin-top:18px;padding:14px 16px;border-radius:12px;background:rgba(32,178,170,.07);border:1px solid rgba(32,178,170,.25)}
+.note{font-size:14.5px;color:var(--gray);line-height:1.6;margin-top:18px;padding:14px 16px;border-radius:12px;background:var(--note-bg);border:1px solid var(--note-line)}
 /* جدول */
 table.tbl{width:100%;border-collapse:separate;border-spacing:0;margin-top:24px;font-size:15.5px;overflow:hidden;border-radius:12px}
 table.tbl th{background:var(--navy);color:#fff;padding:12px 14px;text-align:right;font-weight:700}
-table.tbl td{padding:11px 14px;border-bottom:1px solid #EFF2F6;color:#3A4A5A}
-table.tbl tr:nth-child(even) td{background:#FBFCFD}
+table.tbl td{padding:11px 14px;border-bottom:1px solid var(--line2);color:var(--text2)}
+table.tbl tr:nth-child(even) td{background:var(--row)}
 table.tbl td.hi{color:var(--teal);font-weight:800}
 /* مخطط أعمدة أفقي */
 .chart{display:flex;flex-direction:column;gap:15px;margin-top:22px}
 .brow{display:grid;grid-template-columns:230px 1fr auto;gap:14px;align-items:center}
 .lbl{font-size:16px;font-weight:700;color:var(--navy)}
-.track{height:30px;background:#E9EDF2;border-radius:8px;overflow:hidden}
+.track{height:30px;background:var(--track);border-radius:8px;overflow:hidden}
 .fill{height:100%;border-radius:8px;background:var(--teal)}
 .fill.navy{background:var(--navy)}
-.fill.gray{background:#AEBBC7}
+.fill.gray{background:var(--fill-gray)}
 .pct{font-weight:800;color:var(--teal);font-size:15px;min-width:44px;text-align:left}
 /* مسار زمني */
 .timeline{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-top:30px;position:relative}
 .timeline::before{content:"";position:absolute;top:26px;right:8%;left:8%;height:3px;border-radius:2px;
-  background:linear-gradient(90deg,var(--teal),rgba(32,178,170,.22))}
+  background:linear-gradient(90deg,var(--teal),var(--teal-mid))}
 .step{position:relative;flex:1;text-align:center}
 .step .dot{width:52px;height:52px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;
-  font-weight:800;font-size:19px;margin:0 auto;position:relative;z-index:1;box-shadow:0 0 0 5px rgba(32,178,170,.15)}
+  font-weight:800;font-size:19px;margin:0 auto;position:relative;z-index:1;box-shadow:0 0 0 5px var(--dot-ring)}
 .step .t{color:var(--navy);font-weight:800;font-size:15.5px;margin-top:12px}
 .step .d{color:var(--gray);font-size:12px;margin-top:2px}
 /* غلاف */
 .cover .title{font-size:62px}
 .cover .subtitle{font-size:30px;font-weight:800;color:var(--teal);margin:6px 0 14px}
 .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
-.chip{padding:8px 16px;border-radius:999px;background:#fff;border:1px solid rgba(32,178,170,.5);color:var(--navy);font-size:14.5px;font-weight:600}
+.chip{padding:8px 16px;border-radius:999px;background:var(--card);border:1px solid var(--chip-line);color:var(--navy);font-size:14.5px;font-weight:600}
 .cover .team{margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
 .cover .team .t{color:var(--teal);font-weight:800;font-size:15px;margin-bottom:6px}
 .cover .team .n{color:var(--gray);font-size:15px}
-.illu{position:absolute;left:70px;top:110px;width:470px;filter:drop-shadow(0 10px 18px rgba(15,45,74,.12))}
+.illu{position:absolute;left:70px;top:110px;width:470px;filter:drop-shadow(0 10px 18px var(--illu-shadow))}
+.slide .illu{stroke:var(--navy)}
+.slide .illu .ig{stroke:var(--teal)}
+.slide .illu .ig .in{stroke:var(--navy);fill:var(--navy)}
+.slide .illu .ig path:not(.in){fill:var(--teal)}
 /* خاتمة */
 .closing{display:flex;flex-direction:column;justify-content:center;height:100%}
 .closing .kicker{color:var(--teal)}
 .closing .title{font-size:60px}
-.bigline{font-size:27px;font-weight:800;line-height:1.55;color:#0F2D4A;margin-top:20px}
+.bigline{font-size:27px;font-weight:800;line-height:1.55;color:var(--navy);margin-top:20px}
 .bigline em{color:var(--teal);font-style:normal}
 .closing2{background:var(--navy)}
 .closing2 .kicker{color:var(--teal)}
 .closing2 .title{color:#fff}
 .closing2 .bigline{color:#F4F7FB}
-.closing2 .chip{background:rgba(255,255,255,.06);border-color:rgba(32,178,170,.5);color:#E7EEF6}
+.closing2 .chip{background:var(--chip-bg);border-color:var(--chip-line);color:var(--text3)}
 /* خلفية مصوّرة (هجين ذكي) */
 .slide.hasart{background:transparent;background-size:cover;background-position:center}
-.slide.hasart::before{content:"";position:absolute;inset:0;background:rgba(248,247,242,.75);z-index:0}
+.slide.hasart::before{content:"";position:absolute;inset:0;background:var(--art-tint);z-index:0}
 .slide.hasart > *:not(.anchor){position:relative;z-index:1}
 /* خطوط الهوية: Changa للعناوين والأرقام، Cairo للنصوص */
 .kicker,.title,.subtitle,.card h3,.rt h4,.panel .h h3,.stat .v,
@@ -184,18 +194,18 @@ table.tbl th,.lbl,.pct,.step .dot,.step .t,.anchor .lab,.anchor .txt,.watermark{
 
 def acad_cover(d):
     illu = "" if d.get("art") else f"""
-  <svg class="illu" viewBox="0 0 470 400" fill="none" stroke="#0F2D4A" stroke-width="2" stroke-linecap="round"><g stroke="#20B2AA" stroke-width="2">
+  <svg class="illu" viewBox="0 0 470 400" fill="none" stroke-width="2" stroke-linecap="round"><g class="ig" stroke-width="2">
     <rect x="18" y="250" width="150" height="130" rx="6"/><path d="M18 282l75-52 75 52"/><circle cx="93" cy="254" r="16"/>
     <path d="M52 340v-44h82v44M52 300h16M78 300h16M104 300h16M130 300h8"/>
-  </g><g stroke="#0F2D4A" stroke-width="2">
+  </g><g class="ig" stroke-width="2">
     <rect x="205" y="120" width="235" height="150" rx="10"/><path d="M215 270V140h215v130z"/><rect x="215" y="140" width="215" height="130" rx="6"/>
     <rect x="235" y="160" width="90" height="60" rx="4"/><rect x="340" y="160" width="70" height="60" rx="4"/><path d="M235 240l28-24 20 16 30-30 42 38"/>
     <rect x="215" y="270" width="215" height="18" rx="4"/>
-  </g><g stroke="#20B2AA" stroke-width="2">
-    <rect x="330" y="295" width="80" height="95" rx="12"/><rect x="342" y="310" width="56" height="56" rx="4" stroke="#0F2D4A"/>
-    <path d="M342 310h14v14h-14z" fill="#0F2D4A" stroke="none"/><path d="M368 310h14v14h-14z" fill="#0F2D4A" stroke="none"/>
-    <path d="M370 352h14v14h-14z" fill="#0F2D4A" stroke="none"/><path d="M388 352h10v14h-10z" fill="#0F2D4A" stroke="none"/>
-    <path d="M342 352h14v14h-14z" fill="#20B2AA" stroke="none"/><path d="M368 352h14v14h-14z" fill="#20B2AA" stroke="none"/>
+  </g><g class="ig" stroke-width="2">
+    <rect x="330" y="295" width="80" height="95" rx="12"/><rect class="in" x="342" y="310" width="56" height="56" rx="4"/>
+    <path class="in" d="M342 310h14v14h-14z"/><path class="in" d="M368 310h14v14h-14z"/>
+    <path class="in" d="M370 352h14v14h-14z"/><path class="in" d="M388 352h10v14h-10z"/>
+    <path d="M342 352h14v14h-14z"/><path d="M368 352h14v14h-14z"/>
   </g></svg>"""
     return f"""
 <section class="slide cover">
@@ -331,7 +341,7 @@ def acad_closing(d):
   <h1 class="title">{d.get('title','شكراً لكم')}</h1>
   <div class="bigline">{d.get('message','')}</div>
   <div class="chips">{''.join(f'<span class="chip">{c}</span>' for c in d.get('chips',[]))}</div>
-  <div class="anchor" style="background:#0A2238"><span class="lab">الخلاصة</span><span class="txt">{d.get('takeaway','')}</span><span class="page">{d.get('num','')}</span></div>
+  <div class="anchor" style="background:var(--navy)"><span class="lab">الخلاصة</span><span class="txt">{d.get('takeaway','')}</span><span class="page">{d.get('num','')}</span></div>
 </section>"""
 
 
@@ -351,47 +361,50 @@ DARK_CSS = """
 @font-face{font-family:'Changa Fe';src:url('../../fonts/Changa-VF.ttf') format('truetype');font-weight:200 800;font-display:swap}
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:1280px;height:720px;overflow:hidden}
-body{font-family:'Cairo Fe',"Segoe UI","Tahoma",sans-serif;background:#0b1220;color:#e8edf5}
+body{font-family:'Cairo Fe',"Segoe UI","Tahoma",sans-serif;background:var(--bgDark);color:var(--text)}
 .slide{--main:#e3b341;--main-soft:#e3b3411a;--main-line:#e3b34155;--main-glow:rgba(227,179,65,.20);
-  position:relative;width:1280px;height:720px;padding:64px 84px 58px;overflow:hidden;background:#0b1220}
+  --surface2:#0e1628;--line-dim:#ffffff12;--line-dim2:#ffffff0d;--text-dim:#66738c;--text-mid:#9fa9be;
+  --text-bright:#c6cfe0;--text-strong:#eef2fa;--text-chip:#dbe3f2;--wm2:#ffffff08;--grid:#ffffff05;
+  --chip-bg2:#ffffff0a;--bars:#3d4b6b;
+  position:relative;width:1280px;height:720px;padding:64px 84px 58px;overflow:hidden;background:var(--bgDark)}
 .a-sky{--main:#4cc2ff;--main-soft:#4cc2ff1a;--main-line:#4cc2ff55;--main-glow:rgba(76,194,255,.18)}
 .a-purple{--main:#9b6bff;--main-soft:#9b6bff1a;--main-line:#9b6bff55;--main-glow:rgba(155,107,255,.18)}
 .a-teal{--main:#3fd6c4;--main-soft:#3fd6c41a;--main-line:#3fd6c455;--main-glow:rgba(63,214,196,.16)}
 .a-rose{--main:#ff7a90;--main-soft:#ff7a901a;--main-line:#ff7a9055;--main-glow:rgba(255,122,144,.16)}
 .slide::before{content:"";position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(circle at 82% -8%,var(--main-glow),transparent 46%),radial-gradient(circle at -6% 108%,var(--main-glow),transparent 42%),
-  linear-gradient(#ffffff05 1px,transparent 1px),linear-gradient(90deg,#ffffff05 1px,transparent 1px);
+  linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
   background-size:auto,auto,48px 48px,48px 48px;opacity:.7;mask-image:radial-gradient(circle at 50% 42%,#000 30%,transparent 88%)}
 .slide::after{content:"";position:absolute;left:84px;right:84px;top:0;height:6px;background:linear-gradient(90deg,var(--main),transparent 72%);opacity:.9}
-.watermark{position:absolute;right:26px;bottom:6px;font-size:230px;font-weight:800;color:#ffffff08;line-height:1;font-family:Georgia,serif}
-.footer{display:flex;justify-content:space-between;align-items:center;margin-top:18px;border-top:1px solid #ffffff14;padding-top:12px;color:#66738c;font-size:14px}
+.watermark{position:absolute;right:26px;bottom:6px;font-size:230px;font-weight:800;color:var(--wm2);line-height:1;font-family:Georgia,serif}
+.footer{display:flex;justify-content:space-between;align-items:center;margin-top:18px;border-top:1px solid var(--line-dim);padding-top:12px;color:var(--text-dim);font-size:14px}
 .kicker{display:inline-flex;align-items:center;gap:10px;color:var(--main);font-size:20px;font-weight:700;margin-bottom:12px}
 .title{font-size:48px;font-weight:800;line-height:1.12;margin-bottom:12px}
-.lead{font-size:21px;line-height:1.55;color:#9fa9be;max-width:920px}
+.lead{font-size:21px;line-height:1.55;color:var(--text-mid);max-width:920px}
 .cards{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
-.card{flex:1 1 200px;min-width:215px;background:linear-gradient(160deg,#121c33,#0e1628);border:1px solid #ffffff12;border-radius:16px;padding:18px}
+.card{flex:1 1 200px;min-width:215px;background:linear-gradient(160deg,var(--surface),var(--surface2));border:1px solid var(--line-dim);border-radius:16px;padding:18px}
 .card h3{font-size:18px;font-weight:700;color:var(--main);margin-bottom:6px}
-.card p{font-size:15.5px;color:#c6cfe0;line-height:1.5}
+.card p{font-size:15.5px;color:var(--text-bright);line-height:1.5}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:24px}
-.panel{background:linear-gradient(160deg,#121c33,#0d1526);border:1px solid #ffffff12;border-radius:18px;padding:20px 22px}
+.panel{background:linear-gradient(160deg,var(--surface),var(--surface2));border:1px solid var(--line-dim);border-radius:18px;padding:20px 22px}
 .panel h3{font-size:19px;font-weight:800;margin-bottom:12px}
 .panel ul{list-style:none}
-.panel ul li{padding:7px 0;font-size:17px;color:#d3dbea;border-bottom:1px solid #ffffff0d}
+.panel ul li{padding:7px 0;font-size:17px;color:var(--text-strong);border-bottom:1px solid var(--line-dim2)}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-top:26px}
-.stat{background:linear-gradient(160deg,#121c33,#0d1526);border:1px solid #ffffff12;border-radius:18px;padding:20px;text-align:center}
+.stat{background:linear-gradient(160deg,var(--surface),var(--surface2));border:1px solid var(--line-dim);border-radius:18px;padding:20px;text-align:center}
 .stat .v{font-size:40px;font-weight:800;color:var(--main)}
-.stat .l{font-size:15px;color:#9fa9be;margin-top:6px}
+.stat .l{font-size:15px;color:var(--text-mid);margin-top:6px}
 table.tbl{width:100%;border-collapse:separate;border-spacing:0;margin-top:22px;font-size:16px}
-table.tbl th{background:var(--main);color:#0b1220;padding:12px;text-align:right;font-weight:800}
-table.tbl td{padding:11px;border-bottom:1px solid #ffffff0e;color:#c6cfe0}
+table.tbl th{background:var(--main);color:var(--bgDark);padding:12px;text-align:right;font-weight:800}
+table.tbl td{padding:11px;border-bottom:1px solid var(--line-dim2);color:var(--text-bright)}
 .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
-.chip{padding:9px 16px;border-radius:999px;background:#ffffff0a;border:1px solid var(--main-line);color:#dbe3f2;font-size:15px}
+.chip{padding:9px 16px;border-radius:999px;background:var(--chip-bg2);border:1px solid var(--main-line);color:var(--text-chip);font-size:15px}
 .flow{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:26px}
 .flow .node{padding:10px 16px;border-radius:12px;background:var(--main-soft);border:1px solid var(--main-line);color:var(--main);font-weight:700;font-size:16px}
 .cover .title{font-size:62px}
-.cover .subtitle{font-size:29px;color:#4cc2ff;font-weight:700;margin:4px 0 18px}
+.cover .subtitle{font-size:29px;color:var(--main);font-weight:700;margin:4px 0 18px}
 .mid{margin-top:110px;text-align:center}
-.bigline{font-size:27px;font-weight:800;line-height:1.55;color:#eef2fa}
+.bigline{font-size:27px;font-weight:800;line-height:1.55;color:var(--text-strong)}
 .bigline b{color:var(--main)}
 .kicker,.title,.subtitle,.card h3,.panel h3,.stat .v,table.tbl th,.node{font-family:'Changa Fe',"Segoe UI",sans-serif}
 """
@@ -412,8 +425,8 @@ def dark_cover(d):
 def dark_content(d):
     body = ""
     if d.get("bullets"):
-        body += ''.join(f'<div style="padding:8px 0;border-bottom:1px solid #ffffff0d;font-size:18px"><b style="color:var(--main)">{b.get("t", b)}</b>'
-                        + (f' <span style="color:#9fa9be">— {b["d"]}</span>' if isinstance(b, dict) and "d" in b else '') + '</div>'
+        body += ''.join(f'<div style="padding:8px 0;border-bottom:1px solid var(--line-dim2);font-size:18px"><b style="color:var(--main)">{b.get("t", b)}</b>'
+                        + (f' <span style="color:var(--text-mid)">— {b["d"]}</span>' if isinstance(b, dict) and "d" in b else '') + '</div>'
                         for b in d["bullets"])
     if d.get("cards"):
         body += '<div class="cards">' + ''.join(f'<div class="card"><h3>{c["t"]}</h3><p>{c["d"]}</p></div>' for c in d["cards"]) + '</div>'
@@ -466,8 +479,8 @@ def dark_table(d):
 
 
 def dark_steps(d):
-    nodes = ''.join(f'<span class="node">{s}</span><span style="color:#3d4b6b">→</span>' for s in d.get("steps", []))
-    nodes = nodes.rstrip('<span style="color:#3d4b6b">→</span>')
+    nodes = ''.join(f'<span class="node">{s}</span><span style="color:var(--bars)">→</span>' for s in d.get("steps", []))
+    nodes = nodes.rstrip('<span style="color:var(--bars)">→</span>')
     return f"""
 <section class="slide a-{d.get('accent','rose')}">
   <div class="watermark">{d.get('num','')}</div>
@@ -498,6 +511,112 @@ DARK = {
 
 THEMES = {"academic": ACAD, "dark-tech": DARK}
 DEFAULT_THEME = "academic"
+
+_DARK_ACCENT_MAIN = {
+    "gold": "#e3b341", "sky": "#4cc2ff", "purple": "#9b6bff",
+    "teal": "#3fd6c4", "rose": "#ff7a90",
+}
+
+
+def resolve_theme(deck):
+    """deck['theme'] يمكن أن يكون نصاً (legacy) أو كائناً {base,colors,fonts,accent}.
+    يعيد (theme_name, css_override)."""
+    t = deck.get("theme", DEFAULT_THEME)
+    if isinstance(t, dict):
+        base = t.get("base") or "academic"
+        if base not in THEMES:
+            base = "academic"
+        return base, _identity_css_override(t, base)
+    name = t if t in THEMES else DEFAULT_THEME
+    return name, ""
+
+
+def _identity_css_override(identity, base):
+    nts, formed = {}, []
+    colors = identity.get("colors") or {}
+    fonts = identity.get("fonts") or {}
+    if base == "dark-tech":
+        main = colors.get("main") or _DARK_ACCENT_MAIN.get(identity.get("accent")) or "#4cc2ff"
+        bgDark = colors.get("bgDark") or "#0b1220"
+        surface = colors.get("surface") or (colors.get("bgDark") or "#0b1220")
+        text = colors.get("text") or "#e8edf5"
+        accent = identity.get("accent") or "sky"
+        surface2 = _mix(surface, "#000", .35)
+        formed.append(f".slide{{--main:{main};--main-soft:{main}1a;--main-line:{main}55;"
+                      f"--main-glow:{_rgba(main,.18)};--bgDark:{bgDark};--surface:{surface};--text:{text};"
+                      f"--surface2:{surface2};--line-dim:{_rgba(text,.08)};--line-dim2:{_rgba(text,.05)};"
+                      f"--text-dim:{_rgba(text,.5)};--text-mid:{_rgba(text,.68)};--text-bright:{_rgba(text,.84)};"
+                      f"--text-strong:{text};--text-chip:{text};--wm2:{_rgba(text,.04)};--grid:{_rgba(text,.03)};"
+                      f"--chip-bg2:{_rgba(text,.05)};--bars:{_mix(text,'#000',.55)};color:{text}}}")
+        for cls, m in _DARK_ACCENT_MAIN.items():
+            formed.append(f".slide.a-{cls}{{--main:{m};--main-soft:{m}1a;--main-line:{m}55;--main-glow:{_rgba(m,.18)}}}")
+        formed.append(f"body{{background:{bgDark}}}")
+    else:
+        navy = colors.get("navy") or "#0F2D4A"
+        teal = colors.get("teal") or "#20B2AA"
+        bg = colors.get("bg") or "#F8F7F2"
+        bg2 = colors.get("bg2") or "#F1F4F8"
+        card = colors.get("card") or "#FFFFFF"
+        gray = colors.get("gray") or "#5A6E7F"
+        line = colors.get("line") or "#E3E8EE"
+        formed.append(f".slide{{--navy:{navy};--teal:{teal};--bg:{bg};--bg2:{bg2};--card:{card};"
+                      f"--gray:{gray};--line:{line};color:{navy};"
+                      f"--glowA:{_rgba(teal,.13)};--glowB:{_rgba(navy,.06)};--fadeA:{_rgba(teal,0)};--wm:{_rgba(navy,.04)};"
+                      f"--shadow:{_rgba(navy,.06)};--badge-bg:{_rgba(teal,.12)};--navy-badge-bg:{_rgba(navy,.08)};"
+                      f"--badge-soft-bg:{_rgba(teal,.1)};--line2:{_rgba(gray,.22)};--text2:{_mix(navy,gray,.45)};"
+                      f"--text3:{_rgba(card,.9)};--note-bg:{_rgba(teal,.07)};--note-line:{_rgba(teal,.25)};"
+                      f"--row:{_mix(card,'#000',.04)};--track:{_mix(card,'#000',.1)};--fill-gray:{_mix(gray,'#fff',.5)};"
+                      f"--teal-mid:{_rgba(teal,.22)};--dot-ring:{_rgba(teal,.15)};--chip-line:{_rgba(teal,.5)};"
+                      f"--chip-bg:{_rgba(card,.08)};--illu-shadow:{_rgba(navy,.12)};--art-tint:{_rgba(bg,.75)}}}")
+        # outline strips & accents are hard-coded rgba teal; inject teal-mix globally
+        formed.append(f".slide .outline{{border-color:{_rgba(teal,.55)}}} "
+                      f".slide .uline{{background:{teal}}} "
+                      f"table.tbl th{{background:{navy}}}")
+        nts["--teal"] = teal
+        # secondary soft strips (rgba(32,178,170,.12)) -> teal soft
+        formed.append(f".slide .badge.soft{{background:{_rgba(teal,.12)};color:{teal}}} "
+                      f".slide .note{{background:{_rgba(teal,.07)};border:1px solid {_rgba(teal,.25)}}}")
+
+    fh = fonts.get("fh")
+    fb = fonts.get("fb")
+    if fh:
+        fh = _font_safe(fh)
+    if fb:
+        fb = _font_safe(fb)
+    if fh or fb:
+        frag = ""
+        if fh:
+            frag += f"table.tbl th,.lbl,.pct,.step .dot,.step .t,.anchor .lab,.anchor .txt,.watermark{{font-family:var(--fh)}}"
+        if fb:
+            frag += f".lead,li,.rt p,.stat .l,.note,.team .n,.bigline{{font-family:var(--fb)}}"
+        formed.append(f".slide{{" + f"--fh:'{fh or 'Changa Fe'}','Segoe UI',sans-serif;--fb:'{fb or 'Cairo Fe'}','Segoe UI',sans-serif;" + "}")
+        formed.append(frag)
+    return "\n".join(formed)
+
+
+def _font_safe(name):
+    import re as _re
+    n = _re.sub(r"[^0-9A-Za-z\u0600-\u06FF \-]", "", str(name)).strip()
+    return n or "Cairo Fe"
+
+
+def _rgba(hex_color, alpha):
+    h = hex_color.lstrip("#")
+    if len(h) != 6:
+        return hex_color
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return f"rgba({r},{g},{b},{alpha})"
+
+
+def _mix(hex_from, hex_to, t):
+    """اخلط لونين HEX بنسبة t (0..1) نحو hex_to."""
+    try:
+        a = [int(hex_from.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)]
+        b = [int(hex_to.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)]
+        c = [round(x + (y - x) * t) for x, y in zip(a, b)]
+        return f"#{c[0]:02x}{c[1]:02x}{c[2]:02x}"
+    except Exception:
+        return hex_from
 
 
 # ==================================================== بناء/تصدير/تجميع
@@ -560,9 +679,9 @@ def assemble(deck_name, pngs, out_base):
 
 def main():
     deck = json.load(open(sys.argv[1], encoding="utf-8"))
-    theme = THEMES.get(deck.get("theme", DEFAULT_THEME))
-    if theme is None:
-        raise SystemExit(f"هوية غير معروفة: {deck.get('theme')}")
+    theme_name, css_override = resolve_theme(deck)
+    theme = THEMES[theme_name]
+    css = theme["css"] + ("\n" + css_override if css_override else "")
     out_prefix = None
     if "--out" in sys.argv:
         out_prefix = sys.argv[sys.argv.index("--out") + 1]
@@ -570,7 +689,7 @@ def main():
             out_prefix = out_prefix[:-5]
     work = os.path.join(WORKDIR, "build")
     shutil.rmtree(work, ignore_errors=True)
-    paths = build_html(deck, theme["css"], deck.get("theme", DEFAULT_THEME), os.path.join(work, "slides"))
+    paths = build_html(deck, css, theme_name, os.path.join(work, "slides"))
     print(f"صفحات HTML: {len(paths)}")
     out_dir = os.path.join(work, "png")
     os.makedirs(out_dir, exist_ok=True)

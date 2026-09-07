@@ -19,6 +19,7 @@ from backend.services.ai_service import AIService
 from backend.services.auth_service import AuthService
 from backend.services.quiz_formatter import QuizFormatterService
 from backend.services.presentation_service import PresentationService, PresentationError
+from backend.services.pptx_theme_extractor import extract_pptx_theme
 from backend.database import (
     save_document, 
     get_document, 
@@ -48,6 +49,10 @@ from backend.database import (
     list_prompts,
     save_prompt,
     delete_prompt,
+    list_templates,
+    save_template,
+    delete_template,
+    get_template,
     get_system_settings,
     update_system_settings,
     get_activity_logs,
@@ -212,10 +217,12 @@ class DocxExportRequest(BaseModel):
 
 class PresentationGenerateRequest(BaseModel):
     text: Optional[str] = ""
-    theme: Optional[str] = "academic"
+    theme: Optional[Any] = "academic"  # str (legacy) أو كائن هوية بصرية {base, colors, fonts, accent}
     doc_id: Optional[str] = None
     start_page: Optional[int] = None
     end_page: Optional[int] = None
+    slide_min: Optional[int] = 8
+    slide_max: Optional[int] = 15
 
 class PresentationDeckRequest(BaseModel):
     deck: Dict[str, Any]
@@ -909,6 +916,8 @@ def presentation_generate_endpoint(
             doc_id=req.doc_id,
             start_page=req.start_page,
             end_page=req.end_page,
+            slide_min=req.slide_min,
+            slide_max=req.slide_max,
             provider=ai["provider"],
             api_key=ai["api_key"],
             base_url=ai["base_url"],
@@ -981,6 +990,96 @@ def presentation_list_endpoint(
     items = list_presentations(user["id"], limit=limit, offset=offset)
     total = count_presentations(user["id"])
     return {"presentations": items, "total": total}
+
+
+# ---------------------------------------------------------------
+# القوالب / الهويات البصرية
+# ---------------------------------------------------------------
+
+class TemplatePayload(BaseModel):
+    id: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = ""
+    base: Optional[str] = "academic"
+    colors: Optional[Dict[str, Any]] = None
+    fonts: Optional[Dict[str, Any]] = None
+    accent: Optional[str] = "gold"
+    preview_b64: Optional[str] = ""
+
+
+@router.get("/templates")
+def template_list_endpoint(x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    items = list_templates(user_id=user["id"], include_system=True)
+    return {"templates": items}
+
+
+@router.post("/templates")
+def template_save_endpoint(req: TemplatePayload, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    saved = save_template(req.dict(), user_id=user["id"])
+    return saved
+
+
+@router.delete("/templates/{template_id}")
+def template_delete_endpoint(template_id: str, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    delete_template(template_id, user_id=user["id"])
+    return {"ok": True}
+
+
+class TemplateGenerateRequest(BaseModel):
+    goal: Optional[str] = ""
+    topic: Optional[str] = None
+
+
+@router.post("/templates/generate")
+def template_generate_endpoint(
+    req: TemplateGenerateRequest,
+    x_ai_provider: Optional[str] = Header("gemini"),
+    x_gemini_api_key: Optional[str] = Header(None),
+    x_ai_base_url: Optional[str] = Header(None),
+    x_gemini_model: Optional[str] = Header(None),
+    x_user_id: Optional[str] = Header(None),
+):
+    """صمّم هوية بصرية عبر AI حسب الوصف/الموضوع ثم احفظها كقالب."""
+    user = _get_current_user(x_user_id)
+    ai = _pres_headers(x_ai_provider, x_gemini_api_key, x_ai_base_url, x_gemini_model)
+    blueprint = AIService.generate_template_theme(
+        identity_goal=req.goal or req.topic or "",
+        topic=req.topic,
+        provider=ai["provider"],
+        api_key=ai["api_key"],
+        base_url=ai["base_url"],
+        model=ai["model"],
+    )
+    saved = save_template({
+        "title": blueprint.get("name") or "قالب مخصص",
+        "description": blueprint.get("description") or "",
+        "base": blueprint.get("base") or "academic",
+        "colors": blueprint.get("colors") or {},
+        "fonts": blueprint.get("fonts") or {},
+        "accent": blueprint.get("accent") or "gold",
+    }, user_id=user["id"])
+    return saved
+
+
+@router.post("/templates/from-pptx")
+def template_from_pptx_endpoint(
+    file: UploadFile = File(...),
+    x_user_id: Optional[str] = Header(None),
+):
+    """استخرج الهوية البصرية (ألوان/خطوط) من ملف PowerPoint."""
+    if not x_user_id:
+        raise HTTPException(status_code=401, detail="غير مصرح")
+    if not (file.filename or "").lower().endswith(".pptx"):
+        raise HTTPException(status_code=400, detail="يُرجى رفع ملف .pptx فقط.")
+    data = file.file.read()
+    try:
+        blueprint = extract_pptx_theme(data)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return blueprint
 
 
 @router.get("/presentations/{pres_id}")

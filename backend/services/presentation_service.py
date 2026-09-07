@@ -92,7 +92,7 @@ DECK_SYSTEM_PROMPT = """أنت استراتيجي محتوى عروض تقديم
 ## قواعد الجودة
 - كل المحتوى بالعربية الفصحى الموجزة. الجمل قصيرة وقوية.
 - اتبع هذا الترتيب القياسي إن أمكن: cover؛ المقدمة؛ المشكلة؛ الحل؛ المنتج؛ القيمة المقترحة؛ الرؤية؛ السوق؛ المنافسون؛ التميز؛ التسعير؛ رحلة العميل؛ التشغيل؛ المالية؛ الخاتمة.
-- عدد الشرائح: من 8 إلى 15.
+- عدد الشرائح: {SLIDE_RANGE_INSTRUCTION}.
 - لا تختلق أرقاماً غير موجودة في وصف المستخدم؛ إن غاب رقم استخدم وصفاً نوعياً.
 - "takeaway" لكل شريحة تلخص ما تريد أن يحفظه المشاهد.
 - لا تكتب أي نص خارج JSON إطلاقاً."""
@@ -116,6 +116,33 @@ def _default_deck_name(text: str) -> str:
 class PresentationService:
     # ── توليد deck عبر AI ──
     @classmethod
+    def _resolve_identity(cls, theme) -> tuple:
+        """theme = 'academic'|'dark-tech' (legacy) OR dict {id,'base',colors,fonts,accent,doc_id,...}.
+        Returns (base_theme:str, identity:dict|None)."""
+        if isinstance(theme, dict):
+            base = theme.get("base") or theme.get("base_theme") or "academic"
+            base = base if base in ("academic", "dark-tech") else "academic"
+            return base, theme
+        base = theme if theme in ("academic", "dark-tech") else "academic"
+        return base, None
+
+    @classmethod
+    def _deck_prompt(cls, theme, slide_min: int, slide_max: int) -> str:
+        system_prompt = DECK_SYSTEM_PROMPT.replace(
+            "{SLIDE_RANGE_INSTRUCTION}", f"من {slide_min} إلى {slide_max}"
+        )
+        base, _ = cls._resolve_identity(theme)
+        if base == "dark-tech":
+            system_prompt = system_prompt.replace(
+                "chart (أعمدة أفقية مقارنة)", "steps (خطوات متتالية): {\"template\":\"steps\",\"title\":\"...\",\"steps\":[{\"t\":\"...\",\"d\":\"...\"}]}"
+            )
+            system_prompt += (
+                "\n\nملاحظة الهوية الداكنة: استخدم القوالب cover/content/twocol/stats/table/steps/closing فقط. "
+                "لا تستخدم chart أو timeline إطلاقاً."
+            )
+        return system_prompt
+
+    @classmethod
     def generate_deck(
         cls,
         text: str,
@@ -124,23 +151,24 @@ class PresentationService:
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
         model: Optional[str] = None,
+        slide_min: int = 8,
+        slide_max: int = 15,
     ) -> Dict[str, Any]:
         if not text or not text.strip():
             raise PresentationError("الوصف فارغ. اكتب وصفاً للمشروع أولاً.")
-        theme = theme if theme in ("academic", "dark-tech") else "academic"
+        base, identity = cls._resolve_identity(theme)
+        slide_min = max(5, int(slide_min or 8))
+        slide_max = min(30, max(slide_min, int(slide_max or 15)))
 
-        system_prompt = DECK_SYSTEM_PROMPT
-        if theme == "dark-tech":
-            system_prompt = DECK_SYSTEM_PROMPT.replace(
-                "chart (أعمدة أفقية مقارنة)", "steps (خطوات متتالية): {\"template\":\"steps\",\"title\":\"...\",\"steps\":[{\"t\":\"...\",\"d\":\"...\"}]}"
-            )
-            system_prompt += (
-                "\n\nملاحظة الهوية الداكنة: استخدم القوالب cover/content/twocol/stats/table/steps/closing فقط. "
-                "لا تستخدم chart أو timeline إطلاقاً."
-            )
+        system_prompt = cls._deck_prompt(theme, slide_min, slide_max)
+        identity_label = "academic"
+        if identity:
+            identity_label = identity.get("name") or identity.get("base") or "academic"
+        elif base == "dark-tech":
+            identity_label = "dark-tech"
 
         user_prompt = (
-            f"الهوية البصرية: {theme}\n"
+            f"الهوية البصرية: {identity_label}\n"
             f"وصف المشروع:\n{text}\n\n"
             "ولّد deck JSON كاملاً وفق التعليمات."
         )
@@ -162,9 +190,9 @@ class PresentationService:
             raise PresentationError("الذكاء الاصطناعي أعاد رداً فارغاً.")
 
         deck = cls._parse_json(raw)
-        deck = cls.normalize_deck(deck, theme)
+        deck = cls.normalize_deck(deck, theme, slide_max=slide_max)
         deck["name"] = (deck.get("name") or _default_deck_name(text))[:60]
-        deck["theme"] = theme
+        deck["theme"] = identity if identity is not None else base
         deck["brand"] = deck["name"]
         return deck
 
@@ -202,12 +230,15 @@ class PresentationService:
         return "\n\n".join(parts)
 
     @classmethod
-    def create(cls, user_id: str, text: str, theme: str = "academic", **ai_kwargs) -> Dict[str, Any]:
+    def create(cls, user_id: str, text: str, theme="academic", **ai_kwargs) -> Dict[str, Any]:
         """توليد deck + حفظ في قاعدة البيانات + كتابة deck.json.
-        يمكن تمرير doc_id/start_page/end_page داخل **ai_kwargs لبناء المحتوى من مستند بدلاً من النص الحر."""
+        يمكن تمرير doc_id/start_page/end_page داخل **ai_kwargs لبناء المحتوى من مستند بدلاً من النص الحر.
+        theme يمكن أن يكون نصاً (legacy) أو كائناً (هوية بصرية)."""
         doc_id = ai_kwargs.pop("doc_id", None)
         start_page = ai_kwargs.pop("start_page", None)
         end_page = ai_kwargs.pop("end_page", None)
+        slide_min = ai_kwargs.get("slide_min")
+        slide_max = ai_kwargs.get("slide_max")
         source = "نص حر"
         if doc_id:
             content = cls.extract_doc_text(doc_id, user_id, start_page, end_page)
@@ -233,23 +264,28 @@ class PresentationService:
         deck_path = user_dir / f"{deck_id}.json"
         with open(deck_path, "w", encoding="utf-8") as f:
             json.dump(deck, f, ensure_ascii=False, indent=2)
-        save_presentation(deck_id, user_id, title, theme, "draft", str(deck_path))
-        return {"deck_id": deck_id, "title": title, "theme": theme, "deck": deck, "source": source}
+        base, _ = cls._resolve_identity(theme)
+        save_presentation(deck_id, user_id, title, base, "draft", str(deck_path))
+        return {"deck_id": deck_id, "title": title, "theme": deck.get("theme", base),
+                "deck": deck, "source": source, "slide_min": slide_min, "slide_max": slide_max}
 
     @classmethod
-    def generate_deck_with_source(cls, content: str, source: str, theme: str = "academic",
+    def generate_deck_with_source(cls, content: str, source: str, theme="academic",
                                   provider: Optional[str] = None, api_key: Optional[str] = "",
-                                  base_url: Optional[str] = None, model: Optional[str] = None) -> Dict[str, Any]:
+                                  base_url: Optional[str] = None, model: Optional[str] = None,
+                                  slide_min: int = 8, slide_max: int = 15) -> Dict[str, Any]:
         """مثل generate_deck لكن يمرر مصدر المحتوى للـ AI مع تنويه صفحة البداية عند نطاق صفحات."""
         effective_provider = provider or "gemini"
         effective_api_key = api_key or GEMINI_API_KEY
         effective_model = model or DEFAULT_MODEL
+        slide_min = max(5, int(slide_min or 8))
+        slide_max = min(30, max(slide_min, int(slide_max or 15)))
         # تحديد الصفحات من السطر الأول إن كانت generator قد أضافت علامة (نطاق صفحات)
         page_hint = ""
         m = re.search(r"الصفحات (\d+)-(\d+)", source)
         if m:
             page_hint = f"ملاحظة: العرض مبني على الصفحات {m.group(1)}–{m.group(2)} فقط من الملف المصدر، تجاهل ما خارجها.\n"
-        system_prompt = DECK_SYSTEM_PROMPT + "\n\n" + page_hint
+        system_prompt = cls._deck_prompt(theme, slide_min, slide_max) + "\n\n" + page_hint
         try:
             raw = AIService.execute_chat_completion(
                 system_prompt=system_prompt,
@@ -266,9 +302,10 @@ class PresentationService:
         if not raw or not raw.strip():
             raise PresentationError("الذكاء الاصطناعي أعاد رداً فارغاً.")
         deck = cls._parse_json(raw)
-        deck = cls.normalize_deck(deck, theme)
+        base, identity = cls._resolve_identity(theme)
+        deck = cls.normalize_deck(deck, theme, slide_max=slide_max)
         deck["name"] = (deck.get("name") or _default_deck_name(content))[:60]
-        deck["theme"] = theme
+        deck["theme"] = identity if identity is not None else base
         deck["brand"] = deck["name"]
         return deck
 
@@ -290,25 +327,25 @@ class PresentationService:
             raise PresentationError("الذكاء الاصطناعي لم يُرجع JSON صالحاً. أعد المحاولة.")
 
     @classmethod
-    def normalize_deck(cls, raw: Dict[str, Any], theme: str = "academic") -> Dict[str, Any]:
-        theme = theme if theme in ("academic", "dark-tech") else "academic"
-        allowed = TEMPLATES_ACADEMIC if theme == "academic" else TEMPLATES_DARK
+    def normalize_deck(cls, raw: Dict[str, Any], theme="academic", slide_max: int = 15) -> Dict[str, Any]:
+        base, identity = cls._resolve_identity(theme)
+        allowed = TEMPLATES_ACADEMIC if base == "academic" else TEMPLATES_DARK
         deck = {
             "name": str(raw.get("name") or "عرض تقديمي")[:60],
-            "theme": theme,
+            "theme": identity if identity is not None else base,
             "brand": str(raw.get("brand") or raw.get("name") or "عرض تقديمي")[:60],
             "slides": [],
         }
         slides_in = raw.get("slides")
         if not isinstance(slides_in, list) or not slides_in:
             raise PresentationError("العرض لا يحتوي على شرائح صالحة.")
-        slides_in = slides_in[:15]
+        slides_in = slides_in[:max(1, int(slide_max or 15))]
         for i, s in enumerate(slides_in, 1):
             if not isinstance(s, dict):
                 continue
             tmpl = str(s.get("template") or "content")
             if tmpl not in allowed:
-                tmpl = "steps" if tmpl in ("chart", "timeline") and theme == "dark-tech" else \
+                tmpl = "steps" if tmpl in ("chart", "timeline") and base == "dark-tech" else \
                        ("content" if tmpl == "steps" else "content")
             slide = cls._normalize_slide(s, tmpl, i)
             if slide:
@@ -547,9 +584,13 @@ class PresentationService:
         row = get_presentation(deck_id, user_id)
         if not row:
             raise PresentationError("العرض غير موجود.")
-        deck = cls.normalize_deck(deck, row.get("theme") or "academic")
+        incoming_theme = deck.get("theme")
+        # احتفظ بهوية بصرية مخصّصة إن وُجدت في الـ deck المُرسل، وإلا فاستخدم هوية العرض كما هي محفوظة
+        keep_identity = isinstance(incoming_theme, dict)
+        norm_theme = incoming_theme if keep_identity else (row.get("theme") or "academic")
+        deck = cls.normalize_deck(deck, norm_theme)
         deck["name"] = str(deck.get("name") or row.get("title") or "عرض تقديمي")[:60]
-        deck["theme"] = row.get("theme") or "academic"
+        deck["theme"] = incoming_theme if keep_identity else (row.get("theme") or "academic")
         deck["brand"] = deck["name"]
         deck_path = Path(row["deck_path"]) if row.get("deck_path") else PRESENTATIONS_DIR / str(user_id) / f"{deck_id}.json"
         deck_path.parent.mkdir(parents=True, exist_ok=True)
