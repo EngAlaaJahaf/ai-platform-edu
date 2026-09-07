@@ -260,6 +260,13 @@ def init_db():
             pass
 
     conn.commit()
+
+    # Apply versioned migrations
+    from backend.migrations import migrate
+    newly_applied = migrate(conn)
+    if newly_applied:
+        print(f"[DB Migrations] Applied {len(newly_applied)} migration(s): {newly_applied}")
+
     conn.close()
 
 # Database Functions
