@@ -57,6 +57,23 @@ description: Execute Phase 3 of the EduAI ROADMAP (altaawun wa alnashr wa almiza
 - أمام: `cd frontend && npm run build`.
 - تشغيل محلي للأمان عند التحقق: `cmd /c run_dev.bat` أو uvicorn مباشرة.
 
+## التعامل مع GitHub (سحب ورفع التحديثات)
+- **دائماً على فرعك** `feat/collab` — لا تعمل على `main` مباشرة.
+- **بداية كل جلسة** (رتّب بالترتيب — لا تَسحب وأنت على فرعك مباشرة):
+  ```bash
+  git fetch origin
+  git checkout main && git pull origin main
+  git checkout feat/collab && git merge main   # دمج مستجدات الزملاء وحل التعارضات إن وقعت
+  ```
+- **رفع عملك** بعد إتمام مهمة:
+  ```bash
+  git add <ملفات> && git commit -m "feat: ..."   # رسائل Conventional: feat:/docs:/fix:
+  git push -u origin feat/collab   # -u فقط أول مرة، ثم git push
+  ```
+- **عند التعارض**: افتح الملف، اترك النسخة الصحيحة واحذف علامات `<<<<<<< == ===== >>>>>>>`، ثم `git add <ملف>` و`git commit`.
+- **هذا المسار يلمس أكثر الملفات المشتركة** (`routes/api.py`, `database.py`): بيّن في ال PR أي ملفات لمستها لتسهيل مراجعة الزميل.
+- **PR**: بعد الرفع افتح PR نحو `main` (الرابط يظهر في الطرفية، أو `gh pr create --base main`).
+
 ## معايير القبول النهائية للمسار
 - مشاركة فريق شغّالة من طرفين (إنشاء/انضمام/مشاركة/أدوار) موثقة في PR.
 - خلفيات `art` مرئياً تصبغ بهوية كل قالب؛ ولا يكسر الرندر للقوالب الحالية.

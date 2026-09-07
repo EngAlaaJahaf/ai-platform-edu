@@ -62,6 +62,23 @@ description: Excute Phase 1 of the EduAI ROADMAP (jouda al-akwad / quality & eng
 - أمام: `cd frontend && npm test && npm run lint && npm run build`.
 - من المستودع: `py -3 -m` مكان `python` إذا فشل path على ويندوز.
 
+## التعامل مع GitHub (سحب ورفع التحديثات)
+- **دائماً على فرعك** `feat/quality` — لا تعمل على `main` مباشرة.
+- **بداية كل جلسة** (لا تَسحب وأنت على فرعك مباشرة — رتّب كما يلي):
+  ```bash
+  git fetch origin
+  git checkout main && git pull origin main
+  git checkout feat/quality && git merge main   # دمج مستجدات الزملاء في فرعك وحل التعارضات إن وقعت
+  ```
+- **رفع عملك** بعد إتمام مهمة:
+  ```bash
+  git add <ملفات> && git commit -m "test: ..."   # رسائل Conventional: test:/docs:/fix:/refactor:
+  git push -u origin feat/quality   # -u فقط أول مرة، ثم git push
+  ```
+- **عند التعارض**: افتح الملف، اترك النسخة الصحيحة واحذف علامات `<<<<<<< == ===== >>>>>>>`، ثم `git add <ملف>` و `git commit`.
+- **PR**: بعد الرفع افتح PR نحو `main` (الرابط يظهر في الطرفية، أو `gh pr create --base main`).
+- عند رفع فرع تازه لأول مرة انتبه: `-u` يثبّت التتبع لبقية المرات.
+
 ## معايير القبول النهائية للمسار
 - وجود `backend/tests/` + `frontend/src/components/__tests__/` يعملان محلياً.
 - CI أخضر فعلياً على `main` مع تشغيل حقيقي للاختبارات (لا `|| true`).

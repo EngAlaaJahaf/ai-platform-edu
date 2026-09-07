@@ -67,6 +67,23 @@ description: Execute Phase 2 of the EduAI ROADMAP (al-aman wa al-hisabat / secur
 - `frontend: npm run build` لعكس أي كسر في `api.js`.
 - لو PowerShell يرفض تشغيل سكربت، استخدم `cmd /c "..."` (معرفة سابقة للمشروع).
 
+## التعامل مع GitHub (سحب ورفع التحديثات)
+- **دائماً على فرعك** `feat/security` — لا تعمل على `main` مباشرة.
+- **بداية كل جلسة** (رتّب بالترتيب — لا تَسحب وأنت على فرعك مباشرة):
+  ```bash
+  git fetch origin
+  git checkout main && git pull origin main
+  git checkout feat/security && git merge main   # دمج مستجدات الزملاء وحل التعارضات إن وقعت
+  ```
+- **رفع عملك** بعد إتمام مهمة أمنية:
+  ```bash
+  git add <ملفات> && git commit -m "security: ..."   # رسائل Conventional: security:/fix:/refactor:
+  git push -u origin feat/security   # -u فقط أول مرة، ثم git push
+  ```
+- **عند التعارض**: افتح الملف، اترك النسخة الصحيحة واحذف علامات `<<<<<<< == ===== >>>>>>>`، ثم `git add <ملف>` و`git commit`.
+- **أمان إضافي**: تأكد قبل أي `git add .` أن ملف ضمن `.env` غير موقع (فإن أرفقته ضمناً، أزله بـ `git rm --cached .env`). لا ترفع أي مفتاح/secret أبداً.
+- **PR**: بعد الرفع افتح PR نحو `main` (الرابط يظهر في الطرفية، أو `gh pr create --base main`).
+
 ## معايير القبول النهائية للمسار
 - لا اعتماد على `X-User-Id` في أي endpoint (باستثناء Compatibility مؤقت موثق).
 - تجاوز Google معطل؛ مطاردة `sk_admin_` صفرية في المصدر.
