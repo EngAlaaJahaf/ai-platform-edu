@@ -13,6 +13,7 @@ import PromptManagerModal from './components/PromptManagerModal';
 import DocumentLibraryView from './components/DocumentLibraryView';
 import AdminDashboardView from './components/AdminDashboardView';
 import TranslateView from './components/TranslateView';
+import TermsView from './components/TermsView';
 import DocumentFAB from './components/DocumentFAB';
 import AuthGateView from './components/AuthGateView';
 import PresentationView from './components/PresentationView';
@@ -23,7 +24,8 @@ const VALID_TABS = [
   'dashboard', 
   'documents', 
   'presentations',
-  'translate', 
+  'translate',
+  'terms', 
   'chat', 
   'summary', 
   'quiz', 
@@ -86,6 +88,7 @@ export default function App() {
   const [activeSummaryPrompt, setActiveSummaryPrompt] = useState(null);
   const [activeChatPrompt, setActiveChatPrompt] = useState(null);
   const [activeTranslatePrompt, setActiveTranslatePrompt] = useState(null);
+  const [activeTermsPrompt, setActiveTermsPrompt] = useState(null);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
@@ -181,6 +184,8 @@ export default function App() {
       setActiveChatPrompt({ prompt: systemPrompt, title });
     } else if (promptCategory === 'translate') {
       setActiveTranslatePrompt({ prompt: systemPrompt, title });
+    } else if (promptCategory === 'terms') {
+      setActiveTermsPrompt({ prompt: systemPrompt, title });
     }
   };
 
@@ -265,6 +270,17 @@ export default function App() {
             activeDoc={activeDoc}
             activePrompt={activeTranslatePrompt}
             onOpenPromptManager={() => handleOpenPromptForCategory('translate')}
+            onOpenUpload={() => setIsUploadOpen(true)}
+            onOpenApiKey={() => setIsApiKeyOpen(true)}
+          />
+        </div>
+
+        {/* Academic Terms Glossary Workspace */}
+        <div className={activeTab === 'terms' ? 'contents' : 'hidden'}>
+          <TermsView
+            activeDoc={activeDoc}
+            activePrompt={activeTermsPrompt}
+            onOpenPromptManager={() => handleOpenPromptForCategory('terms')}
             onOpenUpload={() => setIsUploadOpen(true)}
             onOpenApiKey={() => setIsApiKeyOpen(true)}
           />
