@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
-DB_PATH = Path(__file__).resolve().parent / "eduai.db"
+DB_PATH = Path(os.getenv("EDUAI_DB_PATH", str(Path(__file__).resolve().parent / "eduai.db")))
 
 # --- Password hashing (pbkdf2_sha256, stdlib only, no extra deps) ---
 def _hash_password(password: str) -> str:
