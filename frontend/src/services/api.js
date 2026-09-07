@@ -802,3 +802,110 @@ export async function clearAdminCache() {
   if (!res.ok) throw new Error('فشل تنظيف الذاكرة المؤقتة');
   return await res.json();
 }
+
+// -------------------------------------------------------------
+// Presentation Generator API (مولّد العروض التقديمية)
+// -------------------------------------------------------------
+
+export async function generatePresentation({ text, theme = 'academic', docId = null, startPage = null, endPage = null } = {}) {
+  const res = await fetch(`${API_BASE}/presentations/generate`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({
+      text: text || '',
+      theme,
+      doc_id: docId || null,
+      start_page: startPage != null ? startPage : null,
+      end_page: endPage != null ? endPage : null
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل توليد العرض التقديمي');
+  }
+  return await res.json();
+}
+
+export async function savePresentationDeck(presId, deck) {
+  const res = await fetch(`${API_BASE}/presentations/${presId}/deck`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ deck })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل حفظ بيانات العرض');
+  }
+  return await res.json();
+}
+
+export async function renderPresentation(presId) {
+  const res = await fetch(`${API_BASE}/presentations/${presId}/render`, {
+    method: 'POST',
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل رندر العرض التقديمي');
+  }
+  return await res.json();
+}
+
+export async function fetchPresentations() {
+  const res = await fetch(`${API_BASE}/presentations`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('فشل جلب قائمة العروض التقديمية');
+  return await res.json();
+}
+
+export async function fetchPresentation(presId) {
+  const res = await fetch(`${API_BASE}/presentations/${presId}`, { headers: getHeaders() });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل جلب بيانات العرض');
+  }
+  return await res.json();
+}
+
+export async function deletePresentation(presId) {
+  const res = await fetch(`${API_BASE}/presentations/${presId}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل حذف العرض التقديمي');
+  }
+  return await res.json();
+}
+
+export function presentationSlideUrl(presId, index, cacheBust = 0) {
+  let url = `${API_BASE}/presentations/${presId}/slides/${index}`;
+  const user = getUserProfile();
+  if (user && user.id) {
+    url += `?uid=${encodeURIComponent(user.id)}`;
+  }
+  if (cacheBust) {
+    url += (url.includes('?') ? '&' : '?') + `t=${cacheBust}`;
+  }
+  return url;
+}
+
+export async function downloadPresentation(presId, format = 'pptx', filename = 'presentation') {
+  const res = await fetch(`${API_BASE}/presentations/${presId}/download?format=${format}`, {
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل تحميل العرض التقديمي');
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  const ext = format === 'pptx' ? 'pptx' : format;
+  link.download = `${filename || 'presentation'}.${ext}`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}

@@ -6,19 +6,15 @@ import {
   BrainCircuit, 
   CheckCheck, 
   Upload, 
-  Clock, 
-  Calendar, 
-  Award, 
-  BookOpen, 
   Zap, 
-  ArrowLeft
+  ArrowLeft,
+  Presentation
 } from 'lucide-react';
 import StudentAnalytics from './StudentAnalytics';
 
 export default function DashboardView({ 
   onSelectTab, 
-  onOpenUpload, 
-  activeDoc 
+  onOpenUpload 
 }) {
   const quickActions = [
     {
@@ -56,6 +52,15 @@ export default function DashboardView({
       gradient: 'from-amber-600 to-orange-700',
       badge: 'أكاديمي',
       badgeColor: 'bg-amber-500/15 text-amber-500 border-amber-500/30'
+    },
+    {
+      id: 'presentations',
+      title: 'مولّد العروض التقديمية',
+      desc: 'حوّل وصف مشروعك إلى عرض تقديمي احترافي (PPTX + PDF) بهوية بصرية عربية',
+      icon: Presentation,
+      gradient: 'from-violet-600 to-indigo-700',
+      badge: 'AI Deck Studio',
+      badgeColor: 'bg-violet-500/15 text-violet-500 border-violet-500/30'
     }
   ];
 
@@ -122,7 +127,7 @@ export default function DashboardView({
           <span>الأدوات الأكاديمية التفاعلية</span>
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
@@ -163,61 +168,6 @@ export default function DashboardView({
               </div>
             );
           })}
-        </div>
-      </div>
-
-      {/* 3-Day Study Plan & Material Center */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Study Plan Section */}
-        <div className="lg:col-span-8 glass-card rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-emerald-400" />
-              <h4 className="font-extrabold text-base theme-text-primary">خطة المراجعة الذكية المقترحة (3 أيام)</h4>
-            </div>
-            <span className="text-xs font-bold theme-text-muted">
-              {activeDoc ? `مخصصة لـ: ${activeDoc.filename}` : 'خطة نموذجية تفاعلية'}
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            <div className="p-4 rounded-xl theme-card-inner flex items-start gap-4">
-              <span className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
-                يوم 1
-              </span>
-              <div>
-                <b className="text-sm theme-text-primary block mb-0.5">استيعاب المفاهيم والخريطة الذهنية</b>
-                <p className="text-xs theme-text-secondary leading-relaxed">
-                  قراءة الملخص النقطي المتكامل وتصفح الخريطة الذهنية التفاعلية لتثبيت المصطلحات والمحاور.
-                </p>
-              </div>
-            </div>
-
-            <div className="p-4 rounded-xl theme-card-inner flex items-start gap-4">
-              <span className="w-8 h-8 rounded-lg bg-teal-500/20 border border-teal-500/40 text-teal-400 flex items-center justify-center font-bold text-xs shrink-0">
-                يوم 2
-              </span>
-              <div>
-                <b className="text-sm theme-text-primary block mb-0.5">حل اختبار MCQ تفاعلي ومراجعة الأخطاء</b>
-                <p className="text-xs theme-text-secondary leading-relaxed">
-                  توليد 15 سؤالاً تدريبياً ثنائي اللغة وقراءة التفسيرات الأكاديمية لكل سؤال لتقوية نقاط الضعف.
-                </p>
-              </div>
-            </div>
-
-            <div className="p-4 rounded-xl theme-card-inner flex items-start gap-4">
-              <span className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0">
-                يوم 3
-              </span>
-              <div>
-                <b className="text-sm theme-text-primary block mb-0.5">جلسة أسئلة مكثفة (RAG Q&A)</b>
-                <p className="text-xs theme-text-secondary leading-relaxed">
-                  طرح أصعب الأسئلة المتوقعة على المساعد الذكي مع استعراض الاقتباسات وأرقام الصفحات.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 

@@ -16,7 +16,9 @@ import {
   Shield,
   GraduationCap,
   Lock,
-  UserCheck
+  UserCheck,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
@@ -43,6 +45,7 @@ export default function GoogleAuthModal({ isOpen, onClose, user, onUserUpdated }
 
   // Admin Form
   const [adminKey, setAdminKey] = useState('');
+  const [showAdminKey, setShowAdminKey] = useState(false);
 
   if (!isOpen) return null;
 
@@ -364,13 +367,21 @@ export default function GoogleAuthModal({ isOpen, onClose, user, onUserUpdated }
                     </label>
                     <div className="relative">
                       <input
-                        type="password"
+                        type={showAdminKey ? "text" : "password"}
                         value={adminKey}
                         onChange={(e) => setAdminKey(e.target.value)}
                         placeholder="أدخل كلمة مرور المشرف (مثال: admin123)"
-                        className="w-full theme-card-inner border rounded-xl px-3.5 py-2.5 text-xs theme-text-primary placeholder-slate-400 outline-none font-mono pr-9"
+                        className="w-full theme-card-inner border rounded-xl px-3.5 py-2.5 text-xs theme-text-primary placeholder-slate-400 outline-none font-mono pr-9 pl-9"
                       />
                       <Lock className="w-4 h-4 text-amber-500 absolute top-3 right-3" />
+                      <button
+                        type="button"
+                        onClick={() => setShowAdminKey(v => !v)}
+                        aria-label={showAdminKey ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                        className="absolute top-1/2 -translate-y-1/2 left-3 theme-text-muted hover:theme-text-primary transition p-0.5"
+                      >
+                        {showAdminKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
                     </div>
                   </div>
 

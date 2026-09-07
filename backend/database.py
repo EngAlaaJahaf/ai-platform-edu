@@ -142,6 +142,24 @@ def init_db():
     );
     """)
 
+    # Presentations table (مولّد العروض التقديمية)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS presentations (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        theme TEXT DEFAULT 'academic',
+        status TEXT DEFAULT 'draft', -- 'draft', 'rendering', 'rendered', 'error'
+        slide_count INTEGER DEFAULT 0,
+        deck_path TEXT,
+        result_dir TEXT,
+        error TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+    """)
+
     # Safe Schema Migrations for users table (role & password_hash)
     try:
         cursor.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'student';")
@@ -207,7 +225,7 @@ def get_or_create_user(google_id: str, email: str, name: str, picture: str, role
     
     # Auto-grant admin role if email matches admin pattern or already admin
     user_role = role
-    if email in ['admin@eduai.edu', 'superadmin@eduai.edu'] or (user and user.get('role') == 'admin'):
+    if email in ['admin@eduai.edu', 'superadmin@eduai.edu'] or (user and user["role"] == 'admin'):
         user_role = 'admin'
 
     if user:
@@ -216,7 +234,7 @@ def get_or_create_user(google_id: str, email: str, name: str, picture: str, role
         cursor.execute("SELECT * FROM users WHERE id = ?", (user["id"],))
         user = cursor.fetchone()
     else:
-        user_id = f"usr_{google_id[:12]}"
+        user_id = f"usr_{uuid.uuid5(uuid.NAMESPACE_DNS, google_id).hex[:12]}"
         cursor.execute("""
             INSERT INTO users (id, google_id, email, name, picture, role, subscription_tier)
             VALUES (?, ?, ?, ?, ?, ?, 'Pro Academic 🌟')
@@ -935,6 +953,9 @@ def get_admin_metrics() -> Dict[str, Any]:
     cursor.execute("SELECT COUNT(*) FROM activity_logs")
     total_activities = cursor.fetchone()[0] or 0
     
+    cursor.execute("SELECT COUNT(*) FROM presentations")
+    total_presentations = cursor.fetchone()[0] or 0
+    
     cursor.execute("SELECT SUM(tokens_used) FROM users")
     total_tokens = cursor.fetchone()[0] or 0
     
@@ -951,10 +972,122 @@ def get_admin_metrics() -> Dict[str, Any]:
         "total_tokens": total_tokens,
         "total_prompts": total_prompts,
         "total_activities": total_activities,
+        "total_presentations": total_presentations,
         "database_size_kb": db_size_kb,
         "server_status": "healthy",
         "system_version": "2.4.0 (Enterprise Academic)"
     }
+
+# ==== Presentations (مولّد العروض التقديمية) ====
+
+def save_presentation(pres_id: str, user_id: str, title: str, theme: str = "academic",
+                      status: str = "draft", deck_path: str = "", result_dir: str = "",
+                      slide_count: int = 0, error: str = ""):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT OR REPLACE INTO presentations
+        (id, user_id, title, theme, status, deck_path, result_dir, slide_count, error, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    """, (pres_id, user_id, title, theme, status, deck_path, result_dir, slide_count, error))
+    conn.commit()
+    conn.close()
+    log_activity("save_presentation", f"تم حفظ العرض التقديمي: {title}", "info", pres_id)
+
+
+def get_presentation(pres_id: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if user_id:
+        cursor.execute("SELECT * FROM presentations WHERE id = ? AND user_id = ?", (pres_id, user_id))
+    else:
+        cursor.execute("SELECT * FROM presentations WHERE id = ?", (pres_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    d = dict(row)
+    d["presentation_id"] = d["id"]
+    d["deck"] = _read_deck_json(d) if d.get("deck_path") else None
+    return d
+
+
+def _read_deck_json(row: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    try:
+        path = row.get("deck_path")
+        if path and os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return None
+
+
+def list_presentations(user_id: str, limit: int = 20, offset: int = 0) -> List[Dict[str, Any]]:
+    limit = max(1, min(100, int(limit) if limit else 20))
+    offset = max(0, int(offset) if offset else 0)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id, title, theme, status, slide_count, created_at, updated_at, error "
+        "FROM presentations WHERE user_id = ? ORDER BY updated_at DESC LIMIT ? OFFSET ?",
+        (user_id, limit, offset)
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def count_presentations(user_id: str) -> int:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM presentations WHERE user_id = ?", (user_id,))
+    total = cursor.fetchone()[0] or 0
+    conn.close()
+    return total
+
+
+def update_presentation_status(pres_id: str, status: str, slide_count: Optional[int] = None,
+                               error: str = "", result_dir: str = None) -> bool:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    sets = ["status = ?", "updated_at = CURRENT_TIMESTAMP"]
+    params: List[Any] = [status]
+    if slide_count is not None:
+        sets.append("slide_count = ?")
+        params.append(slide_count)
+    if error is not None:
+        sets.append("error = ?")
+        params.append(error)
+    if result_dir is not None:
+        sets.append("result_dir = ?")
+        params.append(result_dir)
+    params.append(pres_id)
+    cursor.execute(f"UPDATE presentations SET {', '.join(sets)} WHERE id = ?", tuple(params))
+    conn.commit()
+    conn.close()
+    return cursor.rowcount > 0
+
+
+def delete_presentation(pres_id: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """حذف سجّل العرض مع إرجاع مسار ملفاته ليحرر المستدعى القرص."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if user_id:
+        cursor.execute("SELECT id, title, deck_path, result_dir FROM presentations WHERE id = ? AND user_id = ?", (pres_id, user_id))
+    else:
+        cursor.execute("SELECT id, title, deck_path, result_dir FROM presentations WHERE id = ?", (pres_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return None
+    info = {"title": row["title"], "deck_path": row["deck_path"], "result_dir": row["result_dir"]}
+    cursor.execute("DELETE FROM presentations WHERE id = ?", (pres_id,))
+    conn.commit()
+    conn.close()
+    log_activity("delete_presentation", f"تم حذف العرض التقديمي: {row['title']}", "warn", pres_id)
+    return info
+
 
 # Initialize database
 init_db()

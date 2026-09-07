@@ -20,7 +20,8 @@ import {
   Menu, 
   X, 
   BookOpen, 
-  ShieldAlert 
+  ShieldAlert,
+  Presentation 
 } from 'lucide-react';
 import { getApiKey, getAIProvider, getSelectedModel } from '../services/api';
 
@@ -62,6 +63,7 @@ export default function Header({
   // Secondary Tools
   const secondaryTabs = [
     { id: 'dashboard', label: 'لوحة الإحصائيات الأكاديمية', icon: LayoutDashboard },
+    { id: 'presentations', label: 'مولّد العروض التقديمية', icon: Presentation },
     { id: 'proofread', label: 'التدقيق الأكاديمي واللغوي', icon: CheckCheck },
     { id: 'subscription', label: 'خطة الاشتراك ومزايا Pro', icon: Crown }
   ];

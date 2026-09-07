@@ -20,6 +20,9 @@ build/
 backend/uploads/*
 !backend/uploads/.gitkeep
 
+# User-generated presentations & rendered decks
+backend/presentations/
+
 # OS
 .DS_Store
 Thumbs.db

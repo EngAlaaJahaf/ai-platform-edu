@@ -30,7 +30,9 @@ import {
   ChevronDown,
   Sparkles,
   Terminal,
-  ExternalLink
+  ExternalLink,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { 
   fetchAdminStats, 
@@ -68,6 +70,7 @@ export default function AdminDashboardModal({
   const [apiKey, setApiKey] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
   const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash');
+  const [showAdminApiKey, setShowAdminApiKey] = useState(false);
   const [dynamicModels, setDynamicModels] = useState([]);
   const [fetchingModels, setFetchingModels] = useState(false);
   const [searchModelQuery, setSearchModelQuery] = useState('');
@@ -703,13 +706,26 @@ export default function AdminDashboardModal({
                           </a>
                         )}
                       </label>
-                      <input
-                        type="password"
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                        placeholder={provider === 'ollama' ? "غير مطلوب في Ollama المحلي" : "الصق مفتاحك هنا..."}
-                        className="w-full theme-card-inner border rounded-xl px-3 py-2 text-xs theme-text-primary outline-none font-mono"
-                      />
+                      <div className="relative">
+                        <input
+                          type={showAdminApiKey ? "text" : "password"}
+                          value={apiKey}
+                          onChange={(e) => setApiKey(e.target.value)}
+                          placeholder={provider === 'ollama' ? "غير مطلوب في Ollama المحلي" : "الصق مفتاحك هنا..."}
+                          className="w-full theme-card-inner border rounded-xl px-3 py-2 text-xs theme-text-primary outline-none font-mono pr-10"
+                          dir="ltr"
+                        />
+                        {provider !== 'ollama' && (
+                          <button
+                            type="button"
+                            onClick={() => setShowAdminApiKey(v => !v)}
+                            aria-label={showAdminApiKey ? 'إخفاء المفتاح' : 'إظهار المفتاح'}
+                            className="absolute top-1/2 -translate-y-1/2 right-3 theme-text-muted hover:theme-text-primary transition p-0.5"
+                          >
+                            {showAdminApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {/* 3. Searchable Models Selection Box (Same as ApiKeyModal) */}

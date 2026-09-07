@@ -2,10 +2,14 @@ import os
 import shutil
 import uuid
 import time
+import io
+import re
+import json
+import zipfile
 from collections import defaultdict
 from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Header, Response, Depends, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 from pydantic import BaseModel
 
 from backend.config import UPLOAD_DIR
@@ -14,6 +18,7 @@ from backend.services.rag_service import RAGService
 from backend.services.ai_service import AIService
 from backend.services.auth_service import AuthService
 from backend.services.quiz_formatter import QuizFormatterService
+from backend.services.presentation_service import PresentationService, PresentationError
 from backend.database import (
     save_document, 
     get_document, 
@@ -47,7 +52,10 @@ from backend.database import (
     update_system_settings,
     get_activity_logs,
     get_admin_metrics,
-    log_activity
+    log_activity,
+    list_presentations,
+    count_presentations,
+    update_presentation_status
 )
 
 router = APIRouter(prefix="/api")
@@ -201,6 +209,16 @@ class DocxExportRequest(BaseModel):
     content: Optional[str] = None
     units: Optional[List[Dict[str, Any]]] = None
     sections: Optional[List[Dict[str, Any]]] = None
+
+class PresentationGenerateRequest(BaseModel):
+    text: Optional[str] = ""
+    theme: Optional[str] = "academic"
+    doc_id: Optional[str] = None
+    start_page: Optional[int] = None
+    end_page: Optional[int] = None
+
+class PresentationDeckRequest(BaseModel):
+    deck: Dict[str, Any]
 
 
 @router.get("/health")
@@ -453,7 +471,9 @@ def get_latest_doc_endpoint(x_user_id: Optional[str] = Header(None)):
             "filename": doc["filename"],
             "pages_count": doc["pages_count"],
             "words_count": doc.get("words_count", 0),
-            "preview_text": doc["full_text"][:400] + "..." if len(doc.get("full_text", "")) > 400 else doc.get("full_text", "")
+            "preview_text": doc["full_text"][:400] + "..." if len(doc.get("full_text", "")) > 400 else doc.get("full_text", ""),
+            "summary_data": doc.get("summary_data"),
+            "quiz_data": doc.get("quiz_data")
         }
     }
 
@@ -852,6 +872,201 @@ def save_quiz_progress_endpoint(doc_id: str, req: ProgressRequest, x_user_id: Op
         raise HTTPException(status_code=404, detail="المستند غير موجود")
     save_document_progress(doc_id, req.progress_json)
     return {"success": True}
+
+# -------------------------------------------------------------
+# Presentation Generator Endpoints (مولّد العروض التقديمية)
+# -------------------------------------------------------------
+
+def _pres_headers(provider, api_key, base_url, model):
+    return {
+        "provider": provider or "gemini",
+        "api_key": api_key,
+        "base_url": base_url,
+        "model": model,
+    }
+
+
+@router.post("/presentations/generate")
+def presentation_generate_endpoint(
+    req: PresentationGenerateRequest,
+    x_ai_provider: Optional[str] = Header("gemini"),
+    x_gemini_api_key: Optional[str] = Header(None),
+    x_ai_base_url: Optional[str] = Header(None),
+    x_gemini_model: Optional[str] = Header(None),
+    x_user_id: Optional[str] = Header(None),
+    request: Request = None,
+):
+    """نص حر → deck JSON محفوظ (قبل الرندر، قابل للتعديل)."""
+    if request:
+        _check_rate_limit(f"pres_gen:{x_user_id or request.client.host}", limit=5, window_sec=60)
+    user = _get_current_user(x_user_id)
+    ai = _pres_headers(x_ai_provider, x_gemini_api_key, x_ai_base_url, x_gemini_model)
+    try:
+        result = PresentationService.create(
+            user_id=user["id"],
+            text=req.text or "",
+            theme=req.theme or "academic",
+            doc_id=req.doc_id,
+            start_page=req.start_page,
+            end_page=req.end_page,
+            provider=ai["provider"],
+            api_key=ai["api_key"],
+            base_url=ai["base_url"],
+            model=ai["model"],
+        )
+    except PresentationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    try:
+        delta = estimate_tokens(req.text[:3000]) + estimate_tokens(json.dumps(result.get("deck", {}), ensure_ascii=False))
+        increment_user_tokens(user["id"], delta)
+    except Exception:
+        pass
+    return result
+
+
+@router.post("/presentations/{pres_id}/deck")
+def presentation_save_deck_endpoint(
+    pres_id: str,
+    req: PresentationDeckRequest,
+    x_user_id: Optional[str] = Header(None),
+):
+    """حفظ deck معدّل قبل الرندر."""
+    user = _get_current_user(x_user_id)
+    try:
+        result = PresentationService.update_deck_json(pres_id, user["id"], req.deck)
+    except PresentationError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    return result
+
+
+@router.post("/presentations/{pres_id}/render")
+def presentation_render_endpoint(
+    pres_id: str,
+    x_user_id: Optional[str] = Header(None),
+    request: Request = None,
+):
+    """رندر deck → PPTX + PDF + صور المعاينة (مزامن)."""
+    if request:
+        _check_rate_limit(f"pres_render:{x_user_id or request.client.host}", limit=3, window_sec=60)
+    user = _get_current_user(x_user_id)
+    try:
+        row = PresentationService.load(pres_id, user["id"])
+    except PresentationError:
+        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
+    deck = row.get("deck")
+    if not deck:
+        raise HTTPException(status_code=404, detail="بيانات العرض غير متوفرة (deck.json ناقص).")
+    update_presentation_status(pres_id, "rendering", error="")
+    try:
+        result_dir = PresentationService.render_deck(pres_id, user["id"], deck, row.get("title", "presentation"))
+    except PresentationError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    n = int(row.get("slide_count") or len(deck.get("slides", [])) or 0)
+    previews = [f"/api/presentations/{pres_id}/slides/{i}" for i in range(1, n + 1)]
+    return {
+        "status": "rendered",
+        "slide_count": n,
+        "previews": previews,
+        "result_dir": result_dir,
+    }
+
+
+@router.get("/presentations")
+def presentation_list_endpoint(
+    limit: int = 20,
+    offset: int = 0,
+    x_user_id: Optional[str] = Header(None),
+):
+    user = _get_current_user(x_user_id)
+    items = list_presentations(user["id"], limit=limit, offset=offset)
+    total = count_presentations(user["id"])
+    return {"presentations": items, "total": total}
+
+
+@router.get("/presentations/{pres_id}")
+def presentation_get_endpoint(pres_id: str, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    try:
+        return PresentationService.load(pres_id, user["id"])
+    except PresentationError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/presentations/{pres_id}/slides/{slide_index}")
+def presentation_slide_endpoint(
+    pres_id: str,
+    slide_index: int,
+    x_user_id: Optional[str] = Header(None),
+    uid: Optional[str] = None,
+):
+    """صورة معاينة لشريحة محددة — تقبل uid كمعامل استعلام لأن img لا يرسل هيدرات مخصصة."""
+    effective_user_id = x_user_id or uid
+    user = _get_current_user(effective_user_id)
+    try:
+        row = PresentationService.load(pres_id, user["id"])
+    except PresentationError:
+        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
+    result_dir = row.get("result_dir")
+    if not result_dir:
+        raise HTTPException(status_code=404, detail="لم يُنفَّذ الرندر بعد.")
+    png = os.path.join(result_dir, "build", "png", f"slide_{slide_index:02d}.png")
+    if not os.path.isfile(png):
+        raise HTTPException(status_code=404, detail="الشريحة غير موجودة.")
+    return FileResponse(png, media_type="image/png")
+
+
+@router.get("/presentations/{pres_id}/download")
+def presentation_download_endpoint(
+    pres_id: str,
+    format: str = "pptx",
+    x_user_id: Optional[str] = Header(None),
+):
+    user = _get_current_user(x_user_id)
+    try:
+        row = PresentationService.load(pres_id, user["id"])
+    except PresentationError:
+        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
+    result_dir = row.get("result_dir")
+    if not result_dir:
+        raise HTTPException(status_code=404, detail="لم يُنفَّذ الرندر بعد.")
+    fmt = format.lower()
+    title = re.sub(r"[\\/:*?\"<>|]+", "_", row.get("title") or "presentation")
+    if fmt == "pptx":
+        p = os.path.join(result_dir, "presentation.pptx")
+        if not os.path.isfile(p):
+            raise HTTPException(status_code=404, detail="الملف غير موجود.")
+        return FileResponse(p, media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                            filename=f"{title}.pptx")
+    if fmt == "pdf":
+        p = os.path.join(result_dir, "presentation.pdf")
+        if not os.path.isfile(p):
+            raise HTTPException(status_code=404, detail="الملف غير موجود.")
+        return FileResponse(p, media_type="application/pdf", filename=f"{title}.pdf")
+    if fmt == "zip":
+        png_dir = os.path.join(result_dir, "build", "png")
+        if not os.path.isdir(png_dir):
+            raise HTTPException(status_code=404, detail="لا توجد صور شرائح.")
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+            for f in sorted(os.listdir(png_dir)):
+                if f.endswith(".png"):
+                    zf.write(os.path.join(png_dir, f), f"slides/{f}")
+        buf.seek(0)
+        from urllib.parse import quote
+        safe_name = quote(f"{title}_slides.zip")
+        return Response(content=buf.getvalue(), media_type="application/zip",
+                        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{safe_name}"})
+    raise HTTPException(status_code=400, detail="الصيغة غير مدعومة: pptx | pdf | zip")
+
+
+@router.delete("/presentations/{pres_id}")
+def presentation_delete_endpoint(pres_id: str, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    ok = PresentationService.remove(pres_id, user["id"])
+    if not ok:
+        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
+    return {"success": True, "message": "تم حذف العرض التقديمي"}
+
 
 # -------------------------------------------------------------
 # Admin Control Panel Endpoints (لوحة التحكم الشاملة للإدارة)

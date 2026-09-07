@@ -16,7 +16,9 @@ import {
   RefreshCw,
   Search,
   Check,
-  ChevronDown
+  ChevronDown,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { 
   getAIProvider, 
@@ -47,6 +49,8 @@ export default function ApiKeyModal({ isOpen, onClose, onKeyUpdated }) {
   const dropdownRef = useRef(null);
 
   const [useBaseRules, setUseBaseRulesState] = useState(true);
+
+  const [showKey, setShowKey] = useState(false);
 
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -353,13 +357,26 @@ export default function ApiKeyModal({ isOpen, onClose, onKeyUpdated }) {
                 </a>
               )}
             </label>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKeyState(e.target.value)}
-              placeholder={provider === 'ollama' ? "غير مطلوب في Ollama المحلي" : "الصق مفتاحك هنا..."}
-              className="w-full theme-card-inner border rounded-xl px-3.5 py-2.5 text-xs theme-text-primary outline-none font-mono"
-            />
+            <div className="relative">
+              <input
+                type={showKey ? 'text' : 'password'}
+                value={apiKey}
+                onChange={(e) => setApiKeyState(e.target.value)}
+                placeholder={provider === 'ollama' ? "غير مطلوب في Ollama المحلي" : "الصق مفتاحك هنا..."}
+                className="w-full theme-card-inner border rounded-xl px-3.5 py-2.5 text-xs theme-text-primary outline-none font-mono pr-10"
+                dir="ltr"
+              />
+              {provider !== 'ollama' && (
+                <button
+                  type="button"
+                  onClick={() => setShowKey(v => !v)}
+                  aria-label={showKey ? 'إخفاء المفتاح' : 'إظهار المفتاح'}
+                  className="absolute top-1/2 -translate-y-1/2 right-3 theme-text-muted hover:theme-text-primary transition p-1 rounded-lg"
+                >
+                  {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Searchable Models Selection Box */}
