@@ -43,3 +43,6 @@ frontend/.vite/
 .idea/
 *.swp
 *.swo
+
+# Packaged skill files (keep the folder form in repo only)
+.opencode/skills/*.zip
