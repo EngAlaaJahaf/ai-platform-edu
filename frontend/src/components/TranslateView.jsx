@@ -27,6 +27,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import { translateDocument, exportToDocx } from '../services/api';
+import { renderMarkdownToHtml } from '../services/exportService';
 
 export default function TranslateView({ 
   activeDoc, 
@@ -169,6 +170,72 @@ export default function TranslateView({
     } finally {
       setExportingDocx(false);
     }
+  };
+
+  const handlePrint = () => {
+    if (!result) return;
+    const printWin = window.open('', '_blank', 'width=900,height=1200');
+    if (!printWin) {
+      alert('يرجى السماح بالنوافذ المنبثقة (Popups) لمعاينة وطباعة ملف الـ PDF');
+      return;
+    }
+    let bodyHtml = '';
+    const docName = activeDoc?.filename || 'مستند أكاديمي';
+    const currentDate = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    if (mode === 'line_by_line' && result?.units?.length) {
+      const rows = result.units.map(u => `
+        <tr>
+          <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;text-align:left;direction:ltr;color:#475569;font-size:13px;">${u.original || ''}</td>
+          <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;text-align:right;direction:rtl;font-weight:700;">${u.translated || ''}</td>
+        </tr>
+      `).join('');
+      bodyHtml = `
+        <div style="margin-bottom:24px;">
+          <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+            <thead><tr style="background:#1e3a8a;color:#fff;"><th style="padding:10px;text-align:left;">Original (${sourceLang.toUpperCase()})</th><th style="padding:10px;text-align:right;">الترجمة (${targetLang.toUpperCase()})</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+    } else {
+      const md = result?.full_translated_text || result?.parallel_pages?.[0]?.translated_text || '';
+      bodyHtml = `<div class="prose-content">${renderMarkdownToHtml(md)}</div>`;
+    }
+
+    const htmlDoc = `<!DOCTYPE html><html lang="ar" dir="rtl"><head>
+      <meta charset="UTF-8">
+      <title>ترجمة أكاديمية - ${docName}</title>
+      <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&family=IBM+Plex+Sans+Arabic:wght@700;800&display=swap" rel="stylesheet">
+      <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Tajawal',sans-serif;background:#fff;color:#0f172a;padding:40px;line-height:1.9;font-size:14px}
+        .page-header{border-bottom:2.5px solid #1e3a8a;padding-bottom:16px;margin-bottom:24px}
+        .page-header h1{font-family:'IBM Plex Sans Arabic',sans-serif;font-size:22px;font-weight:800;color:#1e3a8a;margin-bottom:4px}
+        .page-header p{font-size:12px;color:#64748b;font-weight:700}
+        .prose-content{font-size:14.5px;line-height:1.95;direction:rtl;text-align:justify}
+        .prose-content h1,.prose-content h2,.prose-content h3{font-family:'IBM Plex Sans Arabic',sans-serif;color:#1e3a8a;margin-top:18px;margin-bottom:6px;font-weight:700}
+        .prose-content h2{font-size:17px;color:#0284c7}
+        .prose-content p{margin-bottom:12px}
+        .page-footer{margin-top:32px;padding-top:12px;border-top:1px solid #e2e8f0;text-align:center;font-size:10px;color:#94a3b8}
+        @media print{body{padding:0;font-size:12pt}.page-header{page-break-after:avoid}}
+      </style>
+    </head><body>
+      <div class="page-header">
+        <h1>${result?.translated_title || pageTitle}</h1>
+        <p>المستند: ${docName} • الترجمة: ${sourceLang.toUpperCase()} ➔ ${targetLang.toUpperCase()} • التاريخ: ${currentDate}</p>
+      </div>
+      ${bodyHtml}
+      <div class="page-footer">تم الترجمة عبر منصة المساعد الأكاديمي الذكي (EduAI Platform)</div>
+    </body></html>`;
+
+    printWin.document.write(htmlDoc);
+    printWin.document.close();
+    printWin.onload = () => {
+      setTimeout(() => {
+        printWin.focus();
+        printWin.print();
+      }, 600);
+    };
   };
 
   return (
@@ -417,7 +484,7 @@ export default function TranslateView({
                 <span>Word (.docx)</span>
               </button>
               <button
-                onClick={() => window.print()}
+                onClick={handlePrint}
                 className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1 cursor-pointer"
                 title="طباعة أو حفظ PDF"
               >

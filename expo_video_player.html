@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>فيديو العرض الرسمي — منصة ذكاء | EduAI — معرض IT 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=IBM+Plex+Sans+Arabic:wght@600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #070A1A;
+  --surface: #0E142A;
+  --surface-glass: rgba(14, 20, 42, 0.75);
+  --border: rgba(99, 102, 241, 0.25);
+  --indigo: #6366F1;
+  --cyan: #06B6D4;
+  --emerald: #10B981;
+  --amber: #F59E0B;
+  --rose: #F43F5E;
+  --text: #F8FAFC;
+  --text-muted: #94A3B8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #030611;
+  color: var(--text);
+  font-family: 'Tajawal', system-ui, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Widescreen Cinema Container 16:9 */
+.cinema-wrapper {
+  position: relative;
+  width: min(96vw, 170.66vh);
+  height: min(54vw, 96vh);
+  aspect-ratio: 16 / 9;
+  background: var(--bg);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.8), 0 0 60px rgba(99, 102, 241, 0.2);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mesh & Lighting Effects */
+.ambient-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: 
+    radial-gradient(900px 500px at 15% 15%, rgba(99, 102, 241, 0.18), transparent 60%),
+    radial-gradient(800px 500px at 85% 85%, rgba(6, 182, 214, 0.15), transparent 60%),
+    radial-gradient(600px 400px at 50% 50%, rgba(139, 92, 246, 0.1), transparent 70%);
+  z-index: 1;
+}
+.grid-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: 1;
+}
+
+/* Top Exhibition Header Bar */
+.expo-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 20;
+  background: linear-gradient(180deg, rgba(7,10,26,0.9), transparent);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.expo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #C7D2FE;
+}
+.live-indicator {
+  width: 10px;
+  height: 10px;
+  background: #EF4444;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #EF4444;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+.scene-counter {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--cyan);
+  font-weight: 700;
+  background: rgba(6, 182, 214, 0.1);
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(6, 182, 214, 0.25);
+}
+
+/* Canvas & Scene Viewport */
+.stage {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 10;
+}
+.scene {
+  position: absolute;
+  inset: 0;
+  padding: 80px 48px 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transform: scale(0.96) translateY(20px);
+  pointer-events: none;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.scene.active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+
+/* Titles & Visual Components */
+.scene-kicker {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--amber);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 6px 18px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+.scene-title {
+  font-size: clamp(28px, 3.6vw, 48px);
+  font-weight: 900;
+  text-align: center;
+  line-height: 1.25;
+  margin-bottom: 14px;
+}
+.grad-text {
+  background: linear-gradient(135deg, #A5B4FC, #67E8F9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.grad-gold {
+  background: linear-gradient(135deg, #FDE68A, #F59E0B);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.scene-desc {
+  font-size: clamp(15px, 1.4vw, 20px);
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 820px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* Scene Specific Cards */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  width: 100%;
+  max-width: 1000px;
+}
+.cinema-card {
+  background: var(--surface-glass);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.cinema-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--cyan);
+}
+.card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+.cinema-card h4 {
+  font-size: 18px;
+  font-weight: 800;
+  color: white;
+}
+.cinema-card p {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+/* Live Simulation Box */
+.sim-container {
+  width: 100%;
+  max-width: 960px;
+  background: #0B0F20;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.sim-head {
+  background: #121730;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.sim-dots {
+  display: flex;
+  gap: 6px;
+}
+.sim-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.sim-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.sim-bubble {
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 85%;
+  animation: slideUp 0.5s ease-out;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.sim-user {
+  align-self: flex-start;
+  background: rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  color: #E0E7FF;
+}
+.sim-ai {
+  align-self: flex-end;
+  background: #141A38;
+  border: 1px solid rgba(6, 182, 214, 0.3);
+  color: #F8FAFC;
+}
+.rag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 4px 10px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #6EE7B7;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Subtitles Bar (Bottom of Cinema) */
+.subtitles-bar {
+  position: absolute;
+  bottom: 60px;
+  left: 0;
+  right: 0;
+  padding: 10px 32px;
+  text-align: center;
+  z-index: 30;
+  pointer-events: none;
+}
+.subtitle-box {
+  display: inline-block;
+  background: rgba(7, 10, 26, 0.88);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  backdrop-filter: blur(12px);
+  padding: 8px 24px;
+  border-radius: 12px;
+  font-size: clamp(14px, 1.3vw, 18px);
+  font-weight: 700;
+  color: #FFFFFF;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  max-width: 90%;
+  line-height: 1.5;
+}
+
+/* Bottom Controls & Timeline Bar */
+.expo-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  padding: 0 24px;
+  background: linear-gradient(0deg, rgba(7,10,26,0.95), transparent);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 40;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.progress-container {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--indigo), var(--cyan));
+  border-radius: 999px;
+  transition: width 0.2s linear;
+}
+.time-display {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 80px;
+}
+.btn-ctrl {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 15px;
+  transition: 0.2s;
+}
+.btn-ctrl:hover {
+  background: var(--indigo);
+  border-color: var(--indigo);
+}
+.btn-ctrl.active {
+  background: var(--cyan);
+  color: #0B0E1E;
+}
+
+/* External Controls for Operator */
+.operator-panel {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.btn-op {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: 0.2s;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--indigo), #4F46E5);
+  color: white;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+}
+.btn-gold {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: #0B0E1E;
+  font-weight: 900;
+}
+.btn-outline {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.15);
+  color: #E2E8F0;
+}
+.btn-outline:hover {
+  background: rgba(255,255,255,0.1);
+}
+</style>
+</head>
+<body>
+
+<div class="cinema-wrapper" id="cinema">
+  <div class="ambient-glow"></div>
+  <div class="grid-lines"></div>
+
+  <!-- Header -->
+  <div class="expo-header">
+    <div class="expo-badge">
+      <div class="live-indicator"></div>
+      <span>معرض IT 2026 — مشروع #07 | منصة ذكاء EduAI</span>
+    </div>
+    <div class="scene-counter" id="sceneIndicator">المشهد 1 / 7</div>
+  </div>
+
+  <!-- Main Stage Viewport -->
+  <div class="stage">
+    
+    <!-- SCENE 1: PROBLEM -->
+    <div class="scene active" id="scene-0">
+      <div class="scene-kicker">⚠️ التحدي الأكاديمي اليومي</div>
+      <h1 class="scene-title">مئات الصفحات من المحاضرات...<br><span class="grad-text">ووقت مراجعة لا يكفي.</span></h1>
+      <p class="scene-desc">يعاني 78% من طلاب الجامعات من التشتت وضيق الوقت قبل الامتحانات، بينما النماذج العامة تعطي إجابات عشوائية وغير موثقة قد تؤدي للرسوب.</p>
+      <div class="cards-grid">
+        <div class="cinema-card">
+          <div class="card-icon" style="color:var(--rose)">📚</div>
+          <h4>كثافة المقررات</h4>
+          <p>أكثر من 60 شريحة لكل محاضرة وملفات مبعثرة لا يمكن استيعابها في ليلة الامتحان.</p>
+        </div>
+        <div class="cinema-card">
+          <div class="card-icon" style="color:var(--amber)">⏳</div>
+          <h4>المراجعة البطيئة</h4>
+          <p>إعادة القراءة السلبية لا تثبت المعلومة ولا تكشف نقاط الضعف الحقيقية قبل دخول الاختبار.</p>
+        </div>
+        <div class="cinema-card">
+          <div class="card-icon" style="color:var(--indigo)">⚠️</div>
+          <h4>مخاطر الهلوسة</h4>
+          <p>روبوتات الذكاء العامة تبتكر معلومات خاطئة وتفتقر للربط المباشر مع كتاب المقرر المعتمد.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 2: SOLUTION -->
+    <div class="scene" id="scene-1">
+      <div class="scene-kicker">🚀 الحل العربي الأكاديمي</div>
+      <h1 class="scene-title">منصة ذكاء — <span class="grad-text">EduAI</span><br><span class="grad-gold">مشروع رقم 07</span></h1>
+      <p class="scene-desc">المساعد الأكاديمي الذكي المطور خصيصاً للتعليم الجامعي، يجمع بين محادثة RAG الموثقة، التلخيص الهيكلي، الخرائط الذهنية الحية، واستوديو الاختبارات التفاعلي.</p>
+      <div style="display:flex; gap:20px; flex-wrap:wrap; justify-content:center; max-width:900px">
+        <div style="background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); padding:16px 24px; border-radius:16px; text-align:center">
+          <b style="font-size:28px; color:#A5B4FC; display:block">98%</b>
+          <span style="font-size:13px; color:var(--text-muted)">دقة الإجابات مع رقم الصفحة</span>
+        </div>
+        <div style="background:rgba(6,182,214,0.15); border:1px solid rgba(6,182,214,0.3); padding:16px 24px; border-radius:16px; text-align:center">
+          <b style="font-size:28px; color:#67E8F9; display:block">&lt; 2s</b>
+          <span style="font-size:13px; color:var(--text-muted)">سرعة الاستجابة والتلخيص</span>
+        </div>
+        <div style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); padding:16px 24px; border-radius:16px; text-align:center">
+          <b style="font-size:28px; color:#6EE7B7; display:block">0%</b>
+          <span style="font-size:13px; color:var(--text-muted)">هلوسة مع كشف الأسئلة الخارجية</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 3: RAG DEMO -->
+    <div class="scene" id="scene-2">
+      <div class="scene-kicker">💬 العرض العملي 1: محادثة RAG التوثيقية</div>
+      <h1 class="scene-title">اسأل كتابك... <span class="grad-text">يُجيب من النص حرفياً.</span></h1>
+      <p class="scene-desc">محرك استرجاع معزز بالتوليد (RAG) يربط كل كلمة في الجواب برقم الصفحة والفقرة لمنع الهلوسة تماماً.</p>
+      
+      <div class="sim-container">
+        <div class="sim-head">
+          <div class="sim-dots"><span style="background:#EF4444"></span><span style="background:#F59E0B"></span><span style="background:#10B981"></span></div>
+          <span style="font-size:12px; color:var(--text-muted); font-family:'JetBrains Mono'">ملف المقرر: Computer_Networks_Ch2.pdf</span>
+        </div>
+        <div class="sim-body">
+          <div class="sim-bubble sim-user">
+            <b>سؤال الطالب:</b> ما الفرق بين CSMA/CD و CSMA/CA ولماذا لا يُستخدم كشف التصادم في الشبكات اللاسلكية؟
+          </div>
+          <div class="sim-bubble sim-ai">
+            <b>إجابة ذكاء:</b><br>
+            • بروتوكول <b>CSMA/CD</b> (كشف التصادم) يُستخدم في الشبكات السلكية (Ethernet).<br>
+            • الشبكات اللاسلكية تعتمد <b>CSMA/CA</b> (تجنب التصادم) عبر إشارات RTS/CTS، لأن المحطات اللاسلكية لا يمكنها الاستماع للإشارة أثناء البث (مشكلة العقدة المخفية Hidden Node).<br>
+            <div class="rag-badge">✓ المصدر المؤكد: كتاب الشبكات، الفصل 2، صفحة 14، فقرة 3</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 4: SUMMARY & MINDMAP -->
+    <div class="scene" id="scene-3">
+      <div class="scene-kicker">📑 العرض العملي 2: التلخيص والخريطة الذهنية</div>
+      <h1 class="scene-title">تحويل المحاضرة إلى <span class="grad-text">خريطة مفاهيمية حية</span></h1>
+      <p class="scene-desc">تلخيص هيكلي بثلاث مستويات فورية مع رسم شجري تفاعلي (SVG) يعزز الذاكرة البصرية للطالب.</p>
+      
+      <div style="display:flex; gap:20px; width:100%; max-width:960px;">
+        <div style="flex:1; background:#0F152E; border:1px solid var(--border); border-radius:14px; padding:18px;">
+          <b style="color:#FDE68A; display:block; margin-bottom:8px">ملخص الفصل الثاني — شبكات لاسلكية:</b>
+          <ul style="font-size:13.5px; color:#CBD5E1; line-height:1.7; padding-right:18px">
+            <li><b>تقسيم الشبكات:</b> WPAN (بلوتوث) • WLAN (واي فاي) • WMAN (واي ماكس).</li>
+            <li><b>المعيار 802.11:</b> يعمل على ترددي 2.4GHz و 5GHz.</li>
+            <li><b>الأمان:</b> تطور من WEP القابل للاختراق إلى WPA2 و WPA3 (SAE Handshake).</li>
+          </ul>
+        </div>
+        <div style="flex:1.2; background:#0F152E; border:1px solid var(--border); border-radius:14px; padding:14px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+          <svg viewBox="0 0 380 180" style="width:100%; height:auto">
+            <path d="M190 30 L90 85 M190 30 L190 85 M190 30 L290 85" stroke="rgba(99,102,241,0.4)" stroke-width="2"/>
+            <path d="M90 85 L50 140 M90 85 L120 140" stroke="rgba(6,182,214,0.3)" stroke-width="1.5"/>
+            <path d="M290 85 L260 140 M290 85 L320 140" stroke="rgba(245,158,11,0.3)" stroke-width="1.5"/>
+            <!-- Root -->
+            <rect x="130" y="10" width="120" height="36" rx="10" fill="#6366F1"/>
+            <text x="190" y="32" text-anchor="middle" fill="white" font-size="12" font-weight="900" font-family="Tajawal">الشبكات اللاسلكية</text>
+            <!-- Level 1 -->
+            <rect x="40" y="70" width="100" height="30" rx="8" fill="#1E2749" stroke="#6366F1"/>
+            <text x="90" y="89" text-anchor="middle" fill="#C7D2FE" font-size="10" font-family="Tajawal">الأنواع والتصنيف</text>
+            <rect x="145" y="70" width="90" height="30" rx="8" fill="#142C3F" stroke="#06B6D4"/>
+            <text x="190" y="89" text-anchor="middle" fill="#67E8F9" font-size="10" font-family="Tajawal">بروتوكول CSMA</text>
+            <rect x="245" y="70" width="90" height="30" rx="8" fill="#2E2418" stroke="#F59E0B"/>
+            <text x="290" y="89" text-anchor="middle" fill="#FDE68A" font-size="10" font-family="Tajawal">معايير الأمان</text>
+            <!-- Leaves -->
+            <rect x="20" y="130" width="60" height="22" rx="6" fill="#111827"/>
+            <text x="50" y="145" text-anchor="middle" fill="#94A3B8" font-size="9" font-family="Tajawal">WLAN</text>
+            <rect x="95" y="130" width="60" height="22" rx="6" fill="#111827"/>
+            <text x="125" y="145" text-anchor="middle" fill="#94A3B8" font-size="9" font-family="Tajawal">WPAN</text>
+            <rect x="235" y="130" width="60" height="22" rx="6" fill="#111827"/>
+            <text x="265" y="145" text-anchor="middle" fill="#94A3B8" font-size="9" font-family="Tajawal">WPA2</text>
+            <rect x="300" y="130" width="60" height="22" rx="6" fill="#111827"/>
+            <text x="330" y="145" text-anchor="middle" fill="#94A3B8" font-size="9" font-family="Tajawal">WPA3</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 5: QUIZ STUDIO & PREDICTION -->
+    <div class="scene" id="scene-4">
+      <div class="scene-kicker">🎯 العرض العملي 3: استوديو الاختبارات والتنبؤ</div>
+      <h1 class="scene-title">توليد اختبارات MCQ <span class="grad-text">وتنبؤ ذكي بالأداء</span></h1>
+      <p class="scene-desc">يحول الملخص فوراً إلى أسئلة تفاعلية مع تصحيح لحظي وشرح لكل خيار، مع تنبؤ بدرجة الطالب قبل الامتحان.</p>
+      
+      <div class="cinema-card" style="max-width:850px; width:100%; border-color:rgba(16,185,129,0.4)">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:10px">
+          <b>السؤال 1 من 3: ما الآلية المستخدمة في 802.11 لتجنب مشكلة المحطة المخفية؟</b>
+          <span style="background:rgba(16,185,129,0.2); color:#6EE7B7; padding:2px 10px; border-radius:999px; font-size:11px; font-weight:800">مستوى متوسط</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px">
+          <div style="background:#131B38; border:1px solid rgba(255,255,255,0.1); padding:10px 14px; border-radius:10px; font-size:13.5px">أ) زيادة قوة البث اللاسلكي</div>
+          <div style="background:rgba(16,185,129,0.2); border:1.5px solid #10B981; padding:10px 14px; border-radius:10px; font-size:13.5px; color:#A7F3D0; font-weight:700">ب) تبادل إشارات RTS / CTS ✓ (صحيح)</div>
+          <div style="background:#131B38; border:1px solid rgba(255,255,255,0.1); padding:10px 14px; border-radius:10px; font-size:13.5px">ج) التحول التلقائي لتردد 900MHz</div>
+          <div style="background:#131B38; border:1px solid rgba(255,255,255,0.1); padding:10px 14px; border-radius:10px; font-size:13.5px">د) إيقاف التشفير الأمني</div>
+        </div>
+        <div style="margin-top:10px; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.25); border-radius:10px; padding:10px 14px; font-size:13px; color:#FDE68A">
+          <b>📊 تنبؤ الأداء:</b> درجتك المتوقعة في هذا المقرر: <b>88%</b> — ننصحك بمراجعة تفاصيل بروتوكول WPA3 لضمان العلامة الكاملة.
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 6: ARCHITECTURE -->
+    <div class="scene" id="scene-5">
+      <div class="scene-kicker">🛠️ المعمارية والتقنيات البرمجية</div>
+      <h1 class="scene-title">معمارية RAG متطورة <span class="grad-text">جاهزة للإنتاج</span></h1>
+      <p class="scene-desc">مبنية بأحدث التقنيات لتقديم أداء فائق السرعة واستقرار تام أثناء العرض وفي بيئة الإنتاج.</p>
+      
+      <div class="cards-grid" style="max-width:920px">
+        <div class="cinema-card">
+          <div class="card-icon" style="color:#38BDF8">⚛️</div>
+          <h4>الواجهة الأمامية</h4>
+          <p>React 19 + Vite 6 + Tailwind CSS v4 مع دعم كامل للكتابة باللغة العربية RTL وتأثيرات بصرية سينمائية.</p>
+        </div>
+        <div class="cinema-card">
+          <div class="card-icon" style="color:#34D399">⚡</div>
+          <h4>الواجهة الخلفية</h4>
+          <p>FastAPI + Python 3.11 مع محرك استخراج نصوص متقدم PyMuPDF وتجزئة ذكية (Semantic Chunking).</p>
+        </div>
+        <div class="cinema-card">
+          <div class="card-icon" style="color:#A78BFA">🧠</div>
+          <h4>محرك الذكاء و RAG</h4>
+          <p>Google Gemini 2.0 / 1.5 + قاعدة متجهات ChromaDB مع نظام ذكاء محلي احتياطي عند انقطاع الإنترنت.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 7: CALL TO ACTION & VOTING -->
+    <div class="scene" id="scene-6">
+      <div class="scene-kicker" style="background:rgba(245,158,11,0.2); border-color:#F59E0B; color:#FDE68A">🏆 معرض IT 2026 — جناح المشاريع</div>
+      <h1 class="scene-title">صوّتوا لـ <span class="grad-gold">مشروع رقم 07</span><br><span class="grad-text">منصة ذكاء | EduAI</span></h1>
+      <p class="scene-desc">ذكاؤك الأكاديمي... يتكلم العربية. تفضلوا بتجربة المنصة مباشرة على أجهزتكم وشاركونا تصويتكم ودعمكم!</p>
+      
+      <div style="display:flex; align-items:center; gap:28px; background:rgba(15,20,42,0.85); border:2px solid var(--amber); border-radius:20px; padding:20px 36px; box-shadow:0 0 50px rgba(245,158,11,0.2)">
+        <div style="background:white; padding:8px; border-radius:12px; display:grid; place-items:center">
+          <!-- QR SVG Simulation -->
+          <svg width="110" height="110" viewBox="0 0 24 24" fill="#0B0E1E">
+            <path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm10 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 4h2v2h-2v-2zm-2-2h2v2h-2v-2zm4-2h2v2h-2v-2z"/>
+          </svg>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:14px; color:#FDE68A; font-weight:800">امسح الباركود للتجربة والتصويت</div>
+          <div style="font-size:26px; font-weight:900; color:white; margin:4px 0">مشروع #07</div>
+          <div style="font-size:13px; color:var(--text-muted)">EduAI — المساعد الأكاديمي الذكي الموثوق</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Subtitles -->
+  <div class="subtitles-bar">
+    <div class="subtitle-box" id="subtitles">
+      في كل فصل دراسي، يواجه الطالب الجامعي التحدي الأكبر: مئات الصفحات من المحاضرات وضيق الوقت قبل الامتحانات...
+    </div>
+  </div>
+
+  <!-- Bottom Timeline & Controls -->
+  <div class="expo-controls">
+    <button class="btn-ctrl" id="playBtn" title="تشغيل / إيقاف مؤقت">▶</button>
+    <button class="btn-ctrl" id="prevBtn" title="المشهد السابق">⏮</button>
+    <button class="btn-ctrl" id="nextBtn" title="المشهد التالي">⏭</button>
+    
+    <div class="progress-container" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    
+    <div class="time-display" id="timeDisplay">00:00 / 03:30</div>
+    <button class="btn-ctrl" id="voiceBtn" title="تفعيل / كتم التعليق الصوتي" class="active">🔊</button>
+    <button class="btn-ctrl" id="fullBtn" title="ملء الشاشة للعرض">⛶</button>
+  </div>
+</div>
+
+<!-- Operator Controls Outside Cinema -->
+<div class="operator-panel">
+  <button class="btn-op btn-gold" id="expoModeBtn">
+    <span>📺</span> تشغيل وضع المعرض التلقائي (Full Screen Loop)
+  </button>
+  <button class="btn-op btn-primary" id="downloadVideoBtn">
+    <span>💾</span> تسجيل وتصدير الفيديو (WebM / MP4)
+  </button>
+  <button class="btn-op btn-outline" onclick="jumpToScene(0)">1. المشكلة</button>
+  <button class="btn-op btn-outline" onclick="jumpToScene(1)">2. الفكرة</button>
+  <button class="btn-op btn-outline" onclick="jumpToScene(2)">3. RAG</button>
+  <button class="btn-op btn-outline" onclick="jumpToScene(3)">4. التلخيص</button>
+  <button class="btn-op btn-outline" onclick="jumpToScene(4)">5. الاختبارات</button>
+  <button class="btn-op btn-outline" onclick="jumpToScene(5)">6. التقنيات</button>
+  <button class="btn-op btn-outline" onclick="jumpToScene(6)">7. التصويت</button>
+</div>
+
+<script>
+// Scene configuration: duration in seconds and voiceover script
+const scenes = [
+  {
+    id: 0,
+    title: "المشكلة والتحدي الأكاديمي",
+    duration: 30,
+    text: "في كل فصل دراسي، يواجه الطالب الجامعي التحدي الأكبر: مئات الصفحات من المحاضرات، وضيق الوقت قبل الامتحانات، ومخاطر إجابات الذكاء الاصطناعي العامة غير الموثقة."
+  },
+  {
+    id: 1,
+    title: "منصة ذكاء — المساعد الأكاديمي الذكي",
+    duration: 30,
+    text: "نقدم لكم: منصة ذكاء EduAI، مشروع رقم صفر سبعة. المساعد الأكاديمي الذكي المطور باللغة العربية، يجمع بين محادثة راج التوثيقية، التلخيص الهيكلي، والخرائط الذهنية."
+  },
+  {
+    id: 2,
+    title: "المحادثة التوثيقية RAG",
+    duration: 35,
+    text: "أولى مميزات المنصة: محادثة راج التوثيقية. ارفع ملفك وسيجيب النظام مباشرة من نصوص مقررك فقط مع ذكر رقم الصفحة والفقرة، وتنبيه فوري إذا كان السؤال خارج نطاق الملف لمنع الهلوسة."
+  },
+  {
+    id: 3,
+    title: "التلخيص والخريطة الذهنية",
+    duration: 35,
+    text: "في ثوانٍ معدودة، يحول ذكاء عشرات الصفحات إلى ملخص نقطي مركز، مع خريطة ذهنية تفاعلية ملونة تمثل تسلسل الأفكار لتعزيز الذاكرة البصرية قبل الاختبار."
+  },
+  {
+    id: 4,
+    title: "استوديو الاختبارات وتنبؤ الأداء",
+    duration: 35,
+    text: "استوديو الاختبارات يولد أسئلة اختيار من متعدد تفاعلية مع تصحيح فوري وشرح تفصيلي لكل خيار، مع لوحة ذكية تتنبأ بدرجتك في الامتحان وترشدك لنقاط القوة والضعف."
+  },
+  {
+    id: 5,
+    title: "المعمارية والتقنيات البرمجية",
+    duration: 25,
+    text: "بُنيت المنصة وفق معمارية برمجية جاهزة للإنتاج، باستخدام فاست إيه بي آي، ونماذج جوجل جيميني، وكرومادي بي، ورياكت تسعة عشر، لضمان استجابة فائقة السرعة واستقرار تام."
+  },
+  {
+    id: 6,
+    title: "الخاتمة والدعوة للتصويت",
+    duration: 25,
+    text: "منصة ذكاء هي مستقبل التعليم الأكاديمي الرقمي. ندعوكم لتجربة المنصة مباشرة والتصويت لمشروعنا: مشروع رقم صفر سبعة. ذكاؤك الأكاديمي... يتكلم العربية."
+  }
+];
+
+let currentSceneIndex = 0;
+let isPlaying = false;
+let sceneTimer = null;
+let currentProgress = 0;
+let voiceEnabled = true;
+let totalDuration = scenes.reduce((acc, s) => acc + s.duration, 0);
+
+const subtitleEl = document.getElementById('subtitles');
+const sceneIndicatorEl = document.getElementById('sceneIndicator');
+const progressFill = document.getElementById('progressFill');
+const timeDisplay = document.getElementById('timeDisplay');
+const playBtn = document.getElementById('playBtn');
+const voiceBtn = document.getElementById('voiceBtn');
+
+// Voice synthesis
+function speak(text) {
+  if (!voiceEnabled || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'ar-SA';
+  utterance.rate = 0.95;
+  utterance.pitch = 1.0;
+  window.speechSynthesis.speak(utterance);
+}
+
+function updateSceneUI() {
+  document.querySelectorAll('.scene').forEach((sc, i) => {
+    sc.classList.toggle('active', i === currentSceneIndex);
+  });
+  const current = scenes[currentSceneIndex];
+  subtitleEl.textContent = current.text;
+  sceneIndicatorEl.textContent = `المشهد ${currentSceneIndex + 1} / ${scenes.length}`;
+  
+  // Calculate elapsed time before current scene
+  let elapsed = 0;
+  for(let i=0; i<currentSceneIndex; i++) elapsed += scenes[i].duration;
+  updateProgress(elapsed);
+
+  if (isPlaying) {
+    speak(current.text);
+  }
+}
+
+function updateProgress(elapsedSeconds) {
+  const pct = (elapsedSeconds / totalDuration) * 100;
+  progressFill.style.width = pct + '%';
+  
+  const m = Math.floor(elapsedSeconds / 60);
+  const s = Math.floor(elapsedSeconds % 60);
+  const tm = Math.floor(totalDuration / 60);
+  const ts = Math.floor(totalDuration % 60);
+  timeDisplay.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} / ${String(tm).padStart(2,'0')}:${String(ts).padStart(2,'0')}`;
+}
+
+function playNextScene() {
+  if (currentSceneIndex < scenes.length - 1) {
+    currentSceneIndex++;
+    updateSceneUI();
+    startSceneTimer();
+  } else {
+    // Loop back for exhibition mode!
+    currentSceneIndex = 0;
+    updateSceneUI();
+    startSceneTimer();
+  }
+}
+
+function startSceneTimer() {
+  clearTimeout(sceneTimer);
+  if (!isPlaying) return;
+  const current = scenes[currentSceneIndex];
+  sceneTimer = setTimeout(() => {
+    playNextScene();
+  }, current.duration * 1000);
+}
+
+function togglePlay() {
+  isPlaying = !isPlaying;
+  playBtn.textContent = isPlaying ? '⏸' : '▶';
+  if (isPlaying) {
+    updateSceneUI();
+    startSceneTimer();
+  } else {
+    clearTimeout(sceneTimer);
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  }
+}
+
+function jumpToScene(index) {
+  currentSceneIndex = index;
+  clearTimeout(sceneTimer);
+  updateSceneUI();
+  if (isPlaying) startSceneTimer();
+}
+
+// Button Events
+playBtn.addEventListener('click', togglePlay);
+document.getElementById('prevBtn').addEventListener('click', () => {
+  if (currentSceneIndex > 0) jumpToScene(currentSceneIndex - 1);
+});
+document.getElementById('nextBtn').addEventListener('click', () => {
+  if (currentSceneIndex < scenes.length - 1) jumpToScene(currentSceneIndex + 1);
+});
+
+voiceBtn.addEventListener('click', () => {
+  voiceEnabled = !voiceEnabled;
+  voiceBtn.classList.toggle('active', voiceEnabled);
+  voiceBtn.textContent = voiceEnabled ? '🔊' : '🔇';
+  if (!voiceEnabled && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+});
+
+document.getElementById('fullBtn').addEventListener('click', () => {
+  const el = document.getElementById('cinema');
+  if (!document.fullscreenElement) {
+    el.requestFullscreen().catch(err => alert(err.message));
+  } else {
+    document.exitFullscreen();
+  }
+});
+
+document.getElementById('expoModeBtn').addEventListener('click', () => {
+  const el = document.getElementById('cinema');
+  if (!document.fullscreenElement) {
+    el.requestFullscreen().catch(console.warn);
+  }
+  if (!isPlaying) togglePlay();
+});
+
+// Recording Feature (Direct download of exhibition video)
+let mediaRecorder;
+let recordedChunks = [];
+const downloadBtn = document.getElementById('downloadVideoBtn');
+
+downloadBtn.addEventListener('click', async () => {
+  if (downloadBtn.dataset.recording === 'true') {
+    // Stop recording
+    mediaRecorder.stop();
+    downloadBtn.dataset.recording = 'false';
+    downloadBtn.innerHTML = '<span>💾</span> تسجيل وتصدير الفيديو (WebM / MP4)';
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: { displaySurface: "browser", width: 1920, height: 1080, frameRate: 30 },
+      audio: true
+    });
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'EduAI_Project_07_Exhibition_Video.webm';
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+    mediaRecorder.start();
+    downloadBtn.dataset.recording = 'true';
+    downloadBtn.innerHTML = '<span>⏹️</span> جاري التسجيل... انقر للإيقاف والتحميل';
+    
+    // Jump to start & play
+    jumpToScene(0);
+    if (!isPlaying) togglePlay();
+  } catch (err) {
+    alert('تنويه: لتسجيل الفيديو يمكنك استخدام مسجل الشاشة أو النقر على مشاركة الشاشة الحالية.');
+  }
+});
+
+// Start initially
+updateSceneUI();
+</script>
+</body>
+</html>

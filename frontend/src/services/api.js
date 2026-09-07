@@ -547,6 +547,68 @@ export async function importQuizFromText(rawText) {
   return await res.json();
 }
 
+// --- Academic Terms API ---
+export async function fetchTerms(docId = null, level = 'medium', count = 20, language = 'ar', customSystemPrompt = null) {
+  const res = await fetch(`${API_BASE}/terms/extract`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({
+      doc_id: docId,
+      level,
+      count,
+      language,
+      custom_system_prompt: customSystemPrompt
+    }),
+  });
+  if (!res.ok) throw new Error('فشل استخراج المصطلحات الأكاديمية');
+  return await res.json();
+}
+
+export async function exportTermsData(termsData, format = 'txt', chapterTitle = 'Academic Terms') {
+  if (format === 'xlsx') {
+    const res = await fetch(`${API_BASE}/terms/export`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ terms_data: termsData, format: 'xlsx', chapter_title: chapterTitle })
+    });
+    if (!res.ok) throw new Error('فشل تصدير ملف Excel');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Terms_${chapterTitle}.xlsx`;
+    link.click();
+    return { success: true };
+  }
+
+  const res = await fetch(`${API_BASE}/terms/export`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ terms_data: termsData, format, chapter_title: chapterTitle })
+  });
+
+  if (!res.ok) throw new Error('فشل تصدير المصطلحات');
+  const data = await res.json();
+
+  let fileBlob;
+  const filename = data.filename;
+
+  if (format === 'json') {
+    fileBlob = new Blob([JSON.stringify(data.content, null, 2)], { type: 'application/json;charset=utf-8' });
+  } else if (format === 'csv') {
+    fileBlob = new Blob(['\uFEFF' + data.content], { type: 'text/csv;charset=utf-8' });
+  } else {
+    fileBlob = new Blob([data.content], { type: 'text/plain;charset=utf-8' });
+  }
+
+  const url = URL.createObjectURL(fileBlob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  return { success: true };
+}
+
 // --- Prompts API ---
 export async function fetchPrompts(category = null) {
   const url = category ? `${API_BASE}/prompts?category=${category}` : `${API_BASE}/prompts`;
