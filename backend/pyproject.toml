@@ -1,0 +1,43 @@
+[project]
+name = "eduai-backend"
+version = "2.1.0"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+exclude = [
+    "backend/presentations",
+    "backend/uploads",
+    "backend/__pycache__",
+    ".venv",
+    "node_modules",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "B008",   # function call in default argument
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
