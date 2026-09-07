@@ -157,6 +157,30 @@ table.tbl td.hi{color:var(--teal);font-weight:800}
   font-weight:800;font-size:19px;margin:0 auto;position:relative;z-index:1;box-shadow:0 0 0 5px var(--dot-ring)}
 .step .t{color:var(--navy);font-weight:800;font-size:15.5px;margin-top:12px}
 .step .d{color:var(--gray);font-size:12px;margin-top:2px}
+/* جدول أعمال مرقّم */
+.agenda{display:flex;flex-direction:column;gap:14px;margin-top:26px;max-width:1030px}
+.agenda .it{display:flex;gap:18px;align-items:flex-start;padding:16px 20px;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:0 4px 12px var(--shadow)}
+.agenda .n{width:44px;height:44px;border-radius:50%;background:var(--navy);color:#fff;font-weight:800;font-size:18px;display:grid;place-items:center;flex:none}
+.agenda .t{font-size:18px;font-weight:800;color:var(--navy)}
+.agenda .d{font-size:14.5px;color:var(--gray);line-height:1.5;margin-top:2px}
+/* اقتباس */
+.quote-slide{display:flex;flex-direction:column;justify-content:center;height:76%}
+.qt{font-size:34px;font-weight:800;line-height:1.6;color:var(--navy);position:relative;padding-right:28px}
+.qt::before{content:"";position:absolute;right:0;top:6px;bottom:6px;width:6px;border-radius:3px;background:var(--teal)}
+.qt em{color:var(--teal);font-style:normal}
+.qt-author{margin-top:20px;font-size:17px;font-weight:800;color:var(--teal)}
+.qt-role{font-size:14.5px;color:var(--gray)}
+/* مقارنة ثنائية */
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px}
+.cmp .side{border-radius:18px;padding:20px 22px;border:1px solid var(--line);background:var(--card);box-shadow:0 6px 16px var(--shadow)}
+.cmp .side.b{background:var(--navy);border-color:var(--navy);color:#fff}
+.cmp .side h3{font-size:19px;font-weight:800;margin-bottom:6px}
+.cmp .side.b h3{color:#fff}
+.cmp ul{list-style:none;margin-top:10px}
+.cmp li{position:relative;padding:7px 24px 7px 0;font-size:15.5px;line-height:1.5;color:var(--text2)}
+.cmp .side.b li{color:#E7EEF6}
+.cmp li::before{content:"+";position:absolute;right:2px;top:5px;font-weight:900;color:var(--teal)}
+.cmp .side.b li::before{color:var(--teal)}
 /* غلاف */
 .cover .title{font-size:62px}
 .cover .subtitle{font-size:30px;font-weight:800;color:var(--teal);margin:6px 0 14px}
@@ -334,6 +358,54 @@ def acad_timeline(d):
 </section>"""
 
 
+def acad_agenda(d):
+    items = ''.join(
+        f'<div class="it"><div class="n">{i+1}</div><div><div class="t">{s.get("t","")}</div>'
+        + (f'<div class="d">{s["d"]}</div>' if "d" in s else '') + '</div></div>'
+        for i, s in enumerate(d.get("items", d.get("steps", []))))
+    return f"""
+<section class="slide">
+  <div class="watermark">{d.get('num','')}</div>
+  <div class="head"><span class="kicker">{d.get('kicker','')}</span>
+    <h1 class="title">{d.get('title','')}</h1><div class="uline"></div></div>
+  {f'<div class="lead">{d["lead"]}</div>' if d.get('lead') else ''}
+  <div class="agenda">{items}</div>
+  {f'<div class="note">{d["note"]}</div>' if d.get('note') else ''}
+  <div class="anchor"><span class="lab">الخلاصة</span><span class="txt">{d.get('takeaway','')}</span><span class="page">{d.get('num','')}</span></div>
+</section>"""
+
+
+def acad_quote(d):
+    return f"""
+<section class="slide">
+  <div class="watermark">{d.get('num','')}</div>
+  <div class="quote-slide">
+    <span class="kicker">{d.get('kicker','اقتباس')}</span>
+    <div class="qt">{d.get('quote', d.get('message',''))}</div>
+    <div class="qt-author">{d.get('author','')}</div>
+    {f'<div class="qt-role">{d["role"]}</div>' if d.get('role') else ''}
+  </div>
+  <div class="anchor"><span class="lab">الخلاصة</span><span class="txt">{d.get('takeaway','')}</span><span class="page">{d.get('num','')}</span></div>
+</section>"""
+
+
+def acad_compare(d):
+    def side(t, items, strong=False):
+        lis = ''.join(f'<li>{s}</li>' for s in items)
+        return f'<div class="side{" b" if strong else ""}"><h3>{t}</h3><ul>{lis}</ul></div>'
+    col1 = d.get("col1", d.get("pros", []))
+    col2 = d.get("col2", d.get("cons", []))
+    return f"""
+<section class="slide">
+  <div class="watermark">{d.get('num','')}</div>
+  <div class="head"><span class="kicker">{d.get('kicker','')}</span>
+    <h1 class="title">{d.get('title','')}</h1><div class="uline"></div></div>
+  <div class="cmp">{side(d.get('col1_t',''), col1)}{side(d.get('col2_t',''), col2, True)}</div>
+  {f'<div class="note">{d["note"]}</div>' if d.get('note') else ''}
+  <div class="anchor"><span class="lab">الخلاصة</span><span class="txt">{d.get('takeaway','')}</span><span class="page">{d.get('num','')}</span></div>
+</section>"""
+
+
 def acad_closing(d):
     return f"""
 <section class="slide closing2 closing">
@@ -350,7 +422,8 @@ ACAD = {
     "templates": {
         "cover": acad_cover, "content": acad_content, "twocol": acad_twocol,
         "stats": acad_stats, "table": acad_table, "chart": acad_chart,
-        "timeline": acad_timeline, "closing": acad_closing,
+        "timeline": acad_timeline, "agenda": acad_agenda, "quote": acad_quote,
+        "compare": acad_compare, "closing": acad_closing,
     },
 }
 
@@ -401,6 +474,23 @@ table.tbl td{padding:11px;border-bottom:1px solid var(--line-dim2);color:var(--t
 .chip{padding:9px 16px;border-radius:999px;background:var(--chip-bg2);border:1px solid var(--main-line);color:var(--text-chip);font-size:15px}
 .flow{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:26px}
 .flow .node{padding:10px 16px;border-radius:12px;background:var(--main-soft);border:1px solid var(--main-line);color:var(--main);font-weight:700;font-size:16px}
+.agenda{display:flex;flex-direction:column;gap:12px;margin-top:26px;max-width:1030px}
+.agenda .it{display:flex;gap:16px;align-items:flex-start;padding:14px 18px;border:1px solid var(--line-dim);border-radius:14px;background:linear-gradient(160deg,var(--surface),var(--surface2))}
+.agenda .n{width:38px;height:38px;border-radius:10px;background:var(--main-soft);border:1px solid var(--main-line);color:var(--main);font-weight:800;font-size:17px;display:grid;place-items:center;flex:none}
+.agenda .t{font-size:17px;font-weight:800;color:var(--text-strong)}
+.agenda .d{font-size:14px;color:var(--text-mid);margin-top:2px}
+.quote-slide{display:flex;flex-direction:column;justify-content:center;height:70%;margin-top:70px}
+.qt{font-size:34px;font-weight:800;line-height:1.6;color:var(--text-strong);position:relative;padding-right:26px}
+.qt::before{content:"";position:absolute;right:0;top:8px;bottom:8px;width:5px;border-radius:3px;background:var(--main)}
+.qt em{color:var(--main);font-style:normal}
+.qt-author{margin-top:18px;font-size:17px;font-weight:800;color:var(--main)}
+.qt-role{font-size:14.5px;color:var(--text-mid)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px}
+.cmp .side{border-radius:16px;padding:18px 20px;border:1px solid var(--line-dim);background:linear-gradient(160deg,var(--surface),var(--surface2))}
+.cmp .side h3{font-size:18px;font-weight:800;color:var(--main);margin-bottom:6px}
+.cmp ul{list-style:none;margin-top:8px}
+.cmp li{position:relative;padding:7px 22px 7px 0;font-size:15.5px;color:var(--text-strong);border-bottom:1px solid var(--line-dim2)}
+.cmp li::before{content:"+";position:absolute;right:2px;top:5px;font-weight:900;color:var(--main)}
 .cover .title{font-size:62px}
 .cover .subtitle{font-size:29px;color:var(--main);font-weight:700;margin:4px 0 18px}
 .mid{margin-top:110px;text-align:center}
@@ -491,6 +581,53 @@ def dark_steps(d):
 </section>"""
 
 
+def dark_agenda(d):
+    items = ''.join(
+        f'<div class="it"><div class="n">{i+1}</div><div><div class="t">{s.get("t","")}</div>'
+        + (f'<div class="d">{s["d"]}</div>' if "d" in s else '') + '</div></div>'
+        for i, s in enumerate(d.get("items", d.get("steps", []))))
+    return f"""
+<section class="slide a-{d.get('accent','gold')}">
+  <div class="watermark">{d.get('num','')}</div>
+  <span class="kicker">{d.get('kicker','')}</span><h1 class="title">{d.get('title','')}</h1>
+  {f'<div class="lead">{d["lead"]}</div>' if d.get('lead') else ''}
+  <div class="agenda">{items}</div>
+  {f'<div class="lead" style="margin-top:16px;font-size:16px">{d["note"]}</div>' if d.get('note') else ''}
+  <div class="footer"><span>{d.get('brand','')}</span><span>{d.get('num','')}</span></div>
+</section>"""
+
+
+def dark_quote(d):
+    return f"""
+<section class="slide a-{d.get('accent','gold')}">
+  <div class="watermark">{d.get('num','')}</div>
+  <div class="quote-slide">
+    <span class="kicker">{d.get('kicker','اقتباس')}</span>
+    <div class="qt">{d.get('quote', d.get('message',''))}</div>
+    <div class="qt-author">{d.get('author','')}</div>
+    {f'<div class="qt-role">{d["role"]}</div>' if d.get('role') else ''}
+  </div>
+  <div class="footer"><span>{d.get('brand','')}</span><span>{d.get('num','')}</span></div>
+</section>"""
+
+
+def dark_compare(d):
+    def side(t, items, strong=False):
+        lis = ''.join(f'<li>{s}</li>' for s in items)
+        b = ' style="background:var(--main-soft);border-color:var(--main-line)"' if strong else ''
+        return f'<div class="side"{b}><h3>{t}</h3><ul>{lis}</ul></div>'
+    col1 = d.get("col1", d.get("pros", []))
+    col2 = d.get("col2", d.get("cons", []))
+    return f"""
+<section class="slide a-{d.get('accent','purple')}">
+  <div class="watermark">{d.get('num','')}</div>
+  <span class="kicker">{d.get('kicker','')}</span><h1 class="title">{d.get('title','')}</h1>
+  <div class="cmp">{side(d.get('col1_t',''), col1)}{side(d.get('col2_t',''), col2, True)}</div>
+  {f'<div class="lead" style="margin-top:16px;font-size:16px">{d["note"]}</div>' if d.get('note') else ''}
+  <div class="footer"><span>{d.get('brand','')}</span><span>{d.get('num','')}</span></div>
+</section>"""
+
+
 def dark_closing(d):
     return f"""
 <section class="slide a-{d.get('accent','gold')} mid">
@@ -505,7 +642,9 @@ DARK = {
     "css": DARK_CSS,
     "templates": {
         "cover": dark_cover, "content": dark_content, "twocol": dark_twocol,
-        "stats": dark_stats, "table": dark_table, "steps": dark_steps, "closing": dark_closing,
+        "stats": dark_stats, "table": dark_table, "steps": dark_steps,
+        "agenda": dark_agenda, "quote": dark_quote, "compare": dark_compare,
+        "closing": dark_closing,
     },
 }
 
@@ -550,6 +689,8 @@ def _identity_css_override(identity, base):
                       f"--chip-bg2:{_rgba(text,.05)};--bars:{_mix(text,'#000',.55)};color:{text}}}")
         for cls, m in _DARK_ACCENT_MAIN.items():
             formed.append(f".slide.a-{cls}{{--main:{m};--main-soft:{m}1a;--main-line:{m}55;--main-glow:{_rgba(m,.18)}}}")
+        art_alpha = max(0.0, min(1.0, float(identity.get("artTint", colors.get("artTint", 0.7)))))
+        formed.append(f".slide{{--art-tint:{_rgba(bgDark, art_alpha)}}}")
         formed.append(f"body{{background:{bgDark}}}")
     else:
         navy = colors.get("navy") or "#0F2D4A"
@@ -576,6 +717,9 @@ def _identity_css_override(identity, base):
         # secondary soft strips (rgba(32,178,170,.12)) -> teal soft
         formed.append(f".slide .badge.soft{{background:{_rgba(teal,.12)};color:{teal}}} "
                       f".slide .note{{background:{_rgba(teal,.07)};border:1px solid {_rgba(teal,.25)}}}")
+        # الشفافية المركّبة فوق الخلفيات المصوّرة (--art-tint) قابلة للضبط من الهوية
+        art_alpha = max(0.0, min(1.0, float(identity.get("artTint", colors.get("artTint", 0.75)))))
+        formed.append(f".slide{{--art-tint:{_rgba(bg, art_alpha)}}}")
 
     fh = fonts.get("fh")
     fb = fonts.get("fb")
@@ -594,10 +738,23 @@ def _identity_css_override(identity, base):
     return "\n".join(formed)
 
 
+FONT_WHITELIST = {
+    "Changa Fe", "Cairo Fe", "Tajawal", "IBM Plex Sans Arabic", "Almarai",
+    "Noto Sans Arabic", "Amiri", "Aref Ruqaa", "Markazi Text", "Mada",
+    "Mirza", "Scheherazade New", "Lateef", "Reem Kufi", "Zain",
+    "El Messiri", "Harmattan", "Baloo Bhaijaan 2", "Lalezar", "Jomhuria",
+    "Montserrat", "Poppins", "Inter", "Roboto", "Playfair Display",
+}
+
+
 def _font_safe(name):
     import re as _re
     n = _re.sub(r"[^0-9A-Za-z\u0600-\u06FF \-]", "", str(name)).strip()
-    return n or "Cairo Fe"
+    n2 = _re.sub(r"\s+", " ", n)
+    for f in FONT_WHITELIST:
+        if n2.lower() == f.lower():
+            return f
+    return "Cairo Fe"
 
 
 def _rgba(hex_color, alpha):
@@ -620,28 +777,38 @@ def _mix(hex_from, hex_to, t):
 
 
 # ==================================================== بناء/تصدير/تجميع
-def render_slide(d, css, theme_name):
+def render_slide(d, css, theme_name, art_dir="art"):
     t = THEMES[theme_name]["templates"]
     fn = t.get(d.get("template"))
     if not fn:
         raise SystemExit(f"قالب غير معروف {d.get('template')} لهوية {theme_name}")
     html = fn(d)
     art = d.get("art")
-    if art and os.path.isfile(os.path.join(BASE, "art", f"bg_{art}.png")):
-        url = pathlib.Path(os.path.join(BASE, "art", f"bg_{art}.png")).resolve().as_uri()
+    if art and os.path.isfile(os.path.join(BASE, art_dir, f"bg_{art}.png")):
+        url = pathlib.Path(os.path.join(BASE, art_dir, f"bg_{art}.png")).resolve().as_uri()
         html = html.replace('<section class="slide',
                             f'<section class="slide hasart" style="background-image:url(\'{url}\');background-size:cover;background-position:center"', 1)
     return f'<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>{css}</style></head><body>{html}</body></html>'
 
 
+def identity_art_dir(deck):
+    """إن كانت الهوية البصرية تحمل art_dir (خلفيات ملوّنة بها)، أعد مسارها داخل art/."""
+    t = deck.get("theme")
+    if isinstance(t, dict):
+        aid = t.get("art_dir")
+        return os.path.join("art", str(aid)) if aid else "art"
+    return "art"
+
+
 def build_html(deck, css, theme_name, out_dir):
     os.makedirs(out_dir, exist_ok=True)
     paths = []
+    art_dir = identity_art_dir(deck)
     for i, d in enumerate(deck["slides"], 1):
         d = dict(d)
         d.setdefault("num", str(i).zfill(2))
         d.setdefault("brand", deck.get("brand", "عرض تقديمي"))
-        open(os.path.join(out_dir, f"slide_{i:02d}.html"), "w", encoding="utf-8").write(render_slide(d, css, theme_name))
+        open(os.path.join(out_dir, f"slide_{i:02d}.html"), "w", encoding="utf-8").write(render_slide(d, css, theme_name, art_dir))
         paths.append(os.path.join(out_dir, f"slide_{i:02d}.html"))
     prev = ['<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>body{background:#0b1220;margin:0;padding:30px 0} .pp{width:433px;margin:0 auto 46px;box-shadow:0 10px 30px #000a;border-radius:8px;overflow:hidden}</style></head><body>']
     for p in paths:

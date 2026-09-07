@@ -55,8 +55,8 @@ ARTS = [
     "market", "competition", "advantage", "pricing", "journey", "ops",
     "finance", "closing",
 ]
-TEMPLATES_ACADEMIC = ["cover", "content", "twocol", "stats", "table", "chart", "timeline", "closing"]
-TEMPLATES_DARK = ["cover", "content", "twocol", "stats", "table", "steps", "closing"]
+TEMPLATES_ACADEMIC = ["cover", "content", "twocol", "stats", "table", "chart", "timeline", "agenda", "quote", "compare", "closing"]
+TEMPLATES_DARK = ["cover", "content", "twocol", "stats", "table", "steps", "agenda", "quote", "compare", "closing"]
 
 AR_DEFAULT_SLIDE_ORDER = "cover؛ خلفية المشكلة؛ الحل؛ المنتج؛ القيمة؛ الرؤية؛ السوق؛ المنافسون؛ التميز؛ نموذج الإيرادات؛ رحلة العميل؛ التشغيل؛ الخطة المالية؛ closing"
 
@@ -80,6 +80,9 @@ DECK_SYSTEM_PROMPT = """أنت استراتيجي محتوى عروض تقديم
 6. timeline (خط زمني): {"template":"timeline","kicker":"...","title":"...","lead":"...","steps":[{"t":"المرحلة","d":"شرح"}],"takeaway":"..."}
 7. table (جدول): {"template":"table","kicker":"...","title":"...","headers":["عمود","عمود"],"rows":[["خ1","خ2"],["..."]],"note":"...","takeaway":"..."}
 8. closing (الشريحة الأخيرة): {"template":"closing","kicker":"الخاتمة","title":"شكراً لكم","message":"جملة ختامية بأسلوب مؤثر — استثمر في ...","chips":["كلمة","كلمة"]}
+9. agenda (جدول أعمال مرقّم): {"template":"agenda","kicker":"...","title":"...","items":[{"t":"العنوان","d":"شرح سطر"}],"takeaway":"..."}
+10. quote (اقتباس محوري): {"template":"quote","kicker":"اقتباس","quote":"الجملة المحورية","author":"صاحب القول","role":"صفة/منصب"}  (يُستخدم نادراً للتأكيد على فكرة جوهرية)
+11. compare (مقارنة ثنائية): {"template":"compare","kicker":"...","title":"...","col1_t":"قبل","col1":["نقطة","نقطة"],"col2_t":"بعد/معنا","col2":["نقطة","نقطة"],"takeaway":"..."}
 
 ## الحقول الإجبارية
 - كل شريحة يجب أن تحمل "takeaway" (خلاصة في سطر) و "num" (رقم تسلسلي بصيغة "01").
@@ -137,7 +140,7 @@ class PresentationService:
                 "chart (أعمدة أفقية مقارنة)", "steps (خطوات متتالية): {\"template\":\"steps\",\"title\":\"...\",\"steps\":[{\"t\":\"...\",\"d\":\"...\"}]}"
             )
             system_prompt += (
-                "\n\nملاحظة الهوية الداكنة: استخدم القوالب cover/content/twocol/stats/table/steps/closing فقط. "
+                "\n\nملاحظة الهوية الداكنة: استخدم القوالب cover/content/twocol/stats/table/steps/agenda/quote/compare/closing فقط. "
                 "لا تستخدم chart أو timeline إطلاقاً."
             )
         return system_prompt
@@ -481,6 +484,49 @@ class PresentationService:
                 for r in rows[:8]:
                     if isinstance(r, list):
                         slide["rows"].append([str(c) for c in r][:6])
+            note = st("note", "")
+            if note:
+                slide["note"] = note
+        elif tmpl == "agenda":
+            items = s.get("items", s.get("steps"))
+            slide["items"] = []
+            if isinstance(items, list):
+                for it in items[:7]:
+                    if isinstance(it, dict):
+                        slide["items"].append({
+                            "t": str(it.get("t") or "بند"),
+                            "d": str(it.get("d") or ""),
+                        })
+            if not slide["items"]:
+                slide["items"] = [{"t": "مقدمة", "d": ""}, {"t": "المحتوى", "d": ""}, {"t": "الخاتمة", "d": ""}]
+            lead = st("lead", "")
+            if lead:
+                slide["lead"] = lead
+            note = st("note", "")
+            if note:
+                slide["note"] = note
+        elif tmpl == "quote":
+            slide.update({
+                "quote": st("quote", st("message", st("title"))),
+                "author": st("author", ""),
+                "role": st("role", ""),
+            })
+            slide.pop("title", None)
+        elif tmpl == "compare":
+            col1 = s.get("col1", s.get("pros"))
+            col2 = s.get("col2", s.get("cons"))
+            a = [str(x).strip() for x in col1 if str(x).strip()][:7] if isinstance(col1, list) else []
+            b = [str(x).strip() for x in col2 if str(x).strip()][:7] if isinstance(col2, list) else []
+            if not a and isinstance(s.get("after"), list):
+                a = [str(x).strip() for x in s["after"] if str(x).strip()][:7]
+            if not b and isinstance(s.get("before"), list):
+                b = [str(x).strip() for x in s["before"] if str(x).strip()][:7]
+            slide.update({
+                "col1_t": st("col1_t", st("after_t", "معنا")),
+                "col1": a or ["نقطة"],
+                "col2_t": st("col2_t", st("before_t", "التقليدي")),
+                "col2": b or ["نقطة"],
+            })
             note = st("note", "")
             if note:
                 slide["note"] = note

@@ -261,6 +261,8 @@ export default function PresentationView({ onOpenApiKey }) {
         fonts: tpl.fonts || {},
         accent: tpl.accent || (tpl.base === 'dark-tech' ? 'sky' : 'navy')
       };
+      if (tpl.art_dir) identity.art_dir = tpl.art_dir;
+      if (tpl.artTint !== undefined && tpl.artTint !== null) identity.artTint = Number(tpl.artTint);
       return identity;
     });
     setTemplateModalOpen(false);

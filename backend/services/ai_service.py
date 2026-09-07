@@ -13,6 +13,17 @@ from backend.config import GEMINI_API_KEY as ENV_GEMINI_KEY, DEFAULT_MODEL as EN
 
 use_base_rules_var = ContextVar("use_base_rules", default=True)
 
+# ── القائمة البيضاء لخطوط الشعارات (تطابق محرك العروض + خطوط Google المتاحة للعربية/اللاتينية) ──
+ALLOWED_FONTS = [
+    "Changa Fe", "Cairo Fe", "Tajawal", "IBM Plex Sans Arabic", "Almarai",
+    "Noto Sans Arabic", "Amiri", "Aref Ruqaa", "Markazi Text", "Mada",
+    "Mirza", "Scheherazade New", "Lateef", "Reem Kufi", "Zain",
+    "El Messiri", "Harmattan", "Baloo Bhaijaan 2", "Lalezar", "Jomhuria",
+    "Montserrat", "Poppins", "Inter", "Roboto", "Playfair Display",
+]
+DEFAULT_FONT_HEADING = "Changa Fe"
+DEFAULT_FONT_BODY = "Cairo Fe"
+
 class AIService:
     @staticmethod
     def clean_model_name(model_name: Optional[str]) -> str:
@@ -709,9 +720,9 @@ class AIService:
         )
 
         char_limit = 8000 if level == "quick" else (16000 if level == "deep" else 12000)
-        user_prompt = f"نص المادة التعليمية المطلوب تلخيصها استناداً إلى محتواها العلمي حصراً:\n{full_text[:char_limit]}"
 
-        try:
+        def process_summary_chunk(chunk_text: str) -> dict:
+            user_prompt = f"نص المادة التعليمية المطلوب تلخيصها استناداً إلى محتواها العلمي حصراً:\n{chunk_text}"
             raw = cls.execute_chat_completion(
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
@@ -723,13 +734,77 @@ class AIService:
             )
             raw = re.sub(r'^```json\s*', '', raw.strip())
             raw = re.sub(r'\s*```$', '', raw)
-            parsed_json = json.loads(raw)
-            return cls.sanitize_output(parsed_json)
-        except Exception as e:
-            err_str = str(e)
-            if "timed out" in err_str.lower() or "timeout" in err_str.lower():
-                raise ValueError("استغرق خادم الذكاء الاصطناعي وقتاً أطول من المعتاد لمعالجة المستند الكامل. تم رفع المهلة، ويمكنك تجربة 'ملخص سريع' أو اختيار نموذج فائق السرعة مثل Gemini Flash أو Groq.")
-            raise ValueError(f"تعذر استخراج الملخص الأكاديمي: {err_str}")
+            parsed = json.loads(raw)
+            return parsed if isinstance(parsed, dict) else {"key_points": []}
+
+        def _uniq(items, key, limit):
+            out, seen = [], set()
+            for it in items:
+                if not isinstance(it, dict):
+                    continue
+                k = str(it.get(key) or "")
+                if k and k.lower() in seen:
+                    continue
+                if k:
+                    seen.add(k.lower())
+                out.append(it)
+                if len(out) >= limit:
+                    break
+            return out
+
+        # معالجة مجمّعة على دفعات للمستندات الطويلة لتجاوز حدود الرموز والمهلات
+        CHUNK_SIZE = 6000
+        MAX_CHUNKS = {"quick": 3, "full": 6, "deep": 10}.get(level, 6)
+        if len(full_text) > char_limit:
+            chunks = [full_text[i:i + CHUNK_SIZE] for i in range(0, len(full_text), CHUNK_SIZE)][:MAX_CHUNKS]
+            merged = {
+                "title": "", "overview": "", "key_points": [],
+                "pillars": [], "definitions": [], "comparisons": [],
+                "exam_traps": [], "formulas_rules": [], "mindmap": {},
+            }
+            for c in chunks:
+                try:
+                    part = process_summary_chunk(c)
+                except Exception as e:
+                    err_str = str(e)
+                    if "timed out" in err_str.lower() or "timeout" in err_str.lower():
+                        raise ValueError("استغرق خادم الذكاء الاصطناعي وقتاً أطول من المعتاد لمعالجة المستند الكامل. تم رفع المهلة، ويمكنك تجربة 'ملخص سريع' أو اختيار نموذج فائق السرعة مثل Gemini Flash أو Groq.")
+                    raise ValueError(f"تعذر استخراج الملخص الأكاديمي: {err_str}")
+                if not merged["title"]:
+                    merged["title"] = part.get("title") or ""
+                if not merged["overview"]:
+                    merged["overview"] = part.get("overview") or ""
+                merged["key_points"].extend(part.get("key_points") or [])
+                merged["pillars"].extend(part.get("pillars") or [])
+                merged["definitions"].extend(part.get("definitions") or [])
+                merged["comparisons"].extend(part.get("comparisons") or [])
+                merged["exam_traps"].extend(part.get("exam_traps") or [])
+                merged["formulas_rules"].extend(part.get("formulas_rules") or [])
+                if isinstance(part.get("mindmap"), dict) and part["mindmap"].get("children"):
+                    mmc = merged["mindmap"].get("children") or []
+                    merged["mindmap"] = {"label": merged["mindmap"].get("label") or part["mindmap"].get("label") or "المفهوم المركزي", "children": mmc + (part["mindmap"].get("children") or [])}
+            merged["title"] = merged["title"] or "ملخص المادة التعليمية"
+            merged["mindmap"] = merged["mindmap"] or {"label": merged["title"], "children": []}
+            merged["mindmap"]["children"] = _uniq(merged["mindmap"].get("children") or [], "label", 8)
+            merged["key_points"] = _uniq([{"pt": k} for k in (merged["key_points"] if all(isinstance(k, str) for k in merged["key_points"]) else [])], "pt", 20) if all(isinstance(k, str) for k in merged["key_points"]) else merged["key_points"][:20]
+            merged["pillars"] = _uniq(merged["pillars"], "pillar_title", 12)
+            merged["definitions"] = _uniq(merged["definitions"], "term", 24)
+            merged["comparisons"] = merged["comparisons"][:10]
+            merged["exam_traps"] = _uniq(merged["exam_traps"], "trap", 18)
+            merged["formulas_rules"] = _uniq(merged["formulas_rules"], "name", 14)
+            parsed_json = merged
+        else:
+            try:
+                parsed_json = process_summary_chunk(full_text[:char_limit])
+            except Exception as e:
+                err_str = str(e)
+                if "timed out" in err_str.lower() or "timeout" in err_str.lower():
+                    raise ValueError("استغرق خادم الذكاء الاصطناعي وقتاً أطول من المعتاد لمعالجة المستند الكامل. تم رفع المهلة، ويمكنك تجربة 'ملخص سريع' أو اختيار نموذج فائق السرعة مثل Gemini Flash أو Groq.")
+                raise ValueError(f"تعذر استخراج الملخص الأكاديمي: {err_str}")
+
+        if parsed_json.get("chunked") is None and len(full_text) > char_limit:
+            parsed_json["chunked"] = True
+        return cls.sanitize_output(parsed_json)
 
     @classmethod
     def generate_quiz(
@@ -1047,6 +1122,9 @@ class AIService:
         meta_prompt = (
             "أنت مصمم هويات بصرية (Visual Identity Designer) خبير في العروض التقديمية الأكاديمية والاحترافية العربية. "
             "صمم هوية بصرية مخصّصة لقالب عرض تقديمي. يجب أن تكون الألوان متناسقة، جذابة، وقابلة للقراءة (تباين عالٍ للنص).\n"
+            "الخطوط المسموحة حصراً (القائمة البيضاء) — اختر منها فقط ولا تخترع أي خط خارجها:\n"
+            + ", ".join(ALLOWED_FONTS)
+            + "\n"
             "أرجع النتيجة بنص JSON حصراً بدون أي شرح خارجي:\n"
             "{\n"
             '  "name": "اسم عربي جذاب للهوية",\n'
@@ -1057,7 +1135,7 @@ class AIService:
             '     "bg2": "خلفية ثانوية HEX", "card": "لون البطاقات HEX", "gray": "لون النص الثانوي HEX", "line": "لون الحدود HEX"\n'
             '  } إذا كانت base=academic،\n'
             '  أو {"main":"اللون المميز HEX","bgDark":"خلفية داكنة HEX","surface":"سطح داكن HEX","text":"نص فاتح HEX"} إذا كانت base=dark-tech،\n'
-            '  "fonts": {"fh": "Changa Fe", "fb": "Cairo Fe"},\n'
+            '  "fonts": {"fh": "Changa Fe", "fb": "Cairo Fe"} (من القائمة البيضاء حصراً),\n'
             '  "accent": "gold" أو "sky" أو "purple" أو "teal" أو "rose"\n'
             "}"
         )
@@ -1086,6 +1164,13 @@ class AIService:
             if not isinstance(blueprint, dict) or "base" not in blueprint:
                 raise ValueError("مفتاح base مفقود")
             blueprint["base"] = blueprint.get("base") if blueprint.get("base") in ("academic", "dark-tech") else "academic"
+            fonts = blueprint.get("fonts") or {}
+            if not isinstance(fonts, dict):
+                fonts = {}
+            blueprint["fonts"] = {
+                "fh": cls._whitelist_font(fonts.get("fh"), DEFAULT_FONT_HEADING),
+                "fb": cls._whitelist_font(fonts.get("fb"), DEFAULT_FONT_BODY),
+            }
             return blueprint
         except Exception as e:
             dark = any(k in (identity_goal + (topic or "")).lower() for k in
@@ -1096,7 +1181,7 @@ class AIService:
                     "description": f"هوية داكنة تقنية مناسبة لموضوع: {topic or identity_goal}",
                     "base": "dark-tech",
                     "colors": {"main": "#4cc2ff", "bgDark": "#0b1220", "surface": "#121c33", "text": "#e8edf5"},
-                    "fonts": {"fh": "Changa Fe", "fb": "Cairo Fe"},
+                    "fonts": {"fh": DEFAULT_FONT_HEADING, "fb": DEFAULT_FONT_BODY},
                     "accent": "sky",
                 }
             return {
@@ -1104,9 +1189,20 @@ class AIService:
                 "description": f"هوية فاتحة نظيفة مناسبة لموضوع: {topic or identity_goal}",
                 "base": "academic",
                 "colors": {"navy": "#0F2D4A", "teal": "#20B2AA", "bg": "#F8F7F2", "bg2": "#F1F4F8", "card": "#FFFFFF", "gray": "#5A6E7F", "line": "#E3E8EE"},
-                "fonts": {"fh": "Changa Fe", "fb": "Cairo Fe"},
+                "fonts": {"fh": DEFAULT_FONT_HEADING, "fb": DEFAULT_FONT_BODY},
                 "accent": "navy",
             }
+
+    @staticmethod
+    def _whitelist_font(name, default=None):
+        """يطبع اسم الخط ضمن القائمة البيضاء ALLOWED_FONTS (مطابقة مع تجاهل الحالة والفراغات)."""
+        if not name:
+            return default
+        n = re.sub(r"\s+", " ", str(name)).strip()
+        for f in ALLOWED_FONTS:
+            if n.lower() == f.lower():
+                return f
+        return default
 
     @classmethod
     def translate_document(
@@ -1167,58 +1263,91 @@ class AIService:
         )
 
         system_prompt = custom_system_prompt or default_system_prompt
-        
-        # Take first ~7500 chars to avoid token limits on heavy models
-        content_sample = full_text[:8000]
-        user_prompt = f"المستند المطلوب ترجمته:\n{content_sample}"
 
-        try:
-            raw = cls.execute_chat_completion(
-                system_prompt=system_prompt,
-                user_prompt=user_prompt,
-                provider=provider,
-                api_key=api_key,
-                base_url=base_url,
-                model=model,
-                json_mode=True
-            )
-            raw = re.sub(r'^```json\s*', '', raw.strip())
-            raw = re.sub(r'\s*```$', '', raw)
+        def process_translate_chunk(chunk_text: str) -> dict:
+            user_prompt = f"المستند المطلوب ترجمته:\n{chunk_text}"
             try:
-                data = json.loads(raw)
-            except json.JSONDecodeError:
-                # Try locating the outermost JSON object if model included extraneous text
-                match = re.search(r'\{[\s\S]*\}', raw)
-                if match:
-                    data = json.loads(match.group(0))
-                else:
-                    raise
-            if not isinstance(data, dict):
-                data = {"full_translated_text": str(data)}
-            data["source_lang"] = source_lang
-            data["target_lang"] = target_lang
-            data["mode"] = mode
-            return cls.sanitize_output(data)
-        except Exception as e:
-            # Fallback structure
-            paragraphs = [p.strip() for p in content_sample.split('\n') if p.strip()]
-            units = [{"original": p, "translated": f"[ترجمة تجريبية]: {p}"} for p in paragraphs[:15]]
-            return {
-                "source_lang": source_lang,
-                "target_lang": target_lang,
-                "mode": mode,
-                "translated_title": "ترجمة المستند الأكاديمي",
-                "summary_overview": "تم استخراج وترجمة النص بنجاح.",
-                "full_translated_text": f"خطأ أثناء استدعاء المحرك: {e}\n\nيرجى التأكد من صلاحية المفتاح والاتصال.",
-                "units": units,
-                "parallel_pages": [
-                    {
+                raw = cls.execute_chat_completion(
+                    system_prompt=system_prompt,
+                    user_prompt=user_prompt,
+                    provider=provider,
+                    api_key=api_key,
+                    base_url=base_url,
+                    model=model,
+                    json_mode=True
+                )
+                raw = re.sub(r'^```json\s*', '', raw.strip())
+                raw = re.sub(r'\s*```$', '', raw)
+                try:
+                    data = json.loads(raw)
+                except json.JSONDecodeError:
+                    match = re.search(r'\{[\s\S]*\}', raw)
+                    if match:
+                        data = json.loads(match.group(0))
+                    else:
+                        raise
+                if not isinstance(data, dict):
+                    data = {"full_translated_text": str(data)}
+                return data
+            except Exception as e:
+                paragraphs = [p.strip() for p in chunk_text.split('\n') if p.strip()]
+                return {
+                    "translated_title": "ترجمة المستند الأكاديمي",
+                    "error": str(e),
+                    "summary_overview": "تمت معالجة هذا الجزء كنص مؤقت بسبب خطأ في الخادم.",
+                    "full_translated_text": "[ترجمة تجريبية]:\n" + "\n".join(paragraphs[:30]),
+                    "units": [{"original": p, "translated": f"[ترجمة تجريبية]: {p}"} for p in paragraphs[:15]],
+                    "parallel_pages": [{
                         "page_num": 1,
-                        "original_text": content_sample[:1000],
-                        "translated_text": f"ترجمة الصفحة 1:\n{content_sample[:1000]}"
-                    }
-                ]
+                        "original_text": chunk_text[:1200],
+                        "translated_text": "ترجمة:\n" + chunk_text[:1200]
+                    }]
+                }
+
+        # معالجة مجمّعة على دفعات للمستندات الطويلة (> 8000 حرف) لتجاوز حدود الرموز
+        CHUNK_LIMIT = 7000
+        MAX_CHUNKS = 24
+        if len(full_text) > 8000:
+            chunks = [full_text[i:i + CHUNK_LIMIT] for i in range(0, len(full_text), CHUNK_LIMIT)][:MAX_CHUNKS]
+            results = [process_translate_chunk(c) for c in chunks]
+            merged = {
+                "translated_title": "",
+                "summary_overview": "",
+                "full_translated_text": "",
+                "units": [],
+                "parallel_pages": [],
             }
+            page_counter = 0
+            for res in results:
+                if not merged["translated_title"]:
+                    merged["translated_title"] = res.get("translated_title") or ""
+                if not merged["summary_overview"]:
+                    merged["summary_overview"] = res.get("summary_overview") or ""
+                piece = (res.get("full_translated_text") or "").strip()
+                if piece:
+                    merged["full_translated_text"] += ("\n\n" if merged["full_translated_text"] else "") + piece
+                for u in res.get("units") or []:
+                    if isinstance(u, dict):
+                        merged["units"].append(u)
+                for pp in res.get("parallel_pages") or []:
+                    if not isinstance(pp, dict):
+                        continue
+                    page_counter += 1
+                    item = dict(pp)
+                    item["page_num"] = page_counter
+                    merged["parallel_pages"].append(item)
+            if not merged["translated_title"]:
+                merged["translated_title"] = "ترجمة المستند الأكاديمي"
+            data = merged
+        else:
+            data = process_translate_chunk(full_text[:8000])
+
+        data["source_lang"] = source_lang
+        data["target_lang"] = target_lang
+        data["mode"] = mode
+        if len(full_text) > 8000:
+            data["chunked"] = True
+        return cls.sanitize_output(data)
 
     @classmethod
     def extract_terms(

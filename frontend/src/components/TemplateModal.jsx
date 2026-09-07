@@ -36,6 +36,17 @@ const BLUEPRINT_HELP = {
   'dark-tech': ['main', 'bgDark', 'surface', 'text'],
 };
 
+const FONTS = [
+  'Changa Fe', 'Cairo Fe', 'Tajawal', 'IBM Plex Sans Arabic', 'Almarai',
+  'Noto Sans Arabic', 'Amiri', 'Aref Ruqaa', 'Markazi Text', 'Mada',
+  'Mirza', 'Scheherazade New', 'Lateef', 'Reem Kufi', 'Zain',
+  'El Messiri', 'Harmattan', 'Baloo Bhaijaan 2', 'Lalezar', 'Jomhuria',
+  'Montserrat', 'Poppins', 'Inter', 'Roboto', 'Playfair Display',
+];
+
+const isWhitelistedFont = (name) =>
+  FONTS.some((f) => String(name || '').trim().toLowerCase() === f.toLowerCase());
+
 export default function TemplateModal({ isOpen, onClose, onApply }) {
   const [tab, setTab] = useState('gallery');
   const [templates, setTemplates] = useState([]);
@@ -415,21 +426,29 @@ export default function TemplateModal({ isOpen, onClose, onApply }) {
               <div className="grid sm:grid-cols-2 gap-3">
                 <label className="block">
                   <span className="text-[11px] font-black theme-text-primary flex items-center gap-1"><Type className="w-3 h-3" /> خط العناوين</span>
-                  <input
-                    value={manual.fonts.fh || ''}
+                  <select
+                    value={isWhitelistedFont(manual.fonts.fh) ? manual.fonts.fh : ''}
                     onChange={(e) => handleManualChange({ fonts: { ...manual.fonts, fh: e.target.value } })}
-                    placeholder="Changa Fe"
-                    className="mt-1 w-full rounded-2xl theme-card-inner border p-2.5 text-xs theme-text-primary focus:outline-none focus:ring-2 focus:ring-violet-500/40 font-['Tajawal']"
-                  />
+                    className="mt-1 w-full rounded-2xl theme-card-inner border p-2.5 text-xs theme-text-primary focus:outline-none focus:ring-2 focus:ring-violet-500/40 font-['Tajawal'] cursor-pointer"
+                  >
+                    <option value="" disabled>اختر خطاً من القائمة البيضاء…</option>
+                    {FONTS.map((f) => (
+                      <option key={f} value={f}>{f}</option>
+                    ))}
+                  </select>
                 </label>
                 <label className="block">
                   <span className="text-[11px] font-black theme-text-primary flex items-center gap-1"><Type className="w-3 h-3" /> خط النصوص</span>
-                  <input
-                    value={manual.fonts.fb || ''}
+                  <select
+                    value={isWhitelistedFont(manual.fonts.fb) ? manual.fonts.fb : ''}
                     onChange={(e) => handleManualChange({ fonts: { ...manual.fonts, fb: e.target.value } })}
-                    placeholder="Cairo Fe"
-                    className="mt-1 w-full rounded-2xl theme-card-inner border p-2.5 text-xs theme-text-primary focus:outline-none focus:ring-2 focus:ring-violet-500/40 font-['Tajawal']"
-                  />
+                    className="mt-1 w-full rounded-2xl theme-card-inner border p-2.5 text-xs theme-text-primary focus:outline-none focus:ring-2 focus:ring-violet-500/40 font-['Tajawal'] cursor-pointer"
+                  >
+                    <option value="" disabled>اختر خطاً من القائمة البيضاء…</option>
+                    {FONTS.map((f) => (
+                      <option key={f} value={f}>{f}</option>
+                    ))}
+                  </select>
                 </label>
               </div>
 
