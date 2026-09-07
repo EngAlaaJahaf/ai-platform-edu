@@ -17,6 +17,7 @@ import TermsView from './components/TermsView';
 import DocumentFAB from './components/DocumentFAB';
 import AuthGateView from './components/AuthGateView';
 import PresentationView from './components/PresentationView';
+import TeamWorkspaceView from './components/TeamWorkspaceView';
 import { checkHealth, getUserProfile, getLatestDocument, fetchPublicSettings, setGoogleClientId } from './services/api';
 import { ShieldAlert, ShieldCheck } from 'lucide-react';
 
@@ -24,6 +25,7 @@ const VALID_TABS = [
   'dashboard', 
   'documents', 
   'presentations',
+  'teams',
   'translate',
   'terms', 
   'chat', 
@@ -262,6 +264,11 @@ export default function App() {
           <PresentationView
             onOpenApiKey={() => setIsApiKeyOpen(true)}
           />
+        </div>
+
+        {/* Team Collaboration Workspace */}
+        <div className={activeTab === 'teams' ? 'contents' : 'hidden'}>
+          <TeamWorkspaceView />
         </div>
 
         {/* Academic Translation Workspace */}

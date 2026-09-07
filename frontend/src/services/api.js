@@ -1041,3 +1041,124 @@ export async function extractTemplateFromPptx(file) {
   }
   return await res.json();
 }
+
+// -------------------------------------------------------------
+// Team Workspace API (مساحة العمل الجماعية)
+// -------------------------------------------------------------
+
+export async function createTeam(name) {
+  const res = await fetch(`${API_BASE}/teams`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ name })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل إنشاء الفريق');
+  }
+  return await res.json();
+}
+
+export async function joinTeamByCode(invite_code) {
+  const res = await fetch(`${API_BASE}/teams/join`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ invite_code })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل الانضمام للفريق');
+  }
+  return await res.json();
+}
+
+export async function fetchTeams() {
+  const res = await fetch(`${API_BASE}/teams`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('فشل جلب قائمة الفرق');
+  return await res.json();
+}
+
+export async function fetchTeamDetails(teamId) {
+  const res = await fetch(`${API_BASE}/teams/${teamId}`, { headers: getHeaders() });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل جلب بيانات الفريق');
+  }
+  return await res.json();
+}
+
+export async function addTeamMember(teamId, userId, role = 'viewer') {
+  const res = await fetch(`${API_BASE}/teams/${teamId}/members`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ user_id: userId, role })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل إضافة العضو');
+  }
+  return await res.json();
+}
+
+export async function changeTeamMemberRole(teamId, userId, role) {
+  const res = await fetch(`${API_BASE}/teams/${teamId}/members/${userId}`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ role })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل تعديل دور العضو');
+  }
+  return await res.json();
+}
+
+export async function removeTeamMember(teamId, userId) {
+  const res = await fetch(`${API_BASE}/teams/${teamId}/members/${userId}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل إزالة العضو');
+  }
+  return await res.json();
+}
+
+export async function shareEntityWithTeam(teamId, entityType, entityId) {
+  const res = await fetch(`${API_BASE}/teams/${teamId}/shares`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ entity_type: entityType, entity_id: entityId })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل مشاركة العنصر');
+  }
+  return await res.json();
+}
+
+export async function unshareEntityFromTeam(teamId, entityType, entityId) {
+  const res = await fetch(`${API_BASE}/teams/${teamId}/shares`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+    body: JSON.stringify({ entity_type: entityType, entity_id: entityId })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل إلغاء مشاركة العنصر');
+  }
+  return await res.json();
+}
+
+export async function deleteTeam(teamId) {
+  const res = await fetch(`${API_BASE}/teams/${teamId}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'فشل حذف الفريق');
+  }
+  return await res.json();
+}

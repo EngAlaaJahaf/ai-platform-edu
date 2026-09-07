@@ -21,7 +21,8 @@ import {
   LayoutGrid,
   List,
   ArrowRight,
-  Plus
+  Plus,
+  Share2
 } from 'lucide-react';
 import { 
   fetchDocuments, 
@@ -29,6 +30,7 @@ import {
   updateDocumentTitle, 
   fetchDocumentDetails 
 } from '../services/api';
+import ShareEntityModal from './ShareEntityModal';
 
 export default function DocumentLibraryView({ 
   activeDoc, 
@@ -45,6 +47,7 @@ export default function DocumentLibraryView({
   const [previewDoc, setPreviewDoc] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [shareDoc, setShareDoc] = useState(null);
 
   const loadDocs = async () => {
     setLoading(true);
@@ -363,6 +366,14 @@ export default function DocumentLibraryView({
                     </button>
 
                     <button
+                      onClick={(e) => { e.stopPropagation(); setShareDoc(doc); }}
+                      className="p-2 rounded-xl theme-header-btn border hover:text-violet-500 transition"
+                      title="مشاركة مع الفريق"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+
+                    <button
                       onClick={(e) => handleDelete(doc.id, e)}
                       disabled={deletingId === doc.id}
                       className="p-2 rounded-xl theme-header-btn border hover:text-rose-500 transition"
@@ -442,6 +453,13 @@ export default function DocumentLibraryView({
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                         <button
+                          onClick={(e) => { e.stopPropagation(); setShareDoc(doc); }}
+                          className="p-1.5 rounded-lg theme-header-btn border hover:text-violet-500"
+                          title="مشاركة مع الفريق"
+                        >
+                          <Share2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
                           onClick={(e) => handleDelete(doc.id, e)}
                           className="p-1.5 rounded-lg theme-header-btn border hover:text-rose-500"
                           title="حذف"
@@ -500,6 +518,15 @@ export default function DocumentLibraryView({
           </div>
         </div>
       )}
+
+    {/* Share with team modal */}
+      <ShareEntityModal
+        isOpen={!!shareDoc}
+        onClose={() => setShareDoc(null)}
+        entityType="document"
+        entityId={shareDoc?.id}
+        entityTitle={shareDoc?.filename}
+      />
 
     </div>
   );

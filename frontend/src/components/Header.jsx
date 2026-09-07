@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
+import {
   Languages, 
   BrainCircuit, 
   MessageSquareText, 
@@ -22,7 +22,8 @@ import {
   BookOpen, 
   BookMarked,
   ShieldAlert,
-  Presentation 
+  Presentation,
+  Users 
 } from 'lucide-react';
 import { getApiKey, getAIProvider, getSelectedModel } from '../services/api';
 
@@ -66,6 +67,7 @@ export default function Header({
   const secondaryTabs = [
     { id: 'dashboard', label: 'لوحة الإحصائيات الأكاديمية', icon: LayoutDashboard },
     { id: 'presentations', label: 'مولّد العروض التقديمية', icon: Presentation },
+    { id: 'teams', label: 'مساحة العمل الجماعية', icon: Users },
     { id: 'proofread', label: 'التدقيق الأكاديمي واللغوي', icon: CheckCheck },
     { id: 'subscription', label: 'خطة الاشتراك ومزايا Pro', icon: Crown }
   ];
