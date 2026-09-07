@@ -7,8 +7,8 @@ This is heuristic / best-effort; unknown/invalid files raise ValueError with cle
 """
 import io
 import re
-import zipfile
 import xml.etree.ElementTree as ET
+import zipfile
 
 NS = {
     "a": "http://schemas.openxmlformats.org/drawingml/2006/main",

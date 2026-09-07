@@ -1,14 +1,14 @@
-import sqlite3
-import json
-import uuid
-import os
 import hashlib
-import secrets
 import hmac
+import json
+import os
 import re
+import secrets
+import sqlite3
+import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Any, Dict, List, Optional
 
 DB_PATH = Path(__file__).resolve().parent / "eduai.db"
 
@@ -46,7 +46,7 @@ def get_db_connection():
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     # Users table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
@@ -65,7 +65,7 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
     """)
-    
+
     # Documents table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS documents (
@@ -90,7 +90,7 @@ def init_db():
         cursor.execute("ALTER TABLE documents ADD COLUMN summary_json TEXT;")
     except sqlite3.OperationalError:
         pass
-        
+
     try:
         cursor.execute("ALTER TABLE documents ADD COLUMN quiz_progress_json TEXT;")
     except sqlite3.OperationalError:
@@ -103,7 +103,7 @@ def init_db():
         cursor.execute("ALTER TABLE documents ADD COLUMN terms_json TEXT;")
     except sqlite3.OperationalError:
         pass
-    
+
     # Prompts Bank table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS prompts (
@@ -125,7 +125,7 @@ def init_db():
     )
 
     cursor.execute("UPDATE prompts SET system_prompt = ? WHERE id = 'p_quiz_mcq_standard'", (bilingual_quiz_prompt,))
-    
+
     # System Settings table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS system_settings (
@@ -268,7 +268,7 @@ def get_or_create_user(google_id: str, email: str, name: str, picture: str, role
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE google_id = ? OR email = ?", (google_id, email))
     user = cursor.fetchone()
-    
+
     # Auto-grant admin role if email matches admin pattern or already admin
     user_role = role
     if email in ['admin@eduai.edu', 'superadmin@eduai.edu'] or (user and user["role"] == 'admin'):
@@ -288,7 +288,7 @@ def get_or_create_user(google_id: str, email: str, name: str, picture: str, role
         conn.commit()
         cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
         user = cursor.fetchone()
-        
+
     user_dict = dict(user)
     conn.close()
     return user_dict
@@ -320,7 +320,7 @@ def authenticate_admin(admin_key: str) -> Dict[str, Any]:
             role="admin"
         )
         return {"success": True, "user": admin_user, "message": "تم تفعيل وضع المدير بنجاح 👑"}
-    
+
     # Check against database password_hash (hashed comparison)
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -349,10 +349,10 @@ def register_user(name: str, email: str, password: str, role: str = 'student') -
     """
     clean_email = email.strip().lower()
     clean_name = name.strip()
-    
+
     if not clean_email or not clean_name:
         return {"success": False, "error": "الرجاء إدخال الاسم والبريد الإلكتروني"}
-        
+
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE email = ?", (clean_email,))
@@ -374,7 +374,7 @@ def register_user(name: str, email: str, password: str, role: str = 'student') -
     cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
     new_user = cursor.fetchone()
     conn.close()
-    
+
     log_activity("register_user", f"تسجيل مستخدم جديد: {clean_name} ({clean_email})", "success")
     return {"success": True, "user": dict(new_user)}
 
@@ -383,12 +383,12 @@ def login_user(email_or_username: str, password: str) -> Dict[str, Any]:
     Login user via email and password.
     """
     clean_input = email_or_username.strip().lower()
-    
+
     # Check Admin Quick Access via env master key only
     env_master = os.getenv("ADMIN_MASTER_KEY", "").strip()
     if clean_input in ['admin', 'admin@eduai.edu'] and env_master and password.strip() == env_master:
         return authenticate_admin(password.strip())
-        
+
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE email = ? OR id = ?", (clean_input, clean_input))
@@ -396,10 +396,10 @@ def login_user(email_or_username: str, password: str) -> Dict[str, Any]:
     if not user:
         conn.close()
         return {"success": False, "error": "الحساب غير موجود، يرجى إنشاء حساب جديد"}
-        
+
     user_dict = dict(user)
     saved_pass = user_dict.get("password_hash", "")
-    
+
     if saved_pass and not _verify_password(password, saved_pass):
         conn.close()
         return {"success": False, "error": "كلمة المرور غير صحيحة"}
@@ -412,7 +412,7 @@ def login_user(email_or_username: str, password: str) -> Dict[str, Any]:
         except Exception:
             pass
     conn.close()
-        
+
     log_activity("login_user", f"تسجيل دخول: {user_dict.get('name')} ({user_dict.get('email')})", "info")
     return {"success": True, "user": user_dict}
 
@@ -510,10 +510,10 @@ def admin_create_user(name: str, email: str, password: str, role: str = 'student
     clean_email = email.strip().lower()
     clean_name = name.strip()
     permissions_json = json.dumps(permissions or {}, ensure_ascii=False)
-    
+
     if not clean_email or not clean_name:
         return {"success": False, "error": "الرجاء إدخال الاسم والبريد الإلكتروني"}
-        
+
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE email = ?", (clean_email,))
@@ -534,7 +534,7 @@ def admin_create_user(name: str, email: str, password: str, role: str = 'student
     cursor.execute("SELECT id, email, name, role FROM users WHERE id = ?", (user_id,))
     new_user = cursor.fetchone()
     conn.close()
-    
+
     log_activity("admin_create_user", f"إنشاء مستخدم جديد من الإدارة: {clean_name} ({clean_email})", "success")
     return {"success": True, "user": dict(new_user)}
 
@@ -545,7 +545,7 @@ def admin_update_user(user_id: str, name: str, email: str, role: str, tier: str,
     if cursor.fetchone():
         conn.close()
         return {"success": False, "error": "البريد الإلكتروني مستخدم لحساب آخر"}
-        
+
     # Get existing permissions if new ones are not provided
     if permissions is not None:
         permissions_json = json.dumps(permissions, ensure_ascii=False)
@@ -560,14 +560,14 @@ def admin_update_user(user_id: str, name: str, email: str, role: str, tier: str,
             SET name = ?, email = ?, role = ?, subscription_tier = ?, tokens_limit = ?
             WHERE id = ?
         """, (name.strip(), email.strip().lower(), role, tier, token_limit, user_id))
-    
+
     if cursor.rowcount == 0:
         conn.close()
         return {"success": False, "error": "المستخدم غير موجود"}
-        
+
     conn.commit()
     conn.close()
-    
+
     log_activity("admin_update_user", f"تعديل بيانات المستخدم: {name}", "info")
     return {"success": True, "message": "تم تعديل المستخدم بنجاح"}
 
@@ -576,14 +576,14 @@ def admin_reset_user_password(user_id: str, new_password: str) -> Dict[str, Any]
     cursor = conn.cursor()
     hashed = _hash_password(new_password)
     cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (hashed, user_id))
-    
+
     if cursor.rowcount == 0:
         conn.close()
         return {"success": False, "error": "المستخدم غير موجود"}
-        
+
     conn.commit()
     conn.close()
-    
+
     log_activity("admin_reset_password", f"إعادة تعيين كلمة مرور للمستخدم: {user_id}", "warn")
     return {"success": True, "message": "تم إعادة تعيين كلمة المرور بنجاح"}
 
@@ -621,7 +621,7 @@ def admin_set_user_tokens(user_id: str, tokens_used: Optional[int] = None, token
 def admin_delete_user(user_id: str) -> Dict[str, Any]:
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     cursor.execute("SELECT file_path FROM documents WHERE user_id = ?", (user_id,))
     docs = cursor.fetchall()
     for doc in docs:
@@ -631,17 +631,17 @@ def admin_delete_user(user_id: str) -> Dict[str, Any]:
                 os.remove(file_path)
         except Exception:
             pass
-            
+
     cursor.execute("DELETE FROM documents WHERE user_id = ?", (user_id,))
     cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
-    
+
     if cursor.rowcount == 0:
         conn.close()
         return {"success": False, "error": "المستخدم غير موجود"}
-        
+
     conn.commit()
     conn.close()
-    
+
     log_activity("admin_delete_user", f"تم حذف المستخدم: {user_id}", "error")
     return {"success": True, "message": "تم حذف المستخدم وجميع ملفاته بنجاح"}
 
@@ -845,18 +845,18 @@ def delete_document(doc_id: str, user_id: Optional[str] = None) -> bool:
         return False
     filename = row["filename"]
     file_path = row["file_path"]
-    
+
     cursor.execute("DELETE FROM documents WHERE id = ?", (doc_id,))
     conn.commit()
     conn.close()
-    
+
     # Try deleting physical file if exists
     try:
         if file_path and os.path.exists(file_path):
             os.remove(file_path)
     except Exception:
         pass
-        
+
     log_activity("delete_document", f"تم حذف المستند: {filename}", "warn", doc_id)
     return True
 
@@ -1049,7 +1049,7 @@ def get_system_settings() -> Dict[str, Any]:
     cursor.execute("SELECT key, value_json FROM system_settings")
     rows = cursor.fetchall()
     conn.close()
-    
+
     settings = {
         "platform_name": "ذكاء EduAI",
         "platform_subtitle": "المنصة الأكاديمية الذكية المتكاملة",
@@ -1080,13 +1080,13 @@ def get_system_settings() -> Dict[str, Any]:
         "google_client_id": "",
         "enable_base_rules": True
     }
-    
+
     for r in rows:
         try:
             settings[r["key"]] = json.loads(r["value_json"])
         except Exception:
             settings[r["key"]] = r["value_json"]
-            
+
     return settings
 
 def update_system_settings(new_settings: Dict[str, Any]):
@@ -1105,33 +1105,33 @@ def update_system_settings(new_settings: Dict[str, Any]):
 def get_admin_metrics() -> Dict[str, Any]:
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     cursor.execute("SELECT COUNT(*), SUM(pages_count), SUM(words_count) FROM documents")
     doc_stats = cursor.fetchone()
     total_docs = doc_stats[0] or 0
     total_pages = doc_stats[1] or 0
     total_words = doc_stats[2] or 0
-    
+
     cursor.execute("SELECT COUNT(*) FROM users")
     total_users = cursor.fetchone()[0] or 0
-    
+
     cursor.execute("SELECT COUNT(*) FROM prompts")
     total_prompts = cursor.fetchone()[0] or 0
-    
+
     cursor.execute("SELECT COUNT(*) FROM activity_logs")
     total_activities = cursor.fetchone()[0] or 0
-    
+
     cursor.execute("SELECT COUNT(*) FROM presentations")
     total_presentations = cursor.fetchone()[0] or 0
-    
+
     cursor.execute("SELECT SUM(tokens_used) FROM users")
     total_tokens = cursor.fetchone()[0] or 0
-    
+
     # DB File Size
     db_size_kb = round(DB_PATH.stat().st_size / 1024, 1) if DB_PATH.exists() else 0
-    
+
     conn.close()
-    
+
     return {
         "total_documents": total_docs,
         "total_pages": total_pages,

@@ -1,68 +1,101 @@
-import os
-import shutil
-import uuid
-import time
 import io
-import re
 import json
+import os
+import re
+import shutil
+import time
+import uuid
 import zipfile
 from collections import defaultdict
-from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Header, Response, Depends, Request
-from fastapi.responses import StreamingResponse, FileResponse
-from pydantic import BaseModel
+from typing import Any, Dict, List, Optional
 
 from backend.config import UPLOAD_DIR
-from backend.services.document_service import DocumentService
-from backend.services.rag_service import RAGService
-from backend.services.ai_service import AIService
-from backend.services.auth_service import AuthService
-from backend.services.quiz_formatter import QuizFormatterService
-from backend.services.presentation_service import PresentationService, PresentationError
-from backend.services.pptx_theme_extractor import extract_pptx_theme
 from backend.database import (
-    save_document, 
-    get_document, 
-    get_latest_document, 
-    list_all_documents,
-    count_documents,
-    update_document_title,
-    delete_document,
-    save_document_summary,
-    save_document_quiz,
-    save_document_terms,
-    save_document_progress,
-    get_or_create_user, 
-    authenticate_admin,
-    register_user,
-    login_user,
-    list_all_users,
-    get_user_by_id,
-    increment_user_tokens,
-    estimate_tokens,
     admin_create_user,
-    admin_update_user,
+    admin_delete_user,
     admin_reset_user_password,
     admin_reset_user_tokens,
     admin_set_user_tokens,
-    admin_delete_user,
+    admin_update_user,
+    authenticate_admin,
     clear_activity_logs,
-    list_prompts,
-    save_prompt,
+    count_documents,
+    count_presentations,
+    delete_document,
     delete_prompt,
-    list_templates,
-    save_template,
     delete_template,
-    get_template,
-    get_system_settings,
-    update_system_settings,
+    estimate_tokens,
     get_activity_logs,
     get_admin_metrics,
-    log_activity,
+    get_document,
+    get_latest_document,
+    get_or_create_user,
+    get_system_settings,
+    get_user_by_id,
+    increment_user_tokens,
+    list_all_documents,
+    list_all_users,
     list_presentations,
+    list_prompts,
+    list_templates,
+    log_activity,
+    login_user,
+    register_user,
+    save_document,
+    save_document_progress,
+    save_document_quiz,
+    save_document_summary,
+    save_document_terms,
+    admin_create_user,
+    admin_delete_user,
+    admin_reset_user_password,
+    admin_reset_user_tokens,
+    admin_set_user_tokens,
+    admin_update_user,
+    authenticate_admin,
+    clear_activity_logs,
+    count_documents,
     count_presentations,
-    update_presentation_status
+    delete_document,
+    delete_prompt,
+    delete_template,
+    estimate_tokens,
+    get_activity_logs,
+    get_admin_metrics,
+    get_document,
+    get_latest_document,
+    get_or_create_user,
+    get_system_settings,
+    get_user_by_id,
+    increment_user_tokens,
+    list_all_documents,
+    list_all_users,
+    list_presentations,
+    list_prompts,
+    list_templates,
+    log_activity,
+    login_user,
+    register_user,
+    save_document,
+    save_document_progress,
+    save_document_quiz,
+    save_document_summary,
+    save_prompt,
+    save_template,
+    update_document_title,
+    update_presentation_status,
+    update_system_settings,
 )
+from backend.services.ai_service import AIService
+from backend.services.auth_service import AuthService
+from backend.services.document_service import DocumentService
+from backend.services.pptx_theme_extractor import extract_pptx_theme
+from backend.services.presentation_service import PresentationError, PresentationService
+from backend.services.quiz_formatter import QuizFormatterService
+from backend.services.rag_service import RAGService
+from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Request, Response, UploadFile
+from fastapi.responses import FileResponse, StreamingResponse
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/api")
 
@@ -373,7 +406,7 @@ def generate_prompt_endpoint(
 def export_quiz_endpoint(req: QuizExportRequest):
     fmt = req.format.lower()
     chapter_title = req.chapter_title or "Chapter Exam"
-    
+
     if fmt == "custom_text" or fmt == "txt":
         content = QuizFormatterService.to_bilingual_custom_text(req.quiz_data, chapter_title)
         return {
@@ -492,7 +525,7 @@ def export_terms_endpoint(req: TermsExportRequest):
 @router.post("/upload")
 async def upload_document(
     request: Request,
-    file: UploadFile = File(...), 
+    file: UploadFile = File(...),
     user_id: Optional[str] = Form(None),
     x_user_id: Optional[str] = Header(None)
 ):
@@ -504,10 +537,10 @@ async def upload_document(
     allowed_exts = [str(f).lower() for f in sys_settings.get("allowed_formats", [".pdf", ".docx", ".doc", ".pptx", ".ppt", ".txt", ".md", ".csv", ".xlsx", ".xls", ".rtf"])]
     max_size_mb = int(sys_settings.get("max_upload_size_mb", 50))
     file_ext = os.path.splitext(file.filename)[1].lower()
-    
+
     if file_ext not in allowed_exts:
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail=f"نوع الملف غير مدعوم ({file_ext}). الصيغ المسموحة حالياً: {', '.join(allowed_exts)} (يمكن للمدير تعديلها من لوحة التحكم > إعدادات متقدمة)"
         )
     # Validate file size if available
@@ -521,19 +554,19 @@ async def upload_document(
         raise
     except Exception:
         pass
-        
+
     doc_id = str(uuid.uuid4())[:8]
     save_path = os.path.join(UPLOAD_DIR, f"{doc_id}_{file.filename}")
-    
+
     with open(save_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-        
+
     try:
         pages_data = DocumentService.extract_text_and_pages(save_path)
         chunks = DocumentService.chunk_document(pages_data)
         full_text = "\n\n".join([p["text"] for p in pages_data])
         words_count = len(full_text.split())
-        
+
         save_document(
             doc_id=doc_id,
             filename=file.filename,
@@ -544,7 +577,7 @@ async def upload_document(
             chunks=chunks,
             user_id=effective_user_id
         )
-        
+
         return {
             "success": True,
             "doc_id": doc_id,
@@ -593,7 +626,7 @@ def chat_with_doc(
     # If chunks small, use all; if large, use setting*2
     top_k = max(4, min(50, rag_k * 3)) if rag_k else 50
     relevant_chunks = RAGService.search_relevant_chunks(req.query, chunks, top_k=top_k)
-    
+
     result = AIService.answer_with_rag(
         query=req.query,
         context_chunks=relevant_chunks,
@@ -674,11 +707,11 @@ def summarize_doc(
         doc = get_document(req.doc_id, user_id=x_user_id)
     if not doc:
         doc = get_latest_document(user_id=x_user_id)
-        
+
     full_text = doc.get("full_text", "") if doc else ""
     if not full_text:
         raise HTTPException(status_code=400, detail="يرجى رفع أو اختيار مادة تعليمية للتلخيص أولاً.")
-    
+
     summary_data = AIService.generate_summary_and_mindmap(
         full_text=full_text,
         level=req.level or "full",
@@ -696,7 +729,7 @@ def summarize_doc(
         delta = estimate_tokens(full_text[:3000]) + estimate_tokens(_json.dumps(summary_data, ensure_ascii=False))
         increment_user_tokens(x_user_id, delta)
     except Exception: pass
-        
+
     return summary_data
 
 @router.post("/generate-quiz")
@@ -713,11 +746,11 @@ def generate_quiz_endpoint(
         doc = get_document(req.doc_id, user_id=x_user_id)
     if not doc:
         doc = get_latest_document(user_id=x_user_id)
-        
+
     full_text = doc.get("full_text", "") if doc else ""
     if not full_text:
         raise HTTPException(status_code=400, detail="يرجى رفع أو اختيار مادة تعليمية للاختبار أولاً.")
-    
+
     quiz_data = AIService.generate_quiz(
         full_text=full_text,
         count=req.count or 5,
@@ -737,7 +770,7 @@ def generate_quiz_endpoint(
         delta = estimate_tokens(full_text[:3000]) + estimate_tokens(_json2.dumps(quiz_data, ensure_ascii=False))
         increment_user_tokens(x_user_id, delta)
     except Exception: pass
-        
+
     return quiz_data
 
 @router.post("/proofread")
@@ -751,7 +784,7 @@ def proofread_endpoint(
 ):
     if not req.text.strip():
         raise HTTPException(status_code=400, detail="النص المدخل فارغ.")
-        
+
     result = AIService.proofread_text(
         input_text=req.text,
         provider=x_ai_provider or "gemini",
@@ -814,14 +847,15 @@ def translate_endpoint(
 @router.post("/export/docx")
 def export_docx_endpoint(req: DocxExportRequest):
     """Generate and stream a styled Microsoft Word (.docx) document."""
-    import docx
-    from docx.shared import Inches, Pt, RGBColor
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
     import io
+
+    import docx
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.shared import Inches, Pt, RGBColor
     from fastapi.responses import StreamingResponse
 
     doc = docx.Document()
-    
+
     # Page Margins (1 inch)
     for section in doc.sections:
         section.top_margin = Inches(1)
@@ -847,7 +881,7 @@ def export_docx_endpoint(req: DocxExportRequest):
     sub_run.font.size = Pt(10.5)
     sub_run.font.italic = True
     sub_run.font.color.rgb = RGBColor(0x64, 0x74, 0x8B)
-    
+
     doc.add_paragraph().paragraph_format.space_after = Pt(12)
 
     # If Line-by-line translation units provided
@@ -855,13 +889,13 @@ def export_docx_endpoint(req: DocxExportRequest):
         h = doc.add_heading(level=1)
         hrun = h.add_run("الترجمة السطرية الموازية (Line-by-Line Parallel Translation)")
         hrun.font.color.rgb = RGBColor(0x1E, 0x3A, 0x8A)
-        
+
         table = doc.add_table(rows=1, cols=2)
         table.style = 'Table Grid'
         hdr_cells = table.rows[0].cells
         hdr_cells[0].text = 'النص الأصلي (Original Text)'
         hdr_cells[1].text = 'الترجمة الأكاديمية (Arabic Translation)'
-        
+
         for idx, u in enumerate(req.units):
             row_cells = table.add_row().cells
             row_cells[0].text = f"[{idx+1}] {u.get('original', '')}"
@@ -873,7 +907,7 @@ def export_docx_endpoint(req: DocxExportRequest):
             h = doc.add_heading(level=1)
             hrun = h.add_run(sec.get('title', 'قسم'))
             hrun.font.color.rgb = RGBColor(0x1E, 0x3A, 0x8A)
-            
+
             p = doc.add_paragraph()
             prun = p.add_run(sec.get('content', ''))
             prun.font.size = Pt(12)
@@ -908,7 +942,7 @@ def export_docx_endpoint(req: DocxExportRequest):
     buf = io.BytesIO()
     doc.save(buf)
     buf.seek(0)
-    
+
     clean_name = f"Translated_{req.doc_name or 'Document'}.docx"
     return StreamingResponse(
         buf,

@@ -1,10 +1,9 @@
-import os
 import uvicorn
+from backend.config import ALLOWED_ORIGINS, PORT
+from backend.routes.api import router as api_router
+from backend.services.ai_service import use_base_rules_var
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routes.api import router as api_router
-from backend.config import PORT, ALLOWED_ORIGINS
-from backend.services.ai_service import use_base_rules_var
 
 app = FastAPI(
     title="ذكاء | EduAI API",

@@ -18,22 +18,22 @@ import subprocess
 import sys
 import uuid
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 BASE_DIR = Path(__file__).resolve().parent.parent          # backend/
 ENGINE_DIR = BASE_DIR / "presentation_engine"
 PRESENTATIONS_DIR = BASE_DIR / "presentations"
 PRESENTATIONS_DIR.mkdir(exist_ok=True, parents=True)
 
-from backend.services.ai_service import AIService
+from backend.config import DEFAULT_MODEL, GEMINI_API_KEY
 from backend.database import (
-    save_presentation,
-    get_presentation,
-    update_presentation_status,
     delete_presentation,
     get_document,
+    get_presentation,
+    save_presentation,
+    update_presentation_status,
 )
-from backend.config import GEMINI_API_KEY, DEFAULT_MODEL
+from backend.services.ai_service import AIService
 
 CHROME_CANDIDATES = [
     r"C:\Program Files\Google\Chrome\Application\chrome.exe",

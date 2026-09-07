@@ -1,9 +1,11 @@
-import json
 import base64
-from typing import Dict, Any, Optional
-from google.oauth2 import id_token
-from google.auth.transport import requests as google_requests
+import json
+from typing import Any, Dict, Optional
+
 from backend.database import get_or_create_user
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token
+
 
 class AuthService:
     @staticmethod
@@ -16,8 +18,8 @@ class AuthService:
             request = google_requests.Request()
             # If client_id is passed, verify against it; otherwise decode verified payload
             idinfo = id_token.verify_oauth2_token(
-                credential_jwt, 
-                request, 
+                credential_jwt,
+                request,
                 audience=client_id if client_id else None,
                 clock_skew_in_seconds=10
             )
@@ -38,7 +40,7 @@ class AuthService:
                     padded = parts[1] + "=" * ((4 - len(parts[1]) % 4) % 4)
                     payload_bytes = base64.urlsafe_b64decode(padded)
                     claims = json.loads(payload_bytes.decode('utf-8'))
-                    
+
                     if "email" in claims and "sub" in claims:
                         google_id = claims["sub"]
                         email = claims["email"]

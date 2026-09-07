@@ -1,6 +1,5 @@
 import re
-import math
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 try:
     from sklearn.feature_extraction.text import TfidfVectorizer
@@ -35,9 +34,9 @@ class RAGService:
 
     @classmethod
     def search_relevant_chunks(
-        cls, 
-        query: str, 
-        chunks: List[Dict[str, Any]], 
+        cls,
+        query: str,
+        chunks: List[Dict[str, Any]],
         top_k: int = 50
     ) -> List[Dict[str, Any]]:
         """
@@ -75,9 +74,9 @@ class RAGService:
         # Fallback keyword scoring
         norm_query = cls.normalize_text(query)
         query_tokens = [w for w in norm_query.split() if len(w) > 1]
-        
+
         query_bigrams = [
-            f"{query_tokens[i]} {query_tokens[i+1]}" 
+            f"{query_tokens[i]} {query_tokens[i+1]}"
             for i in range(len(query_tokens) - 1)
         ] if len(query_tokens) > 1 else []
 

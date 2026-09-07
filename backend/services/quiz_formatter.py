@@ -1,9 +1,10 @@
-import io
 import csv
-import json
+import io
 import re
+from typing import Any, Dict
+
 import pandas as pd
-from typing import List, Dict, Any
+
 
 class QuizFormatterService:
     @staticmethod
@@ -16,25 +17,25 @@ class QuizFormatterService:
         for q in questions:
             q_en = q.get("question_en") or q.get("question") or ""
             q_ar = q.get("question_ar") or q.get("question") or ""
-            
+
             lines.append(f"Q_EN: {q_en}")
             lines.append(f"Q_AR: {q_ar}")
 
             options = q.get("options", [])
             options_en = q.get("options_en", [])
             options_ar = q.get("options_ar", [])
-            
+
             letters = ["A", "B", "C", "D", "E"]
             for idx in range(max(len(options), len(options_en), 4)):
                 letter = letters[idx] if idx < len(letters) else f"Opt{idx+1}"
                 opt_en = options_en[idx] if idx < len(options_en) else (options[idx] if idx < len(options) else "")
                 opt_ar = options_ar[idx] if idx < len(options_ar) else (options[idx] if idx < len(options) else "")
-                
+
                 # Check if option already contains English | Arabic
                 if " | " in opt_en and not opt_ar:
                     parts = opt_en.split(" | ", 1)
                     opt_en, opt_ar = parts[0].strip(), parts[1].strip()
-                
+
                 if opt_ar and opt_en != opt_ar:
                     lines.append(f"{letter}: {opt_en} | {opt_ar}")
                 else:
@@ -60,7 +61,7 @@ class QuizFormatterService:
         Parse custom text format into structured quiz data with multiple chapters.
         """
         clean_text = text.strip()
-        
+
         # Split text into blocks by ##Chapter occurrences
         # Using positive lookahead to keep the separator in the split blocks
         blocks = re.split(r"\n\s*(?=##Chapter)", clean_text)
@@ -83,7 +84,7 @@ class QuizFormatterService:
             lines = b.splitlines()
             chapter_title_lines = []
             question_lines = []
-            
+
             for line in lines:
                 if line.strip().startswith("##Chapter"):
                     # Extract the title part after ##Chapter
@@ -185,10 +186,10 @@ class QuizFormatterService:
             quiz_data = {"questions": quiz_data}
         output = io.StringIO()
         writer = csv.writer(output)
-        
+
         writer.writerow([
-            "ID", "Question (Arabic)", "Question (English)", 
-            "Option A", "Option B", "Option C", "Option D", 
+            "ID", "Question (Arabic)", "Question (English)",
+            "Option A", "Option B", "Option C", "Option D",
             "Correct Answer", "Explanation (Arabic)", "Explanation (English)", "Topic"
         ])
 
@@ -260,7 +261,7 @@ class QuizFormatterService:
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine="openpyxl") as writer:
             df.to_excel(writer, index=False, sheet_name="Exam Questions")
-        
+
         return output.getvalue()
 
     # =============================================================

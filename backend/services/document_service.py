@@ -1,9 +1,11 @@
 import os
-import pymupdf as fitz
+from typing import Any, Dict, List
+
 import docx
-from pptx import Presentation
 import pandas as pd
-from typing import List, Dict, Any
+import pymupdf as fitz
+from pptx import Presentation
+
 
 class DocumentService:
     @classmethod
@@ -101,7 +103,7 @@ class DocumentService:
                         text = paragraph.text.strip()
                         if text:
                             slide_texts.append(text)
-            
+
             # Extract slide notes if any
             if slide.has_notes_slide and slide.notes_slide.notes_text_frame:
                 notes = slide.notes_slide.notes_text_frame.text.strip()
@@ -168,12 +170,12 @@ class DocumentService:
     def chunk_document(cls, pages_data: List[Dict[str, Any]], chunk_size: int = 250, overlap: int = 50) -> List[Dict[str, Any]]:
         chunks = []
         chunk_id = 1
-        
+
         for page in pages_data:
             page_num = page["page_number"]
             text = page["text"]
             words = text.split()
-            
+
             if len(words) <= chunk_size:
                 chunks.append({
                     "chunk_id": f"c_{chunk_id}",
