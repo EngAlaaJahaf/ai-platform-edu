@@ -23,6 +23,11 @@ backend/uploads/*
 # User-generated presentations & rendered decks
 backend/presentations/
 
+# Local test artifacts
+test_identity.pptx
+gen_tab_result.png
+template_modal_applied.png
+
 # OS
 .DS_Store
 Thumbs.db
