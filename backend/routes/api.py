@@ -75,6 +75,18 @@ from backend.database import (
     share_entity_with_team,
     unshare_entity_from_team,
     get_team_access,
+    get_team,
+    get_member_role,
+    set_member_role,
+    share_with_team,
+    unshare_from_team,
+    list_team_shares,
+    get_shared_documents_for_user,
+    get_shared_presentations_for_user,
+    get_user_doc_team_role,
+    user_can_edit_document,
+    get_user_pres_team_role,
+    user_can_edit_presentation
 )
 
 router = APIRouter(prefix="/api")
@@ -641,7 +653,7 @@ def chat_with_doc(
     x_user_id: Optional[str] = Header(None)
 ):
     _check_rate_limit(f"chat:{x_user_id or request.client.host}", limit=20, window_sec=60)
-    doc = get_document(req.doc_id, user_id=x_user_id) if req.doc_id else get_latest_document(user_id=x_user_id)
+    doc = _resolve_doc_for_user(req.doc_id, x_user_id) if req.doc_id else get_latest_document(user_id=x_user_id)
     chunks = doc.get("chunks", []) if doc else []
     # Dynamic RAG top_k from system_settings
     rag_k = int(get_system_settings().get("auto_rag_chunks", 4))
@@ -685,7 +697,7 @@ def chat_stream(
 ):
     _check_rate_limit(f"chat_stream:{x_user_id or request.client.host}", limit=20, window_sec=60)
     """Streaming RAG chat - yields text chunks as they arrive (vector-ranked)."""
-    doc = get_document(req.doc_id, user_id=x_user_id) if req.doc_id else get_latest_document(user_id=x_user_id)
+    doc = _resolve_doc_for_user(req.doc_id, x_user_id) if req.doc_id else get_latest_document(user_id=x_user_id)
     chunks = doc.get("chunks", []) if doc else []
     rag_k = int(get_system_settings().get("auto_rag_chunks", 4))
     top_k = max(4, min(50, rag_k * 3)) if rag_k else 50
@@ -727,7 +739,7 @@ def summarize_doc(
 ):
     doc = None
     if req.doc_id and req.doc_id not in ("undefined", "null", ""):
-        doc = get_document(req.doc_id, user_id=x_user_id)
+        doc = _resolve_doc_for_user(req.doc_id, x_user_id)
     if not doc:
         doc = get_latest_document(user_id=x_user_id)
         
@@ -745,7 +757,7 @@ def summarize_doc(
         model=x_gemini_model,
         custom_system_prompt=req.custom_system_prompt
     )
-    if doc and doc.get("id"):
+    if doc and doc.get("id") and (not x_user_id or user_can_edit_document(x_user_id, doc["id"])):
         save_document_summary(doc["id"], summary_data)
     try:
         import json as _json
@@ -766,7 +778,7 @@ def generate_quiz_endpoint(
 ):
     doc = None
     if req.doc_id and req.doc_id not in ("undefined", "null", ""):
-        doc = get_document(req.doc_id, user_id=x_user_id)
+        doc = _resolve_doc_for_user(req.doc_id, x_user_id)
     if not doc:
         doc = get_latest_document(user_id=x_user_id)
         
@@ -786,7 +798,7 @@ def generate_quiz_endpoint(
         custom_system_prompt=req.custom_system_prompt,
         extract_only=req.extract_only
     )
-    if doc and doc.get("id"):
+    if doc and doc.get("id") and (not x_user_id or user_can_edit_document(x_user_id, doc["id"])):
         save_document_quiz(doc["id"], quiz_data)
     try:
         import json as _json2
@@ -835,7 +847,7 @@ def translate_endpoint(
     """Translate academic documents in pure, page-by-page, or interlinear line-by-line modes."""
     doc = None
     if req.doc_id and req.doc_id not in ("undefined", "null", ""):
-        doc = get_document(req.doc_id, user_id=x_user_id)
+        doc = _resolve_doc_for_user(req.doc_id, x_user_id)
     if not doc:
         doc = get_latest_document(user_id=x_user_id)
 
@@ -979,18 +991,24 @@ def export_docx_endpoint(req: DocxExportRequest):
 # -------------------------------------------------------------
 
 @router.get("/documents")
-def list_documents_endpoint(x_user_id: Optional[str] = Header(None), limit: int = 20, offset: int = 0, search: Optional[str] = None):
-    """Retrieve paginated documents belonging to the authenticated user."""
+def list_documents_endpoint(x_user_id: Optional[str] = Header(None), limit: int = 20, offset: int = 0, search: Optional[str] = None, include_shared: bool = True):
+    """Retrieve paginated documents belonging to the authenticated user + team-shared ones."""
     docs = list_all_documents(user_id=x_user_id, limit=limit, offset=offset, search=search)
     total = count_documents(user_id=x_user_id, search=search)
-    return {"documents": docs, "total": total, "limit": limit, "offset": offset}
+    shared = get_shared_documents_for_user(x_user_id, search=search) if (include_shared and x_user_id) else []
+    return {"documents": docs, "total": total, "limit": limit, "offset": offset, "shared": shared, "shared_total": len(shared)}
 
 @router.get("/documents/{doc_id}")
 def get_document_endpoint(doc_id: str, x_user_id: Optional[str] = Header(None)):
-    """Retrieve single document details with owner validation."""
-    doc = get_document(doc_id, user_id=x_user_id)
+    """Retrieve single document details with owner validation (or team-shared view access)."""
+    doc = _resolve_doc_for_user(doc_id, x_user_id)
     if not doc:
         raise HTTPException(status_code=404, detail="المستند غير موجود أو لا تملك صلاحية الوصول إليه.")
+    if x_user_id:
+        role = get_user_doc_team_role(x_user_id, doc_id)
+        if role:
+            doc["shared"] = True
+            doc["my_team_role"] = role
     return {"document": doc}
 
 @router.patch("/documents/{doc_id}")
@@ -1002,12 +1020,13 @@ def update_document_endpoint(doc_id: str, req: UpdateDocumentRequest, x_user_id:
         raise HTTPException(status_code=404, detail="المستند غير موجود أو لا تملك صلاحية الوصول إليه.")
     if doc.get("user_id") == user["id"] or not doc.get("user_id"):
         success = update_document_title(doc_id, req.title.strip(), user_id=user["id"])
-    else:
-        access = get_team_access(user["id"], "document", doc_id)
-        if not access or access["role"] not in ("owner", "admin", "editor"):
-            raise HTTPException(status_code=403, detail="صلاحية المحرر مطلوبة لتعديل هذا المستند")
+    elif user_can_edit_document(user["id"], doc_id):
         success = update_document_title(doc_id, req.title.strip())
+    else:
+        success = None
     if not success:
+        if _doc_edit_denied(doc_id, user["id"]):
+            raise HTTPException(status_code=403, detail="دورك في الفريق (مشاهد) لا يسمح بتعديل هذا المستند.")
         raise HTTPException(status_code=404, detail="فشل تحديث المستند أو لم يتم العثور عليه في مكتبتك.")
     return {"success": True, "message": "تم تحديث اسم المستند بنجاح"}
 
@@ -1020,32 +1039,96 @@ def delete_document_endpoint(doc_id: str, x_user_id: Optional[str] = Header(None
         raise HTTPException(status_code=404, detail="المستند غير موجود أو لا تملك صلاحية الوصول إليه.")
     if doc.get("user_id") == user["id"] or not doc.get("user_id"):
         success = delete_document(doc_id, user_id=user["id"])
-    else:
-        access = get_team_access(user["id"], "document", doc_id)
-        if not access or access["role"] not in ("owner", "admin", "editor"):
-            raise HTTPException(status_code=403, detail="صلاحية المحرر مطلوبة لحذف هذا المستند")
-        # حذف على مستوى العنصر (بدون فلتر المالك) مع التحقق فوق أن المستدعي محرر فريق
+    elif user_can_edit_document(user["id"], doc_id):
         success = delete_document(doc_id)
+    else:
+        success = None
     if not success:
+        if _doc_edit_denied(doc_id, user["id"]):
+            raise HTTPException(status_code=403, detail="دورك في الفريق (مشاهد) لا يسمح بحذف هذا المستند.")
         raise HTTPException(status_code=404, detail="المستند غير موجود في مكتبتك الخاصة.")
     return {"success": True, "message": "تم حذف المستند بنجاح"}
 
 @router.get("/documents/{doc_id}/progress")
 def get_quiz_progress_endpoint(doc_id: str, x_user_id: Optional[str] = Header(None)):
-    """Retrieve saved quiz progress for a document."""
-    doc = get_document(doc_id, user_id=x_user_id)
+    """Retrieve saved quiz progress for a document (owner or team-shared view access)."""
+    doc = _resolve_doc_for_user(doc_id, x_user_id)
     if not doc:
         raise HTTPException(status_code=404, detail="المستند غير موجود")
     return {"progress_json": doc.get("quiz_progress_json")}
 
 @router.post("/documents/{doc_id}/progress")
 def save_quiz_progress_endpoint(doc_id: str, req: ProgressRequest, x_user_id: Optional[str] = Header(None)):
-    """Save quiz progress for a document."""
-    doc = get_document(doc_id, user_id=x_user_id)
+    """Save quiz progress for a document (owner or team editor+ role)."""
+    doc = _resolve_doc_for_user(doc_id, x_user_id)
     if not doc:
         raise HTTPException(status_code=404, detail="المستند غير موجود")
+    if x_user_id and not user_can_edit_document(x_user_id, doc_id):
+        raise HTTPException(status_code=403, detail="دورك في الفريق (مشاهد) لا يسمح بحفظ التقدم.")
     save_document_progress(doc_id, req.progress_json)
     return {"success": True}
+
+# -------------------------------------------------------------
+# Teams & Sharing Endpoints (T3.1 — مساحة الفريق)
+# -------------------------------------------------------------
+
+class CreateTeamRequest(BaseModel):
+    name: str
+
+class JoinTeamRequest(BaseModel):
+    invite_code: str
+
+class ShareRequest(BaseModel):
+    entity_type: str  # 'document' | 'presentation'
+    entity_id: str
+
+class SetMemberRoleRequest(BaseModel):
+    role: str  # 'admin' | 'editor' | 'viewer'
+
+
+def _team_exc(e: ValueError) -> HTTPException:
+    """تحويل أخطاء منطق الفرق إلى حالات HTTP مناسبة."""
+    msg = str(e) or "خطأ في عملية الفريق."
+    if any(k in msg for k in ("غير موجود", "غير صالح", "ليست في الفريق", "ليس في الفريق")):
+        return HTTPException(status_code=404, detail=msg)
+    if any(k in msg for k in ("صلاحية", "متاح", "يتطلب", "تتطلب", "لا يمكنك", "لا يمكن")):
+        return HTTPException(status_code=403, detail=msg)
+    return HTTPException(status_code=400, detail=msg)
+
+
+def _resolve_doc_for_user(doc_id: Optional[str], user_id: Optional[str]) -> Optional[Dict[str, Any]]:
+    """مستند المستخدم الخاص أو المشارك معه عبر فريق (مشاهدة)."""
+    if not doc_id:
+        return None
+    doc = get_document(doc_id, user_id=user_id)
+    if doc:
+        return doc
+    if user_id and get_user_doc_team_role(user_id, doc_id):
+        return get_document(doc_id)
+    return None
+
+
+def _doc_edit_denied(doc_id: str, user_id: Optional[str]) -> bool:
+    """True إن كان المستند موجوداً لكن المستخدم بلا حق تعديل (للتمييز 403 عن 404)."""
+    if not user_id:
+        return False
+    if get_document(doc_id):
+        return not user_can_edit_document(user_id, doc_id)
+    return False
+
+
+
+
+@router.get("/shared/documents")
+def shared_docs_endpoint(current_user: dict = Depends(_get_current_user), search: Optional[str] = None):
+    """مستندات الفرق المشاركة معي (ليست ملكي)."""
+    return {"documents": get_shared_documents_for_user(current_user["id"], search=search)}
+
+
+@router.get("/shared/presentations")
+def shared_pres_endpoint(current_user: dict = Depends(_get_current_user)):
+    """عروض الفرق المشاركة معي (ليست ملكي)."""
+    return {"presentations": get_shared_presentations_for_user(current_user["id"])}
 
 # -------------------------------------------------------------
 # Presentation Generator Endpoints (مولّد العروض التقديمية)
@@ -1164,7 +1247,8 @@ def presentation_list_endpoint(
     user = _get_current_user(x_user_id)
     items = list_presentations(user["id"], limit=limit, offset=offset)
     total = count_presentations(user["id"])
-    return {"presentations": items, "total": total}
+    shared = get_shared_presentations_for_user(user["id"])
+    return {"presentations": items, "total": total, "shared": shared, "shared_total": len(shared)}
 
 
 # -------------------------------------------------------------
@@ -1354,8 +1438,16 @@ def presentation_get_endpoint(pres_id: str, x_user_id: Optional[str] = Header(No
     user = _get_current_user(x_user_id)
     try:
         return PresentationService.load(pres_id, user["id"])
-    except PresentationError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    except PresentationError:
+        pass
+    # Team-shared view access (viewer+)
+    if get_user_pres_team_role(user["id"], pres_id):
+        shared = get_presentation(pres_id)
+        if shared:
+            shared["shared"] = True
+            shared["my_team_role"] = get_user_pres_team_role(user["id"], pres_id)
+            return shared
+    raise HTTPException(status_code=404, detail="العرض غير موجود أو لا تملك صلاحية الوصول إليه.")
 
 
 @router.get("/presentations/{pres_id}/slides/{slide_index}")
@@ -1371,7 +1463,11 @@ def presentation_slide_endpoint(
     try:
         row = PresentationService.load(pres_id, user["id"])
     except PresentationError:
-        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
+        # Team-shared view access (viewer+)
+        if get_user_pres_team_role(user["id"], pres_id):
+            row = get_presentation(pres_id)
+        if not row:
+            raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
     result_dir = row.get("result_dir")
     if not result_dir:
         raise HTTPException(status_code=404, detail="لم يُنفَّذ الرندر بعد.")
@@ -1391,7 +1487,11 @@ def presentation_download_endpoint(
     try:
         row = PresentationService.load(pres_id, user["id"])
     except PresentationError:
-        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
+        # Team-shared view access (viewer+)
+        if get_user_pres_team_role(user["id"], pres_id):
+            row = get_presentation(pres_id)
+        if not row:
+            raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
     result_dir = row.get("result_dir")
     if not result_dir:
         raise HTTPException(status_code=404, detail="لم يُنفَّذ الرندر بعد.")
@@ -1447,6 +1547,8 @@ def presentation_delete_endpoint(pres_id: str, x_user_id: Optional[str] = Header
                     except Exception:
                         pass
     if not ok:
+        if get_presentation(pres_id):
+            raise HTTPException(status_code=403, detail="دورك في الفريق (مشاهد) لا يسمح بحذف هذا العرض.")
         raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
     return {"success": True, "message": "تم حذف العرض التقديمي"}
 
