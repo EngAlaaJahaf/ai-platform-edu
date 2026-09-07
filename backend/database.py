@@ -201,6 +201,43 @@ def init_db():
             '{"fh":"Changa Fe","fb":"Cairo Fe"}', 'gold', 1,
         ))
 
+    # Teams & Sharing tables (T3.1 — مساحة الفريق)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS teams (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        owner_id TEXT NOT NULL,
+        invite_code TEXT UNIQUE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (owner_id) REFERENCES users(id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS team_members (
+        team_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        role TEXT DEFAULT 'editor', -- 'owner' | 'admin' | 'editor' | 'viewer'
+        joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (team_id, user_id),
+        FOREIGN KEY (team_id) REFERENCES teams(id),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS team_shares (
+        id TEXT PRIMARY KEY,
+        team_id TEXT NOT NULL,
+        entity_type TEXT NOT NULL, -- 'document' | 'presentation'
+        entity_id TEXT NOT NULL,
+        shared_by TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (team_id, entity_type, entity_id),
+        FOREIGN KEY (team_id) REFERENCES teams(id)
+    );
+    """)
+
     # Safe Schema Migrations for users table (role & password_hash)
     try:
         cursor.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'student';")
@@ -1228,6 +1265,427 @@ def delete_presentation(pres_id: str, user_id: Optional[str] = None) -> Optional
     conn.close()
     log_activity("delete_presentation", f"تم حذف العرض التقديمي: {row['title']}", "warn", pres_id)
     return info
+
+
+# =============================================================
+# Teams & Sharing (T3.1 — مساحة الفريق)
+# =============================================================
+
+TEAM_ROLES = ("owner", "admin", "editor", "viewer")
+_ROLE_RANK = {"viewer": 1, "editor": 2, "admin": 3, "owner": 4}
+_SHAREABLE_TYPES = ("document", "presentation")
+_INVITE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+
+
+def _generate_invite_code(length: int = 6) -> str:
+    return "".join(secrets.choice(_INVITE_ALPHABET) for _ in range(length))
+
+
+def _team_role_rank(role: Optional[str]) -> int:
+    return _ROLE_RANK.get(role or "", 0)
+
+
+def create_team(owner_id: str, name: str) -> Dict[str, Any]:
+    """إنشاء فريق جديد وإضافة المالك كعضو owner. يرجع الفريق مع الأعضاء."""
+    name = (name or "").strip()
+    if not owner_id:
+        raise ValueError("يلزم معرّف المالك لإنشاء الفريق.")
+    if not name:
+        raise ValueError("اسم الفريق مطلوب.")
+    if not get_user_by_id(owner_id):
+        raise ValueError("المستخدم غير موجود.")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    team_id = f"team_{uuid.uuid4().hex[:8]}"
+    code = None
+    for _ in range(10):
+        candidate = _generate_invite_code()
+        cursor.execute("SELECT id FROM teams WHERE invite_code = ?", (candidate,))
+        if not cursor.fetchone():
+            code = candidate
+            break
+    if not code:
+        conn.close()
+        raise ValueError("تعذّر توليد كود دعوة فريد، حاول مجدداً.")
+    cursor.execute(
+        "INSERT INTO teams (id, name, owner_id, invite_code) VALUES (?, ?, ?, ?)",
+        (team_id, name, owner_id, code),
+    )
+    cursor.execute(
+        "INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, ?)",
+        (team_id, owner_id, "owner"),
+    )
+    conn.commit()
+    conn.close()
+    log_activity("create_team", f"تم إنشاء فريق: {name}", "success")
+    team = get_team(team_id, owner_id)
+    assert team is not None
+    return team
+
+
+def get_team(team_id: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """تفاصيل الفريق مع الأعضاء ودور الطالب. None إن لم يكن عضواً (عند تمرير user_id)."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM teams WHERE id = ?", (team_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return None
+    team = dict(row)
+    cursor.execute(
+        """SELECT m.user_id, m.role, m.joined_at, u.name, u.email, u.picture
+           FROM team_members m LEFT JOIN users u ON u.id = m.user_id
+           WHERE m.team_id = ? ORDER BY m.joined_at ASC""",
+        (team_id,),
+    )
+    members = [dict(r) for r in cursor.fetchall()]
+    my_role = None
+    if user_id:
+        my_role = next((m["role"] for m in members if m["user_id"] == user_id), None)
+        if not my_role:
+            conn.close()
+            return None
+    cursor.execute("SELECT COUNT(*) FROM team_shares WHERE team_id = ?", (team_id,))
+    team["shares_count"] = cursor.fetchone()[0] or 0
+    conn.close()
+    team["members"] = members
+    team["members_count"] = len(members)
+    team["my_role"] = my_role
+    return team
+
+
+def list_user_teams(user_id: str) -> List[Dict[str, Any]]:
+    """كل الفرق التي ينتمي إليها المستخدم مع دوره وحجم كل فريق."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """SELECT t.*, m.role AS my_role,
+                  (SELECT COUNT(*) FROM team_members WHERE team_id = t.id) AS members_count,
+                  (SELECT COUNT(*) FROM team_shares WHERE team_id = t.id) AS shares_count
+           FROM teams t JOIN team_members m ON m.team_id = t.id
+           WHERE m.user_id = ? ORDER BY t.created_at DESC""",
+        (user_id,),
+    )
+    teams = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    return teams
+
+
+def join_team_by_code(user_id: str, invite_code: str) -> Dict[str, Any]:
+    """الانضمام لفريق عبر كود الدعوة (دور editor افتراضياً)."""
+    code = (invite_code or "").strip().upper()
+    if not user_id:
+        raise ValueError("يلزم تسجيل الدخول للانضمام.")
+    if not code:
+        raise ValueError("كود الدعوة مطلوب.")
+    if not get_user_by_id(user_id):
+        raise ValueError("المستخدم غير موجود.")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM teams WHERE invite_code = ?", (code,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        raise ValueError("كود الدعوة غير صالح.")
+    team_id = row["id"]
+    cursor.execute("SELECT role FROM team_members WHERE team_id = ? AND user_id = ?", (team_id, user_id))
+    existing = cursor.fetchone()
+    if not existing:
+        cursor.execute(
+            "INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, ?)",
+            (team_id, user_id, "editor"),
+        )
+        conn.commit()
+    conn.close()
+    log_activity("join_team", f"انضم المستخدم {user_id} للفريق {row['name']}", "info")
+    team = get_team(team_id, user_id)
+    assert team is not None
+    return team
+
+
+def get_member_role(team_id: str, user_id: str) -> Optional[str]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT role FROM team_members WHERE team_id = ? AND user_id = ?", (team_id, user_id))
+    row = cursor.fetchone()
+    conn.close()
+    return row["role"] if row else None
+
+
+def _require_team_manager(team_id: str, actor_id: str) -> str:
+    """يتأكد أن الفاعل owner/admin. يرجع دوره أو يرفع ValueError."""
+    role = get_member_role(team_id, actor_id)
+    if _team_role_rank(role) < _ROLE_RANK["admin"]:
+        raise ValueError("هذه العملية تتطلب صلاحية مشرف الفريق (admin) أو المالك.")
+    return role or ""
+
+
+def set_member_role(team_id: str, target_user_id: str, new_role: str, actor_id: str) -> Dict[str, Any]:
+    """تغيير دور عضو (مشرف الفريق فقط). لا يمكن المساس بالمالك ولا منح المالك."""
+    new_role = (new_role or "").strip().lower()
+    if new_role not in ("admin", "editor", "viewer"):
+        raise ValueError("الدور غير صالح (admin/editor/viewer).")
+    _require_team_manager(team_id, actor_id)
+    target_role = get_member_role(team_id, target_user_id)
+    if not target_role:
+        raise ValueError("العضو المستهدف ليس في الفريق.")
+    if target_role == "owner":
+        raise ValueError("لا يمكن تغيير دور مالك الفريق.")
+    if target_user_id == actor_id:
+        raise ValueError("لا يمكنك تغيير دورك بنفسك.")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE team_members SET role = ? WHERE team_id = ? AND user_id = ?",
+        (new_role, team_id, target_user_id),
+    )
+    conn.commit()
+    conn.close()
+    log_activity("team_role_change", f"تغيير دور {target_user_id} إلى {new_role} في {team_id}", "info")
+    team = get_team(team_id, actor_id)
+    assert team is not None
+    return team
+
+
+def remove_team_member(team_id: str, target_user_id: str, actor_id: str) -> bool:
+    """إزالة عضو (مشرف الفريق فقط). لا يمكن إزالة المالك."""
+    _require_team_manager(team_id, actor_id)
+    target_role = get_member_role(team_id, target_user_id)
+    if not target_role:
+        raise ValueError("العضو المستهدف ليس في الفريق.")
+    if target_role == "owner":
+        raise ValueError("لا يمكن إزالة مالك الفريق.")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM team_members WHERE team_id = ? AND user_id = ?", (team_id, target_user_id))
+    conn.commit()
+    conn.close()
+    log_activity("team_member_remove", f"إزالة {target_user_id} من {team_id}", "warn")
+    return True
+
+
+def delete_team(team_id: str, actor_id: str) -> bool:
+    """حذف الفريق (المالك فقط) مع مشاركاته وعضوياته."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT owner_id, name FROM teams WHERE id = ?", (team_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        raise ValueError("الفريق غير موجود.")
+    if row["owner_id"] != actor_id:
+        conn.close()
+        raise ValueError("حذف الفريق متاح لمالكه فقط.")
+    cursor.execute("DELETE FROM team_shares WHERE team_id = ?", (team_id,))
+    cursor.execute("DELETE FROM team_members WHERE team_id = ?", (team_id,))
+    cursor.execute("DELETE FROM teams WHERE id = ?", (team_id,))
+    conn.commit()
+    conn.close()
+    log_activity("delete_team", f"تم حذف الفريق: {row['name']}", "warn")
+    return True
+
+
+def share_with_team(team_id: str, entity_type: str, entity_id: str, shared_by: str) -> Dict[str, Any]:
+    """مشاركة مستند/عرض مع الفريق (editor فأعلى)."""
+    entity_type = (entity_type or "").strip().lower()
+    if entity_type not in _SHAREABLE_TYPES:
+        raise ValueError("نوع المشاركة غير صالح (document/presentation).")
+    if not entity_id:
+        raise ValueError("معرّف العنصر مطلوب.")
+    role = get_member_role(team_id, shared_by)
+    if _team_role_rank(role) < _ROLE_RANK["editor"]:
+        raise ValueError("المشاركة تتطلب عضوية محرر أو أعلى في الفريق.")
+    if entity_type == "document":
+        doc = get_document(entity_id)
+        if not doc:
+            raise ValueError("المستند غير موجود.")
+        if not user_can_edit_document(shared_by, entity_id):
+            raise ValueError("لا تملك صلاحية مشاركة هذا المستند.")
+    else:
+        pres = get_presentation(entity_id)
+        if not pres:
+            raise ValueError("العرض غير موجود.")
+        if not user_can_edit_presentation(shared_by, entity_id):
+            raise ValueError("لا تملك صلاحية مشاركة هذا العرض.")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    share_id = f"shr_{uuid.uuid4().hex[:8]}"
+    cursor.execute(
+        """INSERT OR IGNORE INTO team_shares (id, team_id, entity_type, entity_id, shared_by)
+           VALUES (?, ?, ?, ?, ?)""",
+        (share_id, team_id, entity_type, entity_id, shared_by),
+    )
+    conn.commit()
+    conn.close()
+    log_activity("team_share", f"مشاركة {entity_type}:{entity_id} مع {team_id}", "success")
+    return {"id": share_id, "team_id": team_id, "entity_type": entity_type, "entity_id": entity_id}
+
+
+def unshare_from_team(team_id: str, entity_type: str, entity_id: str, actor_id: str) -> bool:
+    """إلغاء مشاركة عنصر (editor فأعلى)."""
+    entity_type = (entity_type or "").strip().lower()
+    role = get_member_role(team_id, actor_id)
+    if _team_role_rank(role) < _ROLE_RANK["editor"]:
+        raise ValueError("إلغاء المشاركة يتطلب عضوية محرر أو أعلى.")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "DELETE FROM team_shares WHERE team_id = ? AND entity_type = ? AND entity_id = ?",
+        (team_id, entity_type, entity_id),
+    )
+    affected = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return affected > 0
+
+
+def list_team_shares(team_id: str, user_id: str) -> List[Dict[str, Any]]:
+    """مشاركات الفريق (للأعضاء فقط) مع أسماء العناصر."""
+    if not get_member_role(team_id, user_id):
+        raise ValueError("هذه المعلومات متاحة لأعضاء الفريق فقط.")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT * FROM team_shares WHERE team_id = ? ORDER BY created_at DESC", (team_id,)
+    )
+    shares = [dict(r) for r in cursor.fetchall()]
+    for s in shares:
+        if s["entity_type"] == "document":
+            cursor.execute("SELECT id, filename FROM documents WHERE id = ?", (s["entity_id"],))
+        else:
+            cursor.execute("SELECT id, title AS filename FROM presentations WHERE id = ?", (s["entity_id"],))
+        row = cursor.fetchone()
+        s["entity_name"] = row["filename"] if row else None
+    conn.close()
+    return shares
+
+
+def get_shared_documents_for_user(user_id: str, search: Optional[str] = None) -> List[Dict[str, Any]]:
+    """مستندات الفرق المشاركة مع المستخدم (ليست ملكه)."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = """
+        SELECT d.id, d.user_id, d.filename, d.pages_count, d.words_count,
+               substr(d.full_text, 1, 300) as preview_text, d.created_at,
+               s.team_id, t.name AS team_name, m.role AS my_team_role
+        FROM team_shares s
+        JOIN team_members m ON m.team_id = s.team_id AND m.user_id = ?
+        JOIN teams t ON t.id = s.team_id
+        JOIN documents d ON d.id = s.entity_id
+        WHERE s.entity_type = 'document' AND (d.user_id IS NULL OR d.user_id != ?)
+    """
+    params: List[Any] = [user_id, user_id]
+    if search:
+        query += " AND (d.filename LIKE ? OR substr(d.full_text,1,1000) LIKE ?)"
+        like = f"%{search}%"
+        params.extend([like, like])
+    query += " ORDER BY d.created_at DESC"
+    cursor.execute(query, tuple(params))
+    docs = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    for d in docs:
+        d["doc_id"] = d["id"]
+        d["shared"] = True
+    return docs
+
+
+def get_shared_presentations_for_user(user_id: str) -> List[Dict[str, Any]]:
+    """عروض الفرق المشاركة مع المستخدم (ليست ملكه)."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """SELECT p.id, p.title, p.theme, p.status, p.slide_count, p.created_at, p.updated_at,
+                  s.team_id, t.name AS team_name, m.role AS my_team_role
+           FROM team_shares s
+           JOIN team_members m ON m.team_id = s.team_id AND m.user_id = ?
+           JOIN teams t ON t.id = s.team_id
+           JOIN presentations p ON p.id = s.entity_id
+           WHERE s.entity_type = 'presentation' AND p.user_id != ?
+           ORDER BY p.updated_at DESC""",
+        (user_id, user_id),
+    )
+    items = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    for it in items:
+        it["shared"] = True
+    return items
+
+
+def get_user_doc_team_role(user_id: Optional[str], doc_id: str) -> Optional[str]:
+    """أعلى دور للفريق يملكه المستخدم على مستند مشارك. None إن لا وصول."""
+    if not user_id or not doc_id:
+        return None
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """SELECT m.role FROM team_shares s
+           JOIN team_members m ON m.team_id = s.team_id AND m.user_id = ?
+           WHERE s.entity_type = 'document' AND s.entity_id = ?""",
+        (user_id, doc_id),
+    )
+    roles = [r["role"] for r in cursor.fetchall()]
+    conn.close()
+    if not roles:
+        return None
+    return max(roles, key=_team_role_rank)
+
+
+def user_can_edit_document(user_id: Optional[str], doc_id: str) -> bool:
+    """التعديل: مالك المستند، أدمن المنصة، أو دور فريق editor فأعلى."""
+    if not user_id or not doc_id:
+        return False
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT user_id FROM documents WHERE id = ?", (doc_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return False
+    if not row["user_id"] or row["user_id"] == user_id:
+        return True
+    user = get_user_by_id(user_id)
+    if user and user.get("role") == "admin":
+        return True
+    return _team_role_rank(get_user_doc_team_role(user_id, doc_id)) >= _ROLE_RANK["editor"]
+
+
+def get_user_pres_team_role(user_id: Optional[str], pres_id: str) -> Optional[str]:
+    """أعلى دور للفريق يملكه المستخدم على عرض مشارك."""
+    if not user_id or not pres_id:
+        return None
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """SELECT m.role FROM team_shares s
+           JOIN team_members m ON m.team_id = s.team_id AND m.user_id = ?
+           WHERE s.entity_type = 'presentation' AND s.entity_id = ?""",
+        (user_id, pres_id),
+    )
+    roles = [r["role"] for r in cursor.fetchall()]
+    conn.close()
+    if not roles:
+        return None
+    return max(roles, key=_team_role_rank)
+
+
+def user_can_edit_presentation(user_id: Optional[str], pres_id: str) -> bool:
+    """التعديل: مالك العرض، أدمن المنصة، أو دور فريق editor فأعلى."""
+    if not user_id or not pres_id:
+        return False
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT user_id FROM presentations WHERE id = ?", (pres_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return False
+    if row["user_id"] == user_id:
+        return True
+    user = get_user_by_id(user_id)
+    if user and user.get("role") == "admin":
+        return True
+    return _team_role_rank(get_user_pres_team_role(user_id, pres_id)) >= _ROLE_RANK["editor"]
 
 
 # Initialize database
