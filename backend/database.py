@@ -1167,10 +1167,20 @@ def get_admin_metrics() -> Dict[str, Any]:
     
     cursor.execute("SELECT COUNT(*) FROM presentations")
     total_presentations = cursor.fetchone()[0] or 0
-    
+
     cursor.execute("SELECT SUM(tokens_used) FROM users")
     total_tokens = cursor.fetchone()[0] or 0
-    
+
+    cursor.execute("SELECT COUNT(*) FROM teams")
+    total_teams = 0
+    total_team_members = 0
+    try:
+        total_teams = cursor.fetchone()[0] or 0
+        cursor.execute("SELECT COUNT(*) FROM team_members")
+        total_team_members = cursor.fetchone()[0] or 0
+    except Exception:
+        pass
+
     # DB File Size
     db_size_kb = round(DB_PATH.stat().st_size / 1024, 1) if DB_PATH.exists() else 0
     
@@ -1185,6 +1195,8 @@ def get_admin_metrics() -> Dict[str, Any]:
         "total_prompts": total_prompts,
         "total_activities": total_activities,
         "total_presentations": total_presentations,
+        "total_teams": total_teams,
+        "total_team_members": total_team_members,
         "database_size_kb": db_size_kb,
         "server_status": "healthy",
         "system_version": "2.4.0 (Enterprise Academic)"
