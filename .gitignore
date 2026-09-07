@@ -20,6 +20,14 @@ build/
 backend/uploads/*
 !backend/uploads/.gitkeep
 
+# User-generated presentations & rendered decks
+backend/presentations/
+
+# Local test artifacts
+test_identity.pptx
+gen_tab_result.png
+template_modal_applied.png
+
 # OS
 .DS_Store
 Thumbs.db
@@ -35,3 +43,6 @@ frontend/.vite/
 .idea/
 *.swp
 *.swo
+
+# Packaged skill files (keep the folder form in repo only)
+.opencode/skills/*.zip

@@ -1,5 +1,5 @@
-﻿import React from 'react';
-import { Cpu, Server, Key, Terminal, RefreshCw, Zap, Check } from 'lucide-react';
+﻿import React, { useState } from 'react';
+import { Cpu, Server, Key, Terminal, RefreshCw, Zap, Check, Eye, EyeOff } from 'lucide-react';
 
 export default function AISettings({
   provider,
@@ -24,6 +24,7 @@ export default function AISettings({
   setIsModelDropdownOpen,
   modelDropdownRef
 }) {
+  const [showGlobalKey, setShowGlobalKey] = useState(false);
   return (
     <div className="max-w-4xl space-y-8 animate-fade-in pb-12 font-['Tajawal']">
       <div>
@@ -72,12 +73,20 @@ export default function AISettings({
               <div className="relative">
                 <Key className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 <input
-                  type="password"
+                  type={showGlobalKey ? "text" : "password"}
                   placeholder="إذا تُرك فارغاً سيُطلب من الطلاب..."
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  className="w-full pl-4 pr-10 py-2.5 rounded-2xl theme-card-inner border text-xs font-mono font-bold theme-text-primary focus:border-emerald-500 transition shadow-inner"
+                  className="w-full pl-9 pr-10 py-2.5 rounded-2xl theme-card-inner border text-xs font-mono font-bold theme-text-primary focus:border-emerald-500 transition shadow-inner"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowGlobalKey(v => !v)}
+                  aria-label={showGlobalKey ? 'إخفاء المفتاح' : 'إظهار المفتاح'}
+                  className="absolute top-1/2 -translate-y-1/2 left-3 theme-text-muted hover:theme-text-primary transition p-0.5"
+                >
+                  {showGlobalKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 

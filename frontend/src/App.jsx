@@ -16,12 +16,14 @@ import TranslateView from './components/TranslateView';
 import TermsView from './components/TermsView';
 import DocumentFAB from './components/DocumentFAB';
 import AuthGateView from './components/AuthGateView';
+import PresentationView from './components/PresentationView';
 import { checkHealth, getUserProfile, getLatestDocument, fetchPublicSettings, setGoogleClientId } from './services/api';
 import { ShieldAlert, ShieldCheck } from 'lucide-react';
 
 const VALID_TABS = [
   'dashboard', 
   'documents', 
+  'presentations',
   'translate',
   'terms', 
   'chat', 
@@ -252,6 +254,13 @@ export default function App() {
             }}
             onOpenUpload={() => setIsUploadOpen(true)}
             onNavigateToTab={setActiveTab}
+          />
+        </div>
+
+        {/* Presentation Generator Workspace */}
+        <div className={activeTab === 'presentations' ? 'contents' : 'hidden'}>
+          <PresentationView
+            onOpenApiKey={() => setIsApiKeyOpen(true)}
           />
         </div>
 

@@ -1,0 +1,62 @@
+{
+  "cover": {
+    "type": "cover",
+    "brief": "Modern university building with a digital interface overlay floating beside it, a laptop showing a clean dashboard, and a smartphone with a QR code badge. Flat line-art, thin strokes, positioned on the left/right edge so the center stays ivory."
+  },
+  "campus": {
+    "type": "generic",
+    "brief": "A university campus gate and a clock icon with dotted schedule lines floating around it; subtle, at the edge."
+  },
+  "problem": {
+    "type": "generic",
+    "brief": "Scattered paper documents, disconnected app icons and a broken chain around a stressed student silhouette; flat line-art, soft, at the edges."
+  },
+  "solution": {
+    "type": "generic",
+    "brief": "One unified platform tile assembling scattered pieces, a smartphone with a QR badge and an arrow unifying them into a single gear; line-art."
+  },
+  "product": {
+    "type": "generic",
+    "brief": "Cloud icon (hosting), a shield (privacy), a gear (maintenance) and a headset (support) arranged in a neat row at the bottom edge, thin line-art."
+  },
+  "value": {
+    "type": "generic",
+    "brief": "Rising trend arrow crossing a large target circle with small star marks, flat line-art at the corner."
+  },
+  "vision": {
+    "type": "generic",
+    "brief": "A lighthouse beam in the distance over curved horizon lines, and a small target with a checkmark floating beside it; line-art."
+  },
+  "market": {
+    "type": "generic",
+    "brief": "A circular diagram: a university building at the center and three small figures (student, professor, staff) around it connected by thin arcs; line-art."
+  },
+  "competition": {
+    "type": "competition",
+    "brief": "Four clean horizontal/vertical bar columns of varying heights, the tallest in teal and the rest in navy/light gray, as a minimal flat bar chart with no labels."
+  },
+  "advantage": {
+    "type": "generic",
+    "brief": "A shield with a checkmark at its center, a lock, and a badge ribbon; flat line-art at the edge."
+  },
+  "pricing": {
+    "type": "generic",
+    "brief": "A price tag with a small funnel beside it and three coin circles floating above, flat line-art at the corner."
+  },
+  "journey": {
+    "type": "timeline",
+    "brief": "A horizontal pathway of seven equal empty circles connected by a thin line winding gently, flat minimal line-art."
+  },
+  "ops": {
+    "type": "generic",
+    "brief": "A handshake, a gear and two small work-process squares connected by thin lines; line-art at the edge."
+  },
+  "finance": {
+    "type": "generic",
+    "brief": "Coins stacked as a bar chart with an ascending arrow, flat line-art at the corner."
+  },
+  "closing": {
+    "type": "cover",
+    "brief": "A small university building and a rising sun/light beam at the far edge, mostly empty ivory space, flat line-art."
+  }
+}
