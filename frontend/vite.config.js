@@ -10,20 +10,25 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons.svg'],
+      includeAssets: ['favicon.svg', 'icons.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'],
       manifest: {
-        name: 'ذكاء EduAI - المنصة الأكاديمية الذكية',
+        name: 'ذكاء EduAI - المساعد الأكاديمي الذكي',
         short_name: 'EduAI',
-        description: 'منصة RAG وتلخيص واختبارات تعمل Offline',
-        theme_color: '#4F46E5',
-        background_color: '#020617',
+        description: 'منصة RAG وتلخيص واختبارات ومصطلحات أكاديمية تعمل Offline',
+        lang: 'ar',
+        dir: 'rtl',
+        theme_color: '#863bff',
+        background_color: '#F6F1FF',
         display: 'standalone',
+        orientation: 'portrait-primary',
         scope: '/',
         start_url: '/',
         icons: [
-          { src: 'favicon.svg', sizes: '192x192', type: 'image/svg+xml' },
-          { src: 'favicon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
-        ]
+          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+        ],
+        shortcuts: []
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png}'],
