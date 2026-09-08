@@ -7,10 +7,12 @@ import time
 import uuid
 import zipfile
 from collections import defaultdict
+from contextlib import suppress
 from typing import Any, Dict, List, Optional
 
 from backend.config import UPLOAD_DIR
 from backend.database import (
+    add_team_member,
     admin_create_user,
     admin_delete_user,
     admin_reset_user_password,
@@ -18,11 +20,15 @@ from backend.database import (
     admin_set_user_tokens,
     admin_update_user,
     authenticate_admin,
+    change_member_role,
     clear_activity_logs,
     count_documents,
     count_presentations,
+    create_team,
     delete_document,
+    delete_presentation,
     delete_prompt,
+    delete_team,
     delete_template,
     estimate_tokens,
     get_activity_logs,
@@ -30,61 +36,40 @@ from backend.database import (
     get_document,
     get_latest_document,
     get_or_create_user,
+    get_presentation,
+    get_shared_documents_for_user,
+    get_shared_presentations_for_user,
     get_system_settings,
+    get_team_access,
+    get_team_details,
     get_user_by_id,
+    get_user_doc_team_role,
+    get_user_pres_team_role,
     increment_user_tokens,
+    join_team_by_code,
     list_all_documents,
     list_all_users,
     list_presentations,
     list_prompts,
     list_templates,
+    list_user_teams,
     log_activity,
     login_user,
     register_user,
+    remove_team_member,
     save_document,
     save_document_progress,
     save_document_quiz,
     save_document_summary,
     save_document_terms,
-    admin_create_user,
-    admin_delete_user,
-    admin_reset_user_password,
-    admin_reset_user_tokens,
-    admin_set_user_tokens,
-    admin_update_user,
-    authenticate_admin,
-    clear_activity_logs,
-    count_documents,
-    count_presentations,
-    delete_document,
-    delete_prompt,
-    delete_template,
-    estimate_tokens,
-    get_activity_logs,
-    get_admin_metrics,
-    get_document,
-    get_latest_document,
-    get_or_create_user,
-    get_system_settings,
-    get_user_by_id,
-    increment_user_tokens,
-    list_all_documents,
-    list_all_users,
-    list_presentations,
-    list_prompts,
-    list_templates,
-    log_activity,
-    login_user,
-    register_user,
-    save_document,
-    save_document_progress,
-    save_document_quiz,
-    save_document_summary,
     save_prompt,
     save_template,
+    share_entity_with_team,
+    unshare_entity_from_team,
     update_document_title,
     update_presentation_status,
     update_system_settings,
+    user_can_edit_document,
 )
 from backend.services.ai_service import AIService
 from backend.services.auth_service import AuthService
@@ -112,6 +97,28 @@ def _require_admin(current_user: dict = Depends(_get_current_user)):
     if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="صلاحيات المدير مطلوبة (Admin only)")
     return current_user
+
+
+def _entity_edit_perm(user_id: str, entity_type: str, entity_id: str) -> Optional[str]:
+    """صلاحية التعديل على عنصر مستند/عرض:
+    - 'owner' → مالك العنصر (أو عنصر بلا مالك).
+    - 'editor' → عضو فريق (owner/admin/editor) يملك مشاركة عليه.
+    - None → لا صلاحية.
+    """
+    if entity_type == "document":
+        row = get_document(entity_id, user_id=user_id)
+    elif entity_type == "presentation":
+        row = get_presentation(entity_id, user_id=user_id)
+    else:
+        return None
+    if not row:
+        return None
+    if not row.get("user_id") or row.get("user_id") == user_id:
+        return "owner"
+    access = get_team_access(user_id, entity_type, entity_id)
+    if access and access["role"] in ("owner", "admin", "editor"):
+        return "team_editor"
+    return None
 
 # --- Simple in-memory rate limiter ---
 RATE_LIMIT_STORE: Dict[str, List[float]] = defaultdict(list)
@@ -273,6 +280,27 @@ class PresentationGenerateRequest(BaseModel):
 class PresentationDeckRequest(BaseModel):
     deck: Dict[str, Any]
 
+class TeamCreateRequest(BaseModel):
+    name: str
+
+class TeamJoinRequest(BaseModel):
+    invite_code: str
+
+class TeamMemberAddRequest(BaseModel):
+    user_id: str
+    role: Optional[str] = "viewer"
+
+class TeamRoleRequest(BaseModel):
+    role: str
+
+class TeamShareRequest(BaseModel):
+    entity_type: str  # 'document' | 'presentation'
+    entity_id: str
+
+class TeamUnshareRequest(BaseModel):
+    entity_type: str  # 'document' | 'presentation'
+    entity_id: str
+
 
 @router.get("/health")
 def health_check(
@@ -297,7 +325,7 @@ def validate_connection_endpoint(req: ValidateConnectionRequest):
         )
         return result
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 @router.post("/fetch-models")
 def fetch_models_endpoint(req: FetchModelsRequest):
@@ -588,7 +616,7 @@ async def upload_document(
             "preview_text": full_text[:400] + "..." if len(full_text) > 400 else full_text
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"حدث خطأ أثناء معالجة المستند: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"حدث خطأ أثناء معالجة المستند: {str(e)}") from e
 
 @router.get("/documents/latest")
 def get_latest_doc_endpoint(x_user_id: Optional[str] = Header(None)):
@@ -618,7 +646,7 @@ def chat_with_doc(
     x_user_id: Optional[str] = Header(None)
 ):
     _check_rate_limit(f"chat:{x_user_id or request.client.host}", limit=20, window_sec=60)
-    doc = get_document(req.doc_id, user_id=x_user_id) if req.doc_id else get_latest_document(user_id=x_user_id)
+    doc = _resolve_doc_for_user(req.doc_id, x_user_id) if req.doc_id else get_latest_document(user_id=x_user_id)
     chunks = doc.get("chunks", []) if doc else []
     # Dynamic RAG top_k from system_settings
     rag_k = int(get_system_settings().get("auto_rag_chunks", 4))
@@ -638,10 +666,9 @@ def chat_with_doc(
         custom_system_prompt=req.custom_system_prompt
     )
     # Token tracking
-    try:
+    with suppress(Exception):
         delta = estimate_tokens(req.query) + estimate_tokens(result.get("answer",""))
         increment_user_tokens(x_user_id, delta)
-    except Exception: pass
     return {
         "query": req.query,
         "answer": result["answer"],
@@ -662,7 +689,7 @@ def chat_stream(
 ):
     _check_rate_limit(f"chat_stream:{x_user_id or request.client.host}", limit=20, window_sec=60)
     """Streaming RAG chat - yields text chunks as they arrive (vector-ranked)."""
-    doc = get_document(req.doc_id, user_id=x_user_id) if req.doc_id else get_latest_document(user_id=x_user_id)
+    doc = _resolve_doc_for_user(req.doc_id, x_user_id) if req.doc_id else get_latest_document(user_id=x_user_id)
     chunks = doc.get("chunks", []) if doc else []
     rag_k = int(get_system_settings().get("auto_rag_chunks", 4))
     top_k = max(4, min(50, rag_k * 3)) if rag_k else 50
@@ -684,10 +711,9 @@ def chat_stream(
                 full += token
                 yield token
             # Track tokens after stream completes
-            try:
+            with suppress(Exception):
                 delta = estimate_tokens(req.query) + estimate_tokens(full)
                 increment_user_tokens(x_user_id, delta)
-            except Exception: pass
         except Exception as e:
             yield f"\n\n⚠️ خطأ في البث: {e}"
 
@@ -704,7 +730,7 @@ def summarize_doc(
 ):
     doc = None
     if req.doc_id and req.doc_id not in ("undefined", "null", ""):
-        doc = get_document(req.doc_id, user_id=x_user_id)
+        doc = _resolve_doc_for_user(req.doc_id, x_user_id)
     if not doc:
         doc = get_latest_document(user_id=x_user_id)
 
@@ -722,13 +748,12 @@ def summarize_doc(
         model=x_gemini_model,
         custom_system_prompt=req.custom_system_prompt
     )
-    if doc and doc.get("id"):
+    if doc and doc.get("id") and (not x_user_id or user_can_edit_document(x_user_id, doc["id"])):
         save_document_summary(doc["id"], summary_data)
-    try:
+    with suppress(Exception):
         import json as _json
         delta = estimate_tokens(full_text[:3000]) + estimate_tokens(_json.dumps(summary_data, ensure_ascii=False))
         increment_user_tokens(x_user_id, delta)
-    except Exception: pass
 
     return summary_data
 
@@ -743,7 +768,7 @@ def generate_quiz_endpoint(
 ):
     doc = None
     if req.doc_id and req.doc_id not in ("undefined", "null", ""):
-        doc = get_document(req.doc_id, user_id=x_user_id)
+        doc = _resolve_doc_for_user(req.doc_id, x_user_id)
     if not doc:
         doc = get_latest_document(user_id=x_user_id)
 
@@ -763,13 +788,12 @@ def generate_quiz_endpoint(
         custom_system_prompt=req.custom_system_prompt,
         extract_only=req.extract_only
     )
-    if doc and doc.get("id"):
+    if doc and doc.get("id") and (not x_user_id or user_can_edit_document(x_user_id, doc["id"])):
         save_document_quiz(doc["id"], quiz_data)
-    try:
+    with suppress(Exception):
         import json as _json2
         delta = estimate_tokens(full_text[:3000]) + estimate_tokens(_json2.dumps(quiz_data, ensure_ascii=False))
         increment_user_tokens(x_user_id, delta)
-    except Exception: pass
 
     return quiz_data
 
@@ -793,11 +817,10 @@ def proofread_endpoint(
         model=x_gemini_model,
         custom_system_prompt=req.custom_system_prompt
     )
-    try:
+    with suppress(Exception):
         import json as _json3
         delta = estimate_tokens(req.text) + estimate_tokens(_json3.dumps(result, ensure_ascii=False))
         increment_user_tokens(x_user_id, delta)
-    except Exception: pass
     return result
 
 @router.post("/translate")
@@ -812,7 +835,7 @@ def translate_endpoint(
     """Translate academic documents in pure, page-by-page, or interlinear line-by-line modes."""
     doc = None
     if req.doc_id and req.doc_id not in ("undefined", "null", ""):
-        doc = get_document(req.doc_id, user_id=x_user_id)
+        doc = _resolve_doc_for_user(req.doc_id, x_user_id)
     if not doc:
         doc = get_latest_document(user_id=x_user_id)
 
@@ -837,11 +860,10 @@ def translate_endpoint(
         model=x_gemini_model,
         custom_system_prompt=req.custom_system_prompt
     )
-    try:
+    with suppress(Exception):
         import json as _json4
         delta = estimate_tokens(full_text[:3000]) + estimate_tokens(_json4.dumps(result, ensure_ascii=False))
         increment_user_tokens(x_user_id, delta)
-    except Exception: pass
     return result
 
 @router.post("/export/docx")
@@ -957,52 +979,144 @@ def export_docx_endpoint(req: DocxExportRequest):
 # -------------------------------------------------------------
 
 @router.get("/documents")
-def list_documents_endpoint(x_user_id: Optional[str] = Header(None), limit: int = 20, offset: int = 0, search: Optional[str] = None):
-    """Retrieve paginated documents belonging to the authenticated user."""
+def list_documents_endpoint(x_user_id: Optional[str] = Header(None), limit: int = 20, offset: int = 0, search: Optional[str] = None, include_shared: bool = True):
+    """Retrieve paginated documents belonging to the authenticated user + team-shared ones."""
     docs = list_all_documents(user_id=x_user_id, limit=limit, offset=offset, search=search)
     total = count_documents(user_id=x_user_id, search=search)
-    return {"documents": docs, "total": total, "limit": limit, "offset": offset}
+    shared = get_shared_documents_for_user(x_user_id, search=search) if (include_shared and x_user_id) else []
+    return {"documents": docs, "total": total, "limit": limit, "offset": offset, "shared": shared, "shared_total": len(shared)}
 
 @router.get("/documents/{doc_id}")
 def get_document_endpoint(doc_id: str, x_user_id: Optional[str] = Header(None)):
-    """Retrieve single document details with owner validation."""
-    doc = get_document(doc_id, user_id=x_user_id)
+    """Retrieve single document details with owner validation (or team-shared view access)."""
+    doc = _resolve_doc_for_user(doc_id, x_user_id)
     if not doc:
         raise HTTPException(status_code=404, detail="المستند غير موجود أو لا تملك صلاحية الوصول إليه.")
+    if x_user_id:
+        role = get_user_doc_team_role(x_user_id, doc_id)
+        if role:
+            doc["shared"] = True
+            doc["my_team_role"] = role
     return {"document": doc}
 
 @router.patch("/documents/{doc_id}")
 def update_document_endpoint(doc_id: str, req: UpdateDocumentRequest, x_user_id: Optional[str] = Header(None)):
-    """Rename or update document title with owner validation."""
-    success = update_document_title(doc_id, req.title.strip(), user_id=x_user_id)
+    """تعديل اسم المستند — المالك أو محرّر مخوّل من الفريق فقط."""
+    user = _get_current_user(x_user_id)
+    doc = get_document(doc_id, user_id=user["id"])
+    if not doc:
+        raise HTTPException(status_code=404, detail="المستند غير موجود أو لا تملك صلاحية الوصول إليه.")
+    if doc.get("user_id") == user["id"] or not doc.get("user_id"):
+        success = update_document_title(doc_id, req.title.strip(), user_id=user["id"])
+    elif user_can_edit_document(user["id"], doc_id):
+        success = update_document_title(doc_id, req.title.strip())
+    else:
+        success = None
     if not success:
+        if _doc_edit_denied(doc_id, user["id"]):
+            raise HTTPException(status_code=403, detail="دورك في الفريق (مشاهد) لا يسمح بتعديل هذا المستند.")
         raise HTTPException(status_code=404, detail="فشل تحديث المستند أو لم يتم العثور عليه في مكتبتك.")
     return {"success": True, "message": "تم تحديث اسم المستند بنجاح"}
 
 @router.delete("/documents/{doc_id}")
 def delete_document_endpoint(doc_id: str, x_user_id: Optional[str] = Header(None)):
-    """Delete document from database and storage with owner validation."""
-    success = delete_document(doc_id, user_id=x_user_id)
+    """حذف مستند — المالك أو محرّر مخوّل من الفريق فقط."""
+    user = _get_current_user(x_user_id)
+    doc = get_document(doc_id, user_id=user["id"])
+    if not doc:
+        raise HTTPException(status_code=404, detail="المستند غير موجود أو لا تملك صلاحية الوصول إليه.")
+    if doc.get("user_id") == user["id"] or not doc.get("user_id"):
+        success = delete_document(doc_id, user_id=user["id"])
+    elif user_can_edit_document(user["id"], doc_id):
+        success = delete_document(doc_id)
+    else:
+        success = None
     if not success:
+        if _doc_edit_denied(doc_id, user["id"]):
+            raise HTTPException(status_code=403, detail="دورك في الفريق (مشاهد) لا يسمح بحذف هذا المستند.")
         raise HTTPException(status_code=404, detail="المستند غير موجود في مكتبتك الخاصة.")
     return {"success": True, "message": "تم حذف المستند بنجاح"}
 
 @router.get("/documents/{doc_id}/progress")
 def get_quiz_progress_endpoint(doc_id: str, x_user_id: Optional[str] = Header(None)):
-    """Retrieve saved quiz progress for a document."""
-    doc = get_document(doc_id, user_id=x_user_id)
+    """Retrieve saved quiz progress for a document (owner or team-shared view access)."""
+    doc = _resolve_doc_for_user(doc_id, x_user_id)
     if not doc:
         raise HTTPException(status_code=404, detail="المستند غير موجود")
     return {"progress_json": doc.get("quiz_progress_json")}
 
 @router.post("/documents/{doc_id}/progress")
 def save_quiz_progress_endpoint(doc_id: str, req: ProgressRequest, x_user_id: Optional[str] = Header(None)):
-    """Save quiz progress for a document."""
-    doc = get_document(doc_id, user_id=x_user_id)
+    """Save quiz progress for a document (owner or team editor+ role)."""
+    doc = _resolve_doc_for_user(doc_id, x_user_id)
     if not doc:
         raise HTTPException(status_code=404, detail="المستند غير موجود")
+    if x_user_id and not user_can_edit_document(x_user_id, doc_id):
+        raise HTTPException(status_code=403, detail="دورك في الفريق (مشاهد) لا يسمح بحفظ التقدم.")
     save_document_progress(doc_id, req.progress_json)
     return {"success": True}
+
+# -------------------------------------------------------------
+# Teams & Sharing Endpoints (T3.1 — مساحة الفريق)
+# -------------------------------------------------------------
+
+class CreateTeamRequest(BaseModel):
+    name: str
+
+class JoinTeamRequest(BaseModel):
+    invite_code: str
+
+class ShareRequest(BaseModel):
+    entity_type: str  # 'document' | 'presentation'
+    entity_id: str
+
+class SetMemberRoleRequest(BaseModel):
+    role: str  # 'admin' | 'editor' | 'viewer'
+
+
+def _team_exc(e: ValueError) -> HTTPException:
+    """تحويل أخطاء منطق الفرق إلى حالات HTTP مناسبة."""
+    msg = str(e) or "خطأ في عملية الفريق."
+    if any(k in msg for k in ("غير موجود", "غير صالح", "ليست في الفريق", "ليس في الفريق")):
+        return HTTPException(status_code=404, detail=msg)
+    if any(k in msg for k in ("صلاحية", "متاح", "يتطلب", "تتطلب", "لا يمكنك", "لا يمكن")):
+        return HTTPException(status_code=403, detail=msg)
+    return HTTPException(status_code=400, detail=msg)
+
+
+def _resolve_doc_for_user(doc_id: Optional[str], user_id: Optional[str]) -> Optional[Dict[str, Any]]:
+    """مستند المستخدم الخاص أو المشارك معه عبر فريق (مشاهدة)."""
+    if not doc_id:
+        return None
+    doc = get_document(doc_id, user_id=user_id)
+    if doc:
+        return doc
+    if user_id and get_user_doc_team_role(user_id, doc_id):
+        return get_document(doc_id)
+    return None
+
+
+def _doc_edit_denied(doc_id: str, user_id: Optional[str]) -> bool:
+    """True إن كان المستند موجوداً لكن المستخدم بلا حق تعديل (للتمييز 403 عن 404)."""
+    if not user_id:
+        return False
+    if get_document(doc_id):
+        return not user_can_edit_document(user_id, doc_id)
+    return False
+
+
+
+
+@router.get("/shared/documents")
+def shared_docs_endpoint(current_user: dict = Depends(_get_current_user), search: Optional[str] = None):
+    """مستندات الفرق المشاركة معي (ليست ملكي)."""
+    return {"documents": get_shared_documents_for_user(current_user["id"], search=search)}
+
+
+@router.get("/shared/presentations")
+def shared_pres_endpoint(current_user: dict = Depends(_get_current_user)):
+    """عروض الفرق المشاركة معي (ليست ملكي)."""
+    return {"presentations": get_shared_presentations_for_user(current_user["id"])}
 
 # -------------------------------------------------------------
 # Presentation Generator Endpoints (مولّد العروض التقديمية)
@@ -1048,7 +1162,7 @@ def presentation_generate_endpoint(
             model=ai["model"],
         )
     except PresentationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     try:
         delta = estimate_tokens(req.text[:3000]) + estimate_tokens(json.dumps(result.get("deck", {}), ensure_ascii=False))
         increment_user_tokens(user["id"], delta)
@@ -1063,12 +1177,15 @@ def presentation_save_deck_endpoint(
     req: PresentationDeckRequest,
     x_user_id: Optional[str] = Header(None),
 ):
-    """حفظ deck معدّل قبل الرندر."""
+    """حفظ deck معدّل قبل الرندر — المالك أو محرّر فريق مخوّل فقط."""
     user = _get_current_user(x_user_id)
+    perm = _entity_edit_perm(user["id"], "presentation", pres_id)
+    if not perm:
+        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
     try:
         result = PresentationService.update_deck_json(pres_id, user["id"], req.deck)
     except PresentationError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
     return result
 
 
@@ -1082,18 +1199,23 @@ def presentation_render_endpoint(
     if request:
         _check_rate_limit(f"pres_render:{x_user_id or request.client.host}", limit=3, window_sec=60)
     user = _get_current_user(x_user_id)
+    perm = _entity_edit_perm(user["id"], "presentation", pres_id)
+    if not perm:
+        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
     try:
         row = PresentationService.load(pres_id, user["id"])
     except PresentationError:
-        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
+        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.") from None
     deck = row.get("deck")
     if not deck:
         raise HTTPException(status_code=404, detail="بيانات العرض غير متوفرة (deck.json ناقص).")
+    # الرندر دائماً في مجلد المالك كي تبقى المعاينات/التحميل للمشاركين متسقة
+    owner_id = row.get("user_id") or user["id"]
     update_presentation_status(pres_id, "rendering", error="")
     try:
-        result_dir = PresentationService.render_deck(pres_id, user["id"], deck, row.get("title", "presentation"))
+        result_dir = PresentationService.render_deck(pres_id, owner_id, deck, row.get("title", "presentation"))
     except PresentationError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
     n = int(row.get("slide_count") or len(deck.get("slides", [])) or 0)
     previews = [f"/api/presentations/{pres_id}/slides/{i}" for i in range(1, n + 1)]
     return {
@@ -1113,7 +1235,100 @@ def presentation_list_endpoint(
     user = _get_current_user(x_user_id)
     items = list_presentations(user["id"], limit=limit, offset=offset)
     total = count_presentations(user["id"])
-    return {"presentations": items, "total": total}
+    shared = get_shared_presentations_for_user(user["id"])
+    return {"presentations": items, "total": total, "shared": shared, "shared_total": len(shared)}
+
+
+# -------------------------------------------------------------
+# Team Workspace Endpoints (مساحة الفريق — T3.1)
+# -------------------------------------------------------------
+
+@router.post("/teams")
+def team_create_endpoint(req: TeamCreateRequest, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    res = create_team(user["id"], req.name)
+    if not res["success"]:
+        raise HTTPException(status_code=400, detail=res.get("error", "فشل إنشاء الفريق"))
+    return res
+
+
+@router.post("/teams/join")
+def team_join_endpoint(req: TeamJoinRequest, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    res = join_team_by_code(user["id"], req.invite_code)
+    if not res["success"]:
+        raise HTTPException(status_code=400, detail=res.get("error", "فشل الانضمام إلى الفريق"))
+    return res
+
+
+@router.get("/teams")
+def team_list_endpoint(x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    return {"teams": list_user_teams(user["id"])}
+
+
+@router.get("/teams/{team_id}")
+def team_details_endpoint(team_id: str, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    details = get_team_details(team_id, user["id"])
+    if not details:
+        raise HTTPException(status_code=404, detail="الفريق غير موجود أو لست عضواً فيه")
+    return details
+
+
+@router.post("/teams/{team_id}/members")
+def team_add_member_endpoint(team_id: str, req: TeamMemberAddRequest, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    res = add_team_member(team_id, user["id"], req.user_id, req.role or "viewer")
+    if not res["success"]:
+        raise HTTPException(status_code=403, detail=res.get("error", "فشل إضافة العضو"))
+    return res
+
+
+@router.patch("/teams/{team_id}/members/{member_user_id}")
+def team_change_member_role_endpoint(team_id: str, member_user_id: str, req: TeamRoleRequest, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    res = change_member_role(team_id, user["id"], member_user_id, req.role)
+    if not res["success"]:
+        raise HTTPException(status_code=403, detail=res.get("error", "فشل تعديل الدور"))
+    return res
+
+
+@router.delete("/teams/{team_id}/members/{member_user_id}")
+def team_remove_member_endpoint(team_id: str, member_user_id: str, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    res = remove_team_member(team_id, user["id"], member_user_id)
+    if not res["success"]:
+        raise HTTPException(status_code=403, detail=res.get("error", "فشل إزالة العضو"))
+    return res
+
+
+@router.post("/teams/{team_id}/shares")
+def team_share_endpoint(team_id: str, req: TeamShareRequest, x_user_id: Optional[str] = Header(None)):
+    """مشاركة مستند/عرض مع الفريق — المالك أو مشرف/مدير الفريق."""
+    user = _get_current_user(x_user_id)
+    res = share_entity_with_team(team_id, req.entity_type, req.entity_id, user["id"])
+    if not res["success"]:
+        raise HTTPException(status_code=400, detail=res.get("error", "فشل مشاركة العنصر"))
+    return res
+
+
+@router.delete("/teams/{team_id}/shares")
+def team_unshare_endpoint(team_id: str, req: TeamUnshareRequest, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    res = unshare_entity_from_team(team_id, req.entity_type, req.entity_id, user["id"])
+    if not res["success"]:
+        raise HTTPException(status_code=400, detail=res.get("error", "فشل إلغاء المشاركة"))
+    return res
+
+
+@router.delete("/teams/{team_id}")
+def team_delete_endpoint(team_id: str, x_user_id: Optional[str] = Header(None)):
+    user = _get_current_user(x_user_id)
+    res = delete_team(team_id, user["id"])
+    if not res["success"]:
+        raise HTTPException(status_code=403, detail=res.get("error", "فشل حذف الفريق"))
+    return res
 
 
 # ---------------------------------------------------------------
@@ -1202,7 +1417,7 @@ def template_from_pptx_endpoint(
     try:
         blueprint = extract_pptx_theme(data)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     return blueprint
 
 
@@ -1211,8 +1426,16 @@ def presentation_get_endpoint(pres_id: str, x_user_id: Optional[str] = Header(No
     user = _get_current_user(x_user_id)
     try:
         return PresentationService.load(pres_id, user["id"])
-    except PresentationError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    except PresentationError:
+        pass
+    # Team-shared view access (viewer+)
+    if get_user_pres_team_role(user["id"], pres_id):
+        shared = get_presentation(pres_id)
+        if shared:
+            shared["shared"] = True
+            shared["my_team_role"] = get_user_pres_team_role(user["id"], pres_id)
+            return shared
+    raise HTTPException(status_code=404, detail="العرض غير موجود أو لا تملك صلاحية الوصول إليه.")
 
 
 @router.get("/presentations/{pres_id}/slides/{slide_index}")
@@ -1228,7 +1451,11 @@ def presentation_slide_endpoint(
     try:
         row = PresentationService.load(pres_id, user["id"])
     except PresentationError:
-        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
+        # Team-shared view access (viewer+)
+        if get_user_pres_team_role(user["id"], pres_id):
+            row = get_presentation(pres_id)
+        if not row:
+            raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.") from None
     result_dir = row.get("result_dir")
     if not result_dir:
         raise HTTPException(status_code=404, detail="لم يُنفَّذ الرندر بعد.")
@@ -1248,7 +1475,11 @@ def presentation_download_endpoint(
     try:
         row = PresentationService.load(pres_id, user["id"])
     except PresentationError:
-        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
+        # Team-shared view access (viewer+)
+        if get_user_pres_team_role(user["id"], pres_id):
+            row = get_presentation(pres_id)
+        if not row:
+            raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.") from None
     result_dir = row.get("result_dir")
     if not result_dir:
         raise HTTPException(status_code=404, detail="لم يُنفَّذ الرندر بعد.")
@@ -1285,8 +1516,27 @@ def presentation_download_endpoint(
 @router.delete("/presentations/{pres_id}")
 def presentation_delete_endpoint(pres_id: str, x_user_id: Optional[str] = Header(None)):
     user = _get_current_user(x_user_id)
-    ok = PresentationService.remove(pres_id, user["id"])
+    perm = _entity_edit_perm(user["id"], "presentation", pres_id)
+    if not perm:
+        raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
+    if perm == "owner":
+        ok = PresentationService.remove(pres_id, user["id"])
+    else:
+        info = delete_presentation(pres_id)
+        ok = bool(info)
+        if info:
+            for p in [info.get("deck_path"), info.get("result_dir")]:
+                if p and os.path.exists(p):
+                    try:
+                        if os.path.isdir(p):
+                            shutil.rmtree(p, ignore_errors=True)
+                        else:
+                            os.remove(p)
+                    except Exception:
+                        pass
     if not ok:
+        if get_presentation(pres_id):
+            raise HTTPException(status_code=403, detail="دورك في الفريق (مشاهد) لا يسمح بحذف هذا العرض.")
         raise HTTPException(status_code=404, detail="العرض غير موجود في مكتبتك.")
     return {"success": True, "message": "تم حذف العرض التقديمي"}
 

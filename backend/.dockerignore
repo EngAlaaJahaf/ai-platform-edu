@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+*.db
+*.sqlite*
+uploads/*
+presentations/
+eduai.db
+.env
+presentation_engine/art/
+.pytest_cache/

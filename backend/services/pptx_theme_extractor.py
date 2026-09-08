@@ -64,7 +64,7 @@ def extract_pptx_theme(pptx_bytes: bytes) -> dict:
     try:
         zf = zipfile.ZipFile(io.BytesIO(pptx_bytes))
     except zipfile.BadZipFile:
-        raise ValueError("الملف ليس ملف PowerPoint صالح (.pptx)")
+        raise ValueError("الملف ليس ملف PowerPoint صالح (.pptx)") from None
 
     # Locate theme part (usually ppt/theme/theme1.xml)
     theme_name = next((n for n in zf.namelist()
@@ -75,7 +75,7 @@ def extract_pptx_theme(pptx_bytes: bytes) -> dict:
     try:
         root = ET.fromstring(zf.read(theme_name))
     except ET.ParseError:
-        raise ValueError("تعذّر قراءة سمة ملف PowerPoint")
+        raise ValueError("تعذّر قراءة سمة ملف PowerPoint") from None
 
     # --- Color scheme ---
     clrScheme = root.find(".//a:clrScheme", NS)
@@ -101,7 +101,6 @@ def extract_pptx_theme(pptx_bytes: bytes) -> dict:
 
     # --- Determine light vs dark base ---
     dk1 = slots.get("dk1") or "#000000"
-    lt1 = slots.get("lt1") or "#FFFFFF"
     # Most themes: dark text (dk1) on light bg -> academic; light text on dark bg -> dark-tech.
     base = "dark-tech" if _luminance(_rgb(dk1)) > 128 else "academic"
 

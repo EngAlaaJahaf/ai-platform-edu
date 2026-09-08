@@ -28,7 +28,8 @@ import {
   Play,
   Plus,
   Minus,
-  LayoutGrid
+  LayoutGrid,
+  Share2
 } from 'lucide-react';
 import {
   generatePresentation,
@@ -44,6 +45,7 @@ import {
   fetchTemplates
 } from '../services/api';
 import TemplateModal from './TemplateModal';
+import ShareEntityModal from './ShareEntityModal';
 
 const THEMES = [
   { id: 'academic', label: 'أكاديمي هادئ', desc: 'أزرق فاتح، نظيف، مناسب للمقررات والمشاريع الجامعية', swatches: 'from-sky-500 to-blue-700', base: 'academic' },
@@ -147,6 +149,7 @@ export default function PresentationView({ onOpenApiKey }) {
   const [loadingLib, setLoadingLib] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [libPage, setLibPage] = useState(1);
+  const [sharePres, setSharePres] = useState(null);
 
   const apiKeyMissing = !getApiKey();
   const [source, setSource] = useState('text');
@@ -258,6 +261,8 @@ export default function PresentationView({ onOpenApiKey }) {
         fonts: tpl.fonts || {},
         accent: tpl.accent || (tpl.base === 'dark-tech' ? 'sky' : 'navy')
       };
+      if (tpl.art_dir) identity.art_dir = tpl.art_dir;
+      if (tpl.artTint !== undefined && tpl.artTint !== null) identity.artTint = Number(tpl.artTint);
       return identity;
     });
     setTemplateModalOpen(false);
@@ -868,6 +873,14 @@ export default function PresentationView({ onOpenApiKey }) {
                             {statusBadges[st] || statusBadges.draft}
                             <button
                               type="button"
+                              onClick={(e) => { e.stopPropagation(); setSharePres(pres); }}
+                              className="p-2 rounded-xl theme-card-inner border text-violet-500 hover:bg-violet-500/10 transition cursor-pointer"
+                              title="مشاركة مع الفريق"
+                            >
+                              <Share2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
                               onClick={(e) => handleDelete(pres, e)}
                               disabled={deletingId === pid}
                               className="p-2 rounded-xl theme-card-inner border text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
@@ -931,6 +944,14 @@ export default function PresentationView({ onOpenApiKey }) {
         isOpen={templateModalOpen}
         onClose={() => setTemplateModalOpen(false)}
         onApply={handleApplyTemplate}
+      />
+
+      <ShareEntityModal
+        isOpen={!!sharePres}
+        onClose={() => setSharePres(null)}
+        entityType="presentation"
+        entityId={sharePres ? (sharePres.presentation_id || sharePres.id) : null}
+        entityTitle={sharePres?.title}
       />
     </div>
   );

@@ -65,10 +65,9 @@ class QuizFormatterService:
         # Split text into blocks by ##Chapter occurrences
         # Using positive lookahead to keep the separator in the split blocks
         blocks = re.split(r"\n\s*(?=##Chapter)", clean_text)
-        if not blocks or (len(blocks) == 1 and not blocks[0].startswith("##Chapter")):
+        if (not blocks or (len(blocks) == 1 and not blocks[0].startswith("##Chapter"))) and not clean_text.startswith("##Chapter"):
             # Fallback if no ##Chapter at the very beginning of the string
-            if not clean_text.startswith("##Chapter"):
-                blocks = [clean_text]
+            blocks = [clean_text]
 
         chapters = []
         all_questions = []
@@ -95,10 +94,7 @@ class QuizFormatterService:
                     question_lines.append(line)
 
             # Combine chapter titles if multiple (e.g. English and Arabic lines)
-            if chapter_title_lines:
-                chapter_title = " | ".join(chapter_title_lines)
-            else:
-                chapter_title = "Imported Quiz"
+            chapter_title = " | ".join(chapter_title_lines) if chapter_title_lines else "Imported Quiz"
 
             # Parse questions text inside this block
             questions_text = "\n".join(question_lines).strip()
@@ -196,7 +192,6 @@ class QuizFormatterService:
         letters = ["A", "B", "C", "D"]
         for q in quiz_data.get("questions", []) if isinstance(quiz_data, dict) else []:
             opts = q.get("options", [])
-            opts_en = q.get("options_en", [])
             opts_ar = q.get("options_ar", [])
 
             opt_a = opts_ar[0] if len(opts_ar) > 0 else (opts[0] if len(opts) > 0 else "")
@@ -235,7 +230,6 @@ class QuizFormatterService:
 
         for q in quiz_data.get("questions", []) if isinstance(quiz_data, dict) else []:
             opts = q.get("options", [])
-            opts_en = q.get("options_en", [])
             opts_ar = q.get("options_ar", [])
 
             correct_letter = q.get("correct_letter")

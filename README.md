@@ -27,11 +27,13 @@
 
 ## 🌟 المميزات
 1. **💬 المحادثة التوثيقية (RAG Chat)** — فهرسة PDF/Word/PPT تلقائياً مع تجزئة ذكية، أجوبة موثقة برقم الصفحة، وكشف خارج النطاق.
-2. **📑 الملخص والخريطة الذهنية** — 3 مستويات (سريع/متكامل/عميق)، SVG تفاعلي، تصدير Markdown.
+2. **📑 الملخص والخريطة الذهنية** — 3 مستويات (سريع/متكامل/عميق)، SVG تفاعلي، تصدير Markdown، ودعم الوثائق الطويلة بالتقديم المرحلي (Chunked).
 3. **🎯 استوديو الاختبارات** — MCQ ثنائي اللغة، تصحيح فوري، Flashcards، تنبؤ الدرجة.
 4. **✍️ التدقيق الأكاديمي** — أخطاء إملائية/نحوية + Originality Score + إعادة صياغة.
-5. **🌐 الترجمة الأكاديمية** — 3 أنماط (هدف فقط / صفحة بصفحة / سطر بسطر) + تصدير Word .docx.
-6. **📊 لوحة الطالب + لوحة الإدارة** — إدارة المستخدمين، الإحصائيات، السجلات، إعدادات المنصة.
+5. **🌐 الترجمة الأكاديمية** — 3 أنماط (هدف فقط / صفحة بصفحة / سطر بسطر) + تصدير Word .docx + دعم الوثائق الطويلة بالتقديم المرحلي.
+6. **📊 لوحة الطالب + لوحة الإدارة** — إدارة المستخدمين، الإحصائيات الحقيقية من `/api/admin/stats`، السجلات، إعدادات المنصة.
+7. **👥 مساحة الفريق (Collaboration)** — جداول `teams` + `team_members`، مشاركة المستندات/العروض عبر عضوية الفريق، كود دعوة قصير للانضمام، ومقاييس الفرقة في لوحة الأدمن.
+8. **🎨 Deck Studio** — مولّد عروض مع هوية بصرية مخصّصة: خلفيات `art` مصبوغة بألوان الهوية (`--art-tint`)، 11 تخطيطاً أكاديمياً + 10 تخطيطات داكنة (Agenda/Quote/Compare)، وقائمة خطوط بيضاء موحّدة (25 خطاً) عبر الواجهة والمكوّن.
 
 ---
 
@@ -153,6 +155,26 @@ npm run preview  # معاينة الإنتاج على 4173
 
 ---
 
+## 🐳 النشر عبر Docker
+
+حزمة نشر كاملة (الحاوية الخلفية + الواجهة + عكس وكيل nginx) جاهزة:
+
+```bash
+# 1) إعداد المتغيرات
+cp .env.example .env
+
+# 2) بناء الصور وتشغيل المكدس
+docker compose up -d --build
+```
+
+- **الواجهة:** `http://localhost` (nginx يقدم SPA + يمرر `/api/` إلى الخلفية على `8001`).
+- **البيانات محفوظة** في مجلدات مسمّاة: `eduai_db`, `eduai_uploads`, `eduai_presentations`, `eduai_art`.
+- متغيرات إضافية اختيارية: `BACKEND_PORT=8001`, `FRONTEND_PORT=80`.
+
+> الملاحظات: قاعدة البيانات تُقتطع عند `/data/eduai.db` داخل الحاوية عبر `EDUAI_DB_PATH` (افتراضياً `backend/eduai.db` محلياً). توليد العروض PPTX داخل الحاوية يحتاج Chromium — على جهازك المحلي يستخدم `presentation_engine` مسار Chrome المثبّت؛ داخل Docker يُنصح برسم PNG/HTML أو تثبيت chromium في الصورة.
+
+---
+
 ## 📚 توثيق الـ API
 بعد تشغيل الباك إند:
 - Swagger: `http://localhost:8001/docs`
@@ -176,25 +198,37 @@ ai-platform-edu/
 ├── backend/
 │   ├── main.py              # FastAPI + CORS
 │   ├── config.py            # متغيرات البيئة
-│   ├── database.py          # SQLite + تجزئة كلمات المرور
-│   ├── routes/api.py        # كل endpoints (محمي /admin/*)
+│   ├── database.py          # SQLite + تجزئة كلمات المرور + مقاييس الأدمن
+│   ├── routes/api.py        # كل endpoints (محمي /admin/*) + /api/teams/*
 │   ├── services/
-│   │   ├── ai_service.py    # Gemini/OpenAI + RAG
+│   │   ├── ai_service.py    # Gemini/OpenAI + RAG + ترجمة/تلخيص Chunked
 │   │   ├── rag_service.py
 │   │   ├── document_service.py
+│   │   ├── presentation_service.py  # Deck Studio القوالب والهويات
 │   │   └── quiz_formatter.py
+│   ├── presentation_engine/  # محرك العروض (HTML ← Chrome headless ← PPTX/PDF/PNG)
 │   ├── uploads/             # ملفات مرفوعة (مستبعدة من Git)
+│   ├── Dockerfile
 │   └── .env.example
 ├── frontend/
 │   ├── src/
 │   │   ├── App.jsx
 │   │   ├── components/
-│   │   └── services/api.js  # X-User-Id header
-│   └── package.json
+│   │   │   ├── admin/AdminSidebar.jsx
+│   │   │   ├── PresentationView.jsx
+│   │   │   ├── TemplateModal.jsx
+│   │   │   └── StudentAnalytics.jsx
+│   │   └── services/api.js  # API_BASE='/api' + X-User-Id header
+│   ├── Dockerfile
+│   ├── nginx.conf           # SPA fallback + proxy /api
+│   └── README.md
+├── docker-compose.yml       # backend + frontend + nginx + volumes
+├── .env.example
 ├── .github/workflows/
 │   ├── ci.yml
 │   └── auto-review.yml
 ├── run_dev.bat
+├── ROADMAP.md
 └── README.md
 ```
 

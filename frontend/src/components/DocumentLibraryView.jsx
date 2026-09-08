@@ -21,14 +21,18 @@ import {
   LayoutGrid,
   List,
   ArrowRight,
-  Plus
+  Plus,
+  Share2,
+  Users
 } from 'lucide-react';
 import { 
   fetchDocuments, 
+  fetchDocumentsWithShared,
   deleteDocument, 
   updateDocumentTitle, 
   fetchDocumentDetails 
 } from '../services/api';
+import ShareEntityModal from './ShareEntityModal';
 
 export default function DocumentLibraryView({ 
   activeDoc, 
@@ -37,6 +41,7 @@ export default function DocumentLibraryView({
   onNavigateToTab 
 }) {
   const [documents, setDocuments] = useState([]);
+  const [sharedDocs, setSharedDocs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
@@ -45,14 +50,22 @@ export default function DocumentLibraryView({
   const [previewDoc, setPreviewDoc] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [shareDoc, setShareDoc] = useState(null);
 
   const loadDocs = async () => {
     setLoading(true);
     try {
-      const docs = await fetchDocuments();
-      setDocuments(docs || []);
+      const data = await fetchDocumentsWithShared();
+      setDocuments(data.documents || []);
+      setSharedDocs(data.shared || []);
     } catch (e) {
       console.error(e);
+      try {
+        const docs = await fetchDocuments();
+        setDocuments(docs || []);
+      } catch (e2) {
+        console.error(e2);
+      }
     } finally {
       setLoading(false);
     }
@@ -63,6 +76,11 @@ export default function DocumentLibraryView({
   }, []);
 
   const filteredDocs = documents.filter((d) => 
+    d.filename?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    d.preview_text?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredShared = sharedDocs.filter((d) =>
     d.filename?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     d.preview_text?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -167,6 +185,9 @@ export default function DocumentLibraryView({
           </button>
         </div>
       </div>
+
+      {/* Teams Panel */}
+      <TeamsPanel onChanged={loadDocs} />
 
       {/* Search, Filter & View Controls */}
       <div className="glass-card rounded-2xl p-4 border flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -363,6 +384,14 @@ export default function DocumentLibraryView({
                     </button>
 
                     <button
+                      onClick={(e) => { e.stopPropagation(); setShareDoc(doc); }}
+                      className="p-2 rounded-xl theme-header-btn border hover:text-violet-500 transition"
+                      title="مشاركة مع الفريق"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+
+                    <button
                       onClick={(e) => handleDelete(doc.id, e)}
                       disabled={deletingId === doc.id}
                       className="p-2 rounded-xl theme-header-btn border hover:text-rose-500 transition"
@@ -442,6 +471,13 @@ export default function DocumentLibraryView({
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                         <button
+onClick={(e) => { e.stopPropagation(); setShareDoc(doc); }}
+                          className="p-1.5 rounded-lg theme-header-btn border hover:text-violet-500"
+                          title="مشاركة مع الفريق"
+                        >
+                          <Share2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
                           onClick={(e) => handleDelete(doc.id, e)}
                           className="p-1.5 rounded-lg theme-header-btn border hover:text-rose-500"
                           title="حذف"
@@ -455,6 +491,103 @@ export default function DocumentLibraryView({
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Shared With Me Section */}
+      {!loading && filteredShared.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2.5">
+            <span className="w-9 h-9 rounded-xl bg-violet-500/15 text-violet-500 flex items-center justify-center">
+              <Users className="w-4 h-4" />
+            </span>
+            <div>
+              <h3 className="text-base font-black theme-text-primary">مشارك معي من الفرق</h3>
+              <p className="text-[11px] theme-text-muted">مستندات زملائك — المشاهدة للجميع والتعديل حسب دورك في الفريق</p>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full bg-violet-500/20 text-violet-600 dark:text-violet-400 font-black text-xs">
+              {filteredShared.length}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredShared.map((doc) => {
+              const isActive = activeDoc?.doc_id === doc.id || activeDoc?.id === doc.id;
+              return (
+                <div
+                  key={`shared-${doc.id}-${doc.team_id}`}
+                  className={`glass-card rounded-3xl p-5 border transition-all duration-200 flex flex-col justify-between space-y-4 hover:shadow-xl hover:border-violet-400/40 ${
+                    isActive ? 'ring-2 ring-violet-500/40 border-violet-500' : ''
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1 overflow-hidden">
+                      <span className="p-2.5 rounded-2xl shrink-0 bg-violet-500/15 text-violet-500">
+                        <FileText className="w-5 h-5" />
+                      </span>
+                      <div className="flex-1 overflow-hidden">
+                        <b className="text-sm font-black theme-text-primary truncate block" title={doc.filename}>
+                          {doc.filename}
+                        </b>
+                        <span className="text-[11px] theme-text-muted block mt-1">
+                          {doc.pages_count} صفحة • {(doc.words_count || 0).toLocaleString()} كلمة
+                        </span>
+                        <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-600 dark:text-violet-300 text-[10px] font-black">
+                          👥 {doc.team_name} • {doc.my_team_role === 'viewer' ? 'مشاهد' : doc.my_team_role === 'editor' ? 'محرر' : doc.my_team_role === 'admin' ? 'مشرف' : 'مالك'}
+                        </span>
+                      </div>
+                    </div>
+                    {isActive ? (
+                      <span className="px-2.5 py-0.5 rounded-full bg-teal-500 text-white text-[10px] font-black shrink-0 shadow-sm flex items-center gap-1">
+                        <Check className="w-3 h-3" /> نشط
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => onSelectDoc(doc)}
+                        className="px-3 py-1 rounded-xl theme-header-btn border text-xs font-bold shrink-0 hover:border-teal-500 hover:text-teal-600 transition"
+                      >
+                        تفعيل
+                      </button>
+                    )}
+                  </div>
+                  {doc.preview_text && (
+                    <p className="text-xs theme-text-secondary line-clamp-3 leading-relaxed p-3 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 font-medium">
+                      {doc.preview_text}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-1.5 pt-3 border-t border-slate-200 dark:border-slate-800/60">
+                    <button
+                      onClick={() => handleAction(doc, 'summary')}
+                      className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 transition flex items-center gap-1"
+                    >
+                      <BookMarked className="w-3.5 h-3.5 text-teal-500" />
+                      <span>تلخيص</span>
+                    </button>
+                    <button
+                      onClick={() => handleAction(doc, 'quiz')}
+                      className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 transition flex items-center gap-1"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <span>اختبار</span>
+                    </button>
+                    <button
+                      onClick={() => handleAction(doc, 'chat')}
+                      className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 transition flex items-center gap-1"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>محادثة</span>
+                    </button>
+                    <button
+                      onClick={(e) => handlePreview(doc.id, e)}
+                      className="p-2 rounded-xl theme-header-btn border hover:text-teal-500 transition"
+                      title="معاينة النص"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -500,6 +633,15 @@ export default function DocumentLibraryView({
           </div>
         </div>
       )}
+
+    {/* Share with team modal */}
+      <ShareEntityModal
+        isOpen={!!shareDoc}
+        onClose={() => setShareDoc(null)}
+        entityType="document"
+        entityId={shareDoc?.id}
+        entityTitle={shareDoc?.filename}
+      />
 
     </div>
   );

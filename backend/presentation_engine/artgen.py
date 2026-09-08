@@ -6,13 +6,17 @@
   ويُستبدل لاحقاً تلقائياً بالصور الحقيقية عند توفر المفتاح (إعادة تشغيل نفس الأمر).
 
 الاستخدام:
-    python artgen.py              # تلقائي: حقيقي إن وُجد مفتاح، وإلا احتياطي
+    python artgen.py              # تلقائي: حقيقي إن وُجد مفتاح، وإلا احتياطي (لوحة academic في art/)
     python artgen.py --real       # فرض الاستدعاء الحقيقي
+    python artgen.py --id myid --palette 'bg=#F8F7F2,teal=#20B2AA,navy=#0F2D4A,gray=#5A6E7F'
+                                  # خلفيات بألوان هوية معيّنة → art/identities/myid/
+                                  # ثم أضف "art_dir": "identities/myid" إلى الهوية ليستخدمها المحرك.
 
 الإعداد:
     setx OPENAI_API_KEY "sk-..."      # على مستوى المستخدم
     setx OPENAI_BASE_URL "..."        # اختياري: مزود متوافق مع OpenAI
 """
+# T3.2: --palette/--colors/--outdir tint slide backgrounds with the active visual identity.
 import base64
 import io
 import json
@@ -24,6 +28,16 @@ from PIL import Image, ImageDraw
 
 sys.stdout.reconfigure(encoding="utf-8")
 BASE = os.path.dirname(os.path.abspath(__file__))
+
+DEFAULT_PALETTE = {
+    "bg": "#F8F7F2", "teal": "#20B2AA", "navy": "#0F2D4A",
+    "gray": "#5A6E7F", "bg2": "#F1F4F8", "line": "#E3E8EE",
+}
+
+PALETTES = {
+    "academic": {"bg": "#F8F7F2", "primary": "#0F2D4A", "secondary": "#20B2AA", "gray": "#5A6E7F"},
+    "dark-tech": {"bg": "#0b1220", "primary": "#4cc2ff", "secondary": "#ff5d8f", "gray": "#94a3b8"},
+}
 
 PROMPT_BASE = (
     "Flat vector line-art illustration in a clean corporate university style. "
@@ -75,13 +89,20 @@ def crop16x9(raw):
     return im.resize((1280, 720), Image.LANCZOS)
 
 
-def fallback_art(key, brief):
-    im = Image.new("RGB", (1280, 720), (248, 247, 242))
+def _rgb(hex_color):
+    h = str(hex_color).lstrip("#")
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4)) if len(h) == 6 else (248, 247, 242)
+
+
+def fallback_art(key, brief, palette=None, out_dir=None):
+    pal = dict(DEFAULT_PALETTE)
+    pal.update(palette or {})
+    bg, teal, navy, gray = _rgb(pal["bg"]), _rgb(pal["teal"]), _rgb(pal["navy"]), _rgb(pal["gray"])
+    im = Image.new("RGB", (1280, 720), bg)
     d = ImageDraw.Draw(im)
     for y in range(720):
         t = y / 720
-        d.line([(0, y), (1280, y)], fill=(248 - int(6 * t), 247 - int(8 * t), 242 - int(4 * t)))
-    teal, navy, gray = (144, 206, 202), (80, 106, 136), (195, 205, 215)
+        d.line([(0, y), (1280, y)], fill=(max(0, bg[0] - int(6 * t)), max(0, bg[1] - int(8 * t)), max(0, bg[2] - int(4 * t))))
     def blob(cx, cy, r, col):
         d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=col)
     def ring(cx, cy, r, col, w=2):
@@ -102,7 +123,7 @@ def fallback_art(key, brief):
             bar_h = 70 + i * 52
             d.rounded_rectangle([x0, 480 - bar_h, x0 + 86, 480], radius=10, fill=c)
         for yy in range(0, 560, 92):
-            d.line([(320, yy), (1190, yy)], fill=(180, 190, 200))
+            d.line([(320, yy), (1190, yy)], fill=(max(0, bg[0] - 68), max(0, bg[1] - 57), max(0, bg[2] - 42)))
     if typ == "timeline":
         for i in range(7):
             x = 180 + i * 145
@@ -110,28 +131,60 @@ def fallback_art(key, brief):
             r = 34
             col = teal if i % 2 == 0 else navy
             d.ellipse([x - r, y - r, x + r, y + r], fill=col)
-            d.ellipse([x - r // 2, y - r // 2, x + r // 2, y + r // 2], outline=(248, 247, 242), width=2)
+            d.ellipse([x - r // 2, y - r // 2, x + r // 2, y + r // 2], outline=bg, width=2)
             if i < 6:
                 d.line([(x + r + 12, y + 3), (x + r + 114, y + 3)], fill=gray, width=3)
-    im.save(os.path.join(BASE, "art", f"bg_{key}.png"))
+    out_dir = out_dir or os.path.join(BASE, "art")
+    os.makedirs(out_dir, exist_ok=True)
+    im.save(os.path.join(out_dir, f"bg_{key}.png"))
+
+
+def parse_palette(s):
+    pal = dict(DEFAULT_PALETTE)
+    for kv in (s or "").split(","):
+        if "=" in kv:
+            k, v = kv.split("=", 1)
+            k, v = k.strip(), v.strip()
+            if k in pal and v:
+                pal[k] = v
+    return pal
 
 
 def main():
+    if "--list-palettes" in sys.argv:
+        for name, pal in PALETTES.items():
+            print(f" {name}: bg={pal['bg']} primary={pal['primary']} secondary={pal['secondary']} gray={pal['gray']}")
+        return
     real = "--real" in sys.argv
-    os.makedirs(os.path.join(BASE, "art"), exist_ok=True)
+    ident = ""
+    if "--id" in sys.argv:
+        ident = sys.argv[sys.argv.index("--id") + 1].strip()
+    palette = DEFAULT_PALETTE
+    if "--palette" in sys.argv:
+        palette = parse_palette(sys.argv[sys.argv.index("--palette") + 1])
+    art_dir = os.path.join(BASE, "art")
+    if ident:
+        art_dir = os.path.join(art_dir, "identities", ident)
+    os.makedirs(art_dir, exist_ok=True)
     use_ai = bool(os.environ.get("OPENAI_API_KEY"))
     if real and not use_ai:
         raise SystemExit("المفتاح غير موجود ولا يمكن فرض الوضع الحقيقي.")
+    col_hint = ""
+    if palette != DEFAULT_PALETTE:
+        col_hint = (" Use exactly these colors: background {bg}, primary {navy}, accent {teal}, "
+                    "secondary {gray}.").format(**palette).replace("#", "#")
     for key, b in art_briefs().items():
-        prompt = PROMPT_BASE + "\n" + b.get("brief", "") + "\n" + NO_TEXT + "\n" + RATIO
-        out = os.path.join(BASE, "art", f"bg_{key}.png")
+        prompt = PROMPT_BASE + col_hint + "\n" + b.get("brief", "") + "\n" + NO_TEXT + "\n" + RATIO
+        out = os.path.join(art_dir, f"bg_{key}.png")
         if use_ai:
             crop16x9(call_openai(prompt)).save(out)
             print(" [AI]       ", key)
         else:
-            fallback_art(key, b)
+            fallback_art(key, b, palette=palette, out_dir=art_dir)
             print(" [fallback] ", key)
-    print("اكتمل توليد الخلفيات في art/")
+    print("اكتمل توليد الخلفيات في", art_dir)
+    if ident:
+        print('أضف "art_dir": "identities/' + ident + '" إلى الهوية البصرية ليستخدم المحرك هذه الخلفيات.')
     if not use_ai:
         print("ملاحظة: الوضع الاحتياطي. لتوليد صور حقيقية اضبط OPENAI_API_KEY ثم: python artgen.py --real")
 

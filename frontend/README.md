@@ -1,16 +1,34 @@
-# React + Vite
+# واجهة EduAI — Frontend (React 19 + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+الواجهة الأمامية لمنصة ذكاء | EduAI — نسخة عربية RTL داكنة (Glassmorphism) مبنية بـ React 19 + Vite 8 + Tailwind CSS v4.
 
-Currently, two official plugins are available:
+## المتطلبات
+- Node.js 20+ (npm 10+)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## التشغيل محلياً
+```bash
+npm install
+npm run dev        # Vite dev على http://localhost:5173 مع proxy إلى http://127.0.0.1:8001
+```
 
-## React Compiler
+## الأوامر
+| الأمر | الوصف |
+|-------|-------|
+| `npm run dev` | خادم تطوير Vite (port 5173) مع وكيل `/api` إلى الباك إند |
+| `npm run build` | بناء إنتاج + PWA (vite-plugin-pwa) إلى `dist/` |
+| `npm run preview` | معاينة ناتج الإنتاج (port 4173) |
+| `npm run lint` | فحص أوكس (oxlint) |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## التكامل مع الباك إند
+- كل الاستدعاءات تذهب إلى `/api` (نفس الأصل) عبر `src/services/api.js`.
+- في التطوير يُوكَّل `/api` إلى `http://127.0.0.1:8001` (إعداد `vite.config.js`).
+- في الإنتاج يعكس nginx `/api/` إلى الحاوية الخلفية — راجع `nginx.conf`.
 
-## Expanding the Oxlint configuration
+## المكونات الرئيسية
+- `components/admin/AdminSidebar.jsx` — لوحة الأدمن (مقاييس حقيقية من `/api/admin/stats` بما فيها مقاييس الفرق).
+- `components/PresentationView.jsx` + `TemplateModal.jsx` — Deck Studio (هويات بصرية، قائمة خطوط بيضاء، تخطيطات Agenda/Quote/Compare).
+- `components/StudentAnalytics.jsx` — تحليلات الطالب من `progress_json` لكل مستند.
+- `services/api.js` — عميل API مركزي (مصادقة، مستندات، فرق، عروض، إدارة).
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## البناء داخل Docker
+راجع `Dockerfile` في هذا المجلد — بناء متعدد المراحل (node → nginx) ويستخدم `npm ci` مع `package-lock.json`.

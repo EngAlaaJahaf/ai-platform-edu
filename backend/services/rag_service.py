@@ -41,7 +41,7 @@ class RAGService:
     ) -> List[Dict[str, Any]]:
         """
         Dynamically retrieves the most relevant chunks.
-        For lecture/course documents (<= 100 chunks, up to ~35,000 words), 
+        For lecture/course documents (<= 100 chunks, up to ~35,000 words),
         it provides the complete document structured by pages so the AI model has 100% full vision
         including intro slides, body, summaries, and final assignment slides.
         For massive book-length documents, it applies dynamic n-gram TF-IDF ranking with page distribution.

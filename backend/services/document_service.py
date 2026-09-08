@@ -155,10 +155,7 @@ class DocumentService:
 
     @classmethod
     def _extract_tabular(cls, file_path: str, ext: str) -> List[Dict[str, Any]]:
-        if ext == ".csv":
-            df = pd.read_csv(file_path)
-        else:
-            df = pd.read_excel(file_path)
+        df = pd.read_csv(file_path) if ext == ".csv" else pd.read_excel(file_path)
 
         csv_text = df.to_string(index=False)
         return [{

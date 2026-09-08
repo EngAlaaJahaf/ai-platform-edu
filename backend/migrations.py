@@ -51,7 +51,7 @@ def migrate(conn: sqlite3.Connection) -> List[int]:
                 )
                 conn.commit()
                 newly_applied.append(version)
-            except sqlite3.OperationalError as e:
+            except sqlite3.OperationalError:
                 # Column already exists or similar - skip gracefully
                 conn.rollback()
                 # Mark as applied to avoid retrying

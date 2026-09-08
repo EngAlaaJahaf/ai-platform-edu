@@ -62,6 +62,10 @@ export default function AdminSidebar({ activeSection, setActiveSection, stats, o
                       <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                         <div className="h-full bg-emerald-500 transition-all duration-700" style={{width: `${usersPct}%`}}></div>
                       </div>
+                      <div className="text-[10px] theme-text-muted mt-1 flex justify-between">
+                        <span className="flex items-center gap-1"><Layers className="w-3 h-3" /> {stats.total_teams || 0} فريقاً</span>
+                        <span>{stats.total_team_members || 0} عضواً</span>
+                      </div>
                     </div>
                     <div>
                       <div className="flex justify-between text-xs theme-text-secondary mb-1">

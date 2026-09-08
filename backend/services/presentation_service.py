@@ -10,6 +10,7 @@
     PresentationService.generate_deck(text, theme, provider, api_key, base_url, model)
     PresentationService.render_deck(deck_id, user_id, deck, title)
 """
+import contextlib
 import json
 import os
 import re
@@ -20,11 +21,6 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-BASE_DIR = Path(__file__).resolve().parent.parent          # backend/
-ENGINE_DIR = BASE_DIR / "presentation_engine"
-PRESENTATIONS_DIR = BASE_DIR / "presentations"
-PRESENTATIONS_DIR.mkdir(exist_ok=True, parents=True)
-
 from backend.config import DEFAULT_MODEL, GEMINI_API_KEY
 from backend.database import (
     delete_presentation,
@@ -34,6 +30,11 @@ from backend.database import (
     update_presentation_status,
 )
 from backend.services.ai_service import AIService
+
+BASE_DIR = Path(__file__).resolve().parent.parent          # backend/
+ENGINE_DIR = BASE_DIR / "presentation_engine"
+PRESENTATIONS_DIR = BASE_DIR / "presentations"
+PRESENTATIONS_DIR.mkdir(exist_ok=True, parents=True)
 
 CHROME_CANDIDATES = [
     r"C:\Program Files\Google\Chrome\Application\chrome.exe",
@@ -55,8 +56,8 @@ ARTS = [
     "market", "competition", "advantage", "pricing", "journey", "ops",
     "finance", "closing",
 ]
-TEMPLATES_ACADEMIC = ["cover", "content", "twocol", "stats", "table", "chart", "timeline", "closing"]
-TEMPLATES_DARK = ["cover", "content", "twocol", "stats", "table", "steps", "closing"]
+TEMPLATES_ACADEMIC = ["cover", "content", "twocol", "stats", "table", "chart", "timeline", "agenda", "quote", "compare", "closing"]
+TEMPLATES_DARK = ["cover", "content", "twocol", "stats", "table", "steps", "agenda", "quote", "compare", "closing"]
 
 AR_DEFAULT_SLIDE_ORDER = "cover؛ خلفية المشكلة؛ الحل؛ المنتج؛ القيمة؛ الرؤية؛ السوق؛ المنافسون؛ التميز؛ نموذج الإيرادات؛ رحلة العميل؛ التشغيل؛ الخطة المالية؛ closing"
 
@@ -80,6 +81,9 @@ DECK_SYSTEM_PROMPT = """أنت استراتيجي محتوى عروض تقديم
 6. timeline (خط زمني): {"template":"timeline","kicker":"...","title":"...","lead":"...","steps":[{"t":"المرحلة","d":"شرح"}],"takeaway":"..."}
 7. table (جدول): {"template":"table","kicker":"...","title":"...","headers":["عمود","عمود"],"rows":[["خ1","خ2"],["..."]],"note":"...","takeaway":"..."}
 8. closing (الشريحة الأخيرة): {"template":"closing","kicker":"الخاتمة","title":"شكراً لكم","message":"جملة ختامية بأسلوب مؤثر — استثمر في ...","chips":["كلمة","كلمة"]}
+9. agenda (جدول أعمال مرقّم): {"template":"agenda","kicker":"...","title":"...","items":[{"t":"العنوان","d":"شرح سطر"}],"takeaway":"..."}
+10. quote (اقتباس محوري): {"template":"quote","kicker":"اقتباس","quote":"الجملة المحورية","author":"صاحب القول","role":"صفة/منصب"}  (يُستخدم نادراً للتأكيد على فكرة جوهرية)
+11. compare (مقارنة ثنائية): {"template":"compare","kicker":"...","title":"...","col1_t":"قبل","col1":["نقطة","نقطة"],"col2_t":"بعد/معنا","col2":["نقطة","نقطة"],"takeaway":"..."}
 
 ## الحقول الإجبارية
 - كل شريحة يجب أن تحمل "takeaway" (خلاصة في سطر) و "num" (رقم تسلسلي بصيغة "01").
@@ -105,7 +109,7 @@ class PresentationError(Exception):
 
 
 def _default_deck_name(text: str) -> str:
-    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
     for line in lines:
         m = re.search(r'[\u0600-\u06FF]{2,}', line)
         if m:
@@ -137,7 +141,7 @@ class PresentationService:
                 "chart (أعمدة أفقية مقارنة)", "steps (خطوات متتالية): {\"template\":\"steps\",\"title\":\"...\",\"steps\":[{\"t\":\"...\",\"d\":\"...\"}]}"
             )
             system_prompt += (
-                "\n\nملاحظة الهوية الداكنة: استخدم القوالب cover/content/twocol/stats/table/steps/closing فقط. "
+                "\n\nملاحظة الهوية الداكنة: استخدم القوالب cover/content/twocol/stats/table/steps/agenda/quote/compare/closing فقط. "
                 "لا تستخدم chart أو timeline إطلاقاً."
             )
         return system_prompt
@@ -185,7 +189,7 @@ class PresentationService:
                 temperature=0.6,
             )
         except Exception as e:
-            raise PresentationError(f"فشل استدعاء الذكاء الاصطناعي: {e}")
+            raise PresentationError(f"فشل توليد المحتوى الذكي: {e}") from e
         if not raw or not raw.strip():
             raise PresentationError("الذكاء الاصطناعي أعاد رداً فارغاً.")
 
@@ -298,7 +302,7 @@ class PresentationService:
                 temperature=0.6,
             )
         except Exception as e:
-            raise PresentationError(f"فشل استدعاء الذكاء الاصطناعي: {e}")
+            raise PresentationError(f"فشل توليد المحتوى الذكي: {e}") from e
         if not raw or not raw.strip():
             raise PresentationError("الذكاء الاصطناعي أعاد رداً فارغاً.")
         deck = cls._parse_json(raw)
@@ -324,7 +328,7 @@ class PresentationService:
                     return json.loads(m.group(0))
                 except json.JSONDecodeError:
                     pass
-            raise PresentationError("الذكاء الاصطناعي لم يُرجع JSON صالحاً. أعد المحاولة.")
+            raise PresentationError("الذكاء الاصطناعي لم يُرجع JSON صالحاً. أعد المحاولة.") from None
 
     @classmethod
     def normalize_deck(cls, raw: Dict[str, Any], theme="academic", slide_max: int = 15) -> Dict[str, Any]:
@@ -484,11 +488,59 @@ class PresentationService:
             note = st("note", "")
             if note:
                 slide["note"] = note
+        elif tmpl == "agenda":
+            items = s.get("items", s.get("steps"))
+            slide["items"] = []
+            if isinstance(items, list):
+                for it in items[:7]:
+                    if isinstance(it, dict):
+                        slide["items"].append({
+                            "t": str(it.get("t") or "بند"),
+                            "d": str(it.get("d") or ""),
+                        })
+            if not slide["items"]:
+                slide["items"] = [{"t": "مقدمة", "d": ""}, {"t": "المحتوى", "d": ""}, {"t": "الخاتمة", "d": ""}]
+            lead = st("lead", "")
+            if lead:
+                slide["lead"] = lead
+            note = st("note", "")
+            if note:
+                slide["note"] = note
+        elif tmpl == "quote":
+            slide.update({
+                "quote": st("quote", st("message", st("title"))),
+                "author": st("author", ""),
+                "role": st("role", ""),
+            })
+            slide.pop("title", None)
+        elif tmpl == "compare":
+            col1 = s.get("col1", s.get("pros"))
+            col2 = s.get("col2", s.get("cons"))
+            a = [str(x).strip() for x in col1 if str(x).strip()][:7] if isinstance(col1, list) else []
+            b = [str(x).strip() for x in col2 if str(x).strip()][:7] if isinstance(col2, list) else []
+            if not a and isinstance(s.get("after"), list):
+                a = [str(x).strip() for x in s["after"] if str(x).strip()][:7]
+            if not b and isinstance(s.get("before"), list):
+                b = [str(x).strip() for x in s["before"] if str(x).strip()][:7]
+            slide.update({
+                "col1_t": st("col1_t", st("after_t", "معنا")),
+                "col1": a or ["نقطة"],
+                "col2_t": st("col2_t", st("before_t", "التقليدي")),
+                "col2": b or ["نقطة"],
+            })
+            note = st("note", "")
+            if note:
+                slide["note"] = note
         elif tmpl == "closing":
             slide.update({
                 "title": st("title", "شكراً لكم"),
                 "message": st("message", f"استثمر في هذا المشروع اليوم — {st('title')}."),
                 "chips": slist("chips") or ["فريق متخصص", "سوق ينتظر", "نموذج مالي"],
+            })
+        elif tmpl == "quote":
+            slide.update({
+                "quote": st("quote", "العلم في الصغر كالنقش على الحجر."),
+                "author": st("author", ""),
             })
         return slide
 
@@ -537,11 +589,9 @@ class PresentationService:
         # 2b) ضمان وجود خلفيات art (توليدها مرة واحدة إن غابت)
         art_dir = ENGINE_DIR / "art"
         if not (art_dir / "bg_cover.png").is_file():
-            try:
+            with contextlib.suppress(Exception):
                 subprocess.run([sys.executable, str(ENGINE_DIR / "artgen.py")],
                                cwd=str(ENGINE_DIR), capture_output=True, timeout=180)
-            except Exception:
-                pass
 
         # 3) تشغيل المحرك
         cmd = [
@@ -559,10 +609,10 @@ class PresentationService:
             )
         except subprocess.TimeoutExpired:
             update_presentation_status(deck_id, "error", error="انتهت مهلة الرندر (360 ث).")
-            raise PresentationError("انتهت مهلة توليد العرض (قد تكون الصور كبيرة).")
+            raise PresentationError("انتهت مهلة توليد العرض (قد تكون الصور كبيرة).") from None
         except Exception as e:
             update_presentation_status(deck_id, "error", error=str(e))
-            raise PresentationError(f"فشل تشغيل المحرك: {e}")
+            raise PresentationError(f"فشل تشغيل المحرك: {e}") from e
 
         if result.returncode != 0:
             update_presentation_status(deck_id, "error", error=(result.stderr or result.stdout)[-400:])
