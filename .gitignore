@@ -46,3 +46,6 @@ frontend/.vite/
 
 # Packaged skill files (keep the folder form in repo only)
 .opencode/skills/*.zip
+
+# Local graduation-project documentation (Arabic PDFs)
+*.pdf

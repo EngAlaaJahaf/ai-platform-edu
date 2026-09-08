@@ -28,10 +28,10 @@ import {
 } from '../services/api';
 
 const ROLE_LABELS = {
-  owner: 'ظ…ط§ظ„ظƒ',
-  admin: 'ظ…ط´ط±ظپ',
-  editor: 'ظ…ط­ط±ط±',
-  viewer: 'ظ…ط´ط§ظ‡ط¯'
+  owner: 'مالك',
+  admin: 'مشرف',
+  editor: 'محرر',
+  viewer: 'مشاهد'
 };
 
 const ROLE_STYLES = {
@@ -96,7 +96,7 @@ export default function TeamsPanel({ onChanged }) {
       const team = await createTeam(newName.trim());
       setNewName('');
       await load();
-      notify(`طھظ… ط¥ظ†ط´ط§ط، ظپط±ظٹظ‚ "${team.name}" â€” ظƒظˆط¯ ط§ظ„ط¯ط¹ظˆط©: ${team.invite_code}`);
+      notify(`تم إنشاء فريق "${team.name}" — كود الدعوة: ${team.invite_code}`);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -113,7 +113,7 @@ export default function TeamsPanel({ onChanged }) {
       setCode('');
       setMode('mine');
       await load();
-      notify(`ط§ظ†ط¶ظ…ظ…طھ ط¥ظ„ظ‰ ظپط±ظٹظ‚ "${team.name}" ط¨ظ†ط¬ط§ط­`);
+      notify(`انضممت إلى فريق "${team.name}" بنجاح`);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -182,8 +182,8 @@ export default function TeamsPanel({ onChanged }) {
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-black theme-text-primary">ظ…ط³ط§ط­ط§طھ ط§ظ„ظپط±ظ‚</h2>
-            <p className="text-xs theme-text-secondary mt-0.5">ط´ط§ط±ظƒ ظ…ط³طھظ†ط¯ط§طھظƒ ظ…ط¹ ط²ظ…ظ„ط§ط¦ظƒ ط¨ظƒظˆط¯ ط¯ط¹ظˆط© â€” ط§ظ„ظ…ط´ط§ظ‡ط¯ ظٹط±ظ‰ ظپظ‚ط·</p>
+            <h2 className="text-xl font-black theme-text-primary">مساحات الفرق</h2>
+            <p className="text-xs theme-text-secondary mt-0.5">شارك مستنداتك مع زملائك بكود دعوة — المشاهد يرى فقط</p>
           </div>
         </div>
         <div className="flex items-center gap-1 p-1 rounded-xl theme-card-inner border">
@@ -191,16 +191,16 @@ export default function TeamsPanel({ onChanged }) {
             onClick={() => setMode('mine')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${mode === 'mine' ? 'bg-violet-600 text-white' : 'theme-text-muted'}`}
           >
-            ظپط±ظ‚ظٹ
+            فرقي
           </button>
           <button
             onClick={() => setMode('join')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${mode === 'join' ? 'bg-violet-600 text-white' : 'theme-text-muted'}`}
           >
             <LogIn className="w-3.5 h-3.5" />
-            ط§ظ†ط¶ظ… ط¨ظƒظˆط¯
+            انضم بكود
           </button>
-          <button onClick={load} disabled={loading} className="p-1.5 rounded-lg theme-text-muted hover:text-violet-500 transition" title="طھط­ط¯ظٹط«">
+          <button onClick={load} disabled={loading} className="p-1.5 rounded-lg theme-text-muted hover:text-violet-500 transition" title="تحديث">
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
@@ -224,7 +224,7 @@ export default function TeamsPanel({ onChanged }) {
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
-            placeholder="ط£ط¯ط®ظ„ ظƒظˆط¯ ط§ظ„ط¯ط¹ظˆط© (ظ…ط«ط§ظ„: KH3QV6)"
+            placeholder="أدخل كود الدعوة (مثال: KH3QV6)"
             className="flex-1 px-4 py-2.5 rounded-xl theme-card-inner border text-sm font-mono tracking-widest text-center theme-text-primary outline-none focus:border-violet-500"
             maxLength={12}
           />
@@ -234,7 +234,7 @@ export default function TeamsPanel({ onChanged }) {
             className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-black text-xs shadow-md disabled:opacity-50 transition flex items-center justify-center gap-2"
           >
             <LogIn className="w-4 h-4" />
-            {joining ? 'ط¬ط§ط±ظٹ ط§ظ„ط§ظ†ط¶ظ…ط§ظ…...' : 'ط§ظ†ط¶ظ… ظ„ظ„ظپط±ظٹظ‚'}
+            {joining ? 'جاري الانضمام...' : 'انضم للفريق'}
           </button>
         </div>
       ) : (
@@ -245,7 +245,7 @@ export default function TeamsPanel({ onChanged }) {
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-              placeholder="ط§ط³ظ… ط§ظ„ظپط±ظٹظ‚ ط§ظ„ط¬ط¯ظٹط¯ (ظ…ط«ط§ظ„: ظپط±ظٹظ‚ ظ…ط´ط±ظˆط¹ ط§ظ„طھط®ط±ط¬)"
+              placeholder="اسم الفريق الجديد (مثال: فريق مشروع التخرج)"
               className="flex-1 px-4 py-2.5 rounded-xl theme-card-inner border text-xs theme-text-primary outline-none focus:border-violet-500 font-['Tajawal']"
               maxLength={80}
             />
@@ -255,14 +255,14 @@ export default function TeamsPanel({ onChanged }) {
               className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-black text-xs shadow-md disabled:opacity-50 transition flex items-center justify-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              {creating ? 'ط¬ط§ط±ظٹ ط§ظ„ط¥ظ†ط´ط§ط،...' : 'ط¥ظ†ط´ط§ط، ظپط±ظٹظ‚'}
+              {creating ? 'جاري الإنشاء...' : 'إنشاء فريق'}
             </button>
           </div>
 
           {loading ? (
-            <p className="text-xs theme-text-muted text-center py-6">ط¬ط§ط±ظٹ طھط­ظ…ظٹظ„ ظپط±ظ‚ظƒ...</p>
+            <p className="text-xs theme-text-muted text-center py-6">جاري تحميل فرقك...</p>
           ) : teams.length === 0 ? (
-            <p className="text-xs theme-text-muted text-center py-6">ظ„ط§ طھظ†طھظ…ظٹ ظ„ط£ظٹ ظپط±ظٹظ‚ ط¨ط¹ط¯ â€” ط£ظ†ط´ط¦ ظپط±ظٹظ‚ط§ظ‹ ط£ظˆ ط§ظ†ط¶ظ… ط¨ظƒظˆط¯ ط¯ط¹ظˆط©.</p>
+            <p className="text-xs theme-text-muted text-center py-6">لا تنتمي لأي فريق بعد — أنشئ فريقاً أو انضم بكود دعوة.</p>
           ) : (
             <div className="space-y-3">
               {teams.map((team) => {
@@ -283,7 +283,7 @@ export default function TeamsPanel({ onChanged }) {
                             <RoleBadge role={team.my_role} />
                           </div>
                           <p className="text-[11px] theme-text-muted mt-0.5">
-                            {team.members_count} ط£ط¹ط¶ط§ط، â€¢ {team.shares_count} ط¹ظ†ط§طµط± ظ…ط´ط§ط±ظƒط©
+                            {team.members_count} أعضاء • {team.shares_count} عناصر مشاركة
                           </p>
                         </div>
                       </div>
@@ -291,7 +291,7 @@ export default function TeamsPanel({ onChanged }) {
                         <button
                           onClick={() => copyCode(team.invite_code)}
                           className="px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-bold bg-violet-500/15 text-violet-600 dark:text-violet-300 hover:bg-violet-500/25 transition flex items-center gap-1"
-                          title="ظ†ط³ط® ظƒظˆط¯ ط§ظ„ط¯ط¹ظˆط©"
+                          title="نسخ كود الدعوة"
                         >
                           {copied === team.invite_code ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                           {team.invite_code}
@@ -299,7 +299,7 @@ export default function TeamsPanel({ onChanged }) {
                         <button
                           onClick={() => toggleExpand(team.id)}
                           className="p-1.5 rounded-lg theme-header-btn border transition"
-                          title="ط§ظ„طھظپط§طµظٹظ„ ظˆط§ظ„ط£ط¹ط¶ط§ط،"
+                          title="التفاصيل والأعضاء"
                         >
                           <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                         </button>
@@ -309,7 +309,7 @@ export default function TeamsPanel({ onChanged }) {
                     {isOpen && (
                       <div className="px-4 pb-4 pt-1 border-t border-slate-200 dark:border-slate-800/60 space-y-3">
                         <div>
-                          <p className="text-[11px] font-black theme-text-secondary mb-2">ط§ظ„ط£ط¹ط¶ط§ط، ({members.length})</p>
+                          <p className="text-[11px] font-black theme-text-secondary mb-2">الأعضاء ({members.length})</p>
                           <div className="space-y-1.5">
                             {members.map((m) => (
                               <div key={m.user_id} className="flex items-center justify-between gap-2 text-xs">
@@ -322,18 +322,18 @@ export default function TeamsPanel({ onChanged }) {
                                     <select
                                       value={m.role}
                                       disabled={busy === `role-${m.user_id}`}
-                                      onChange={(e) => doAction(`role-${m.user_id}`, () => setTeamMemberRole(team.id, m.user_id, e.target.value), 'طھظ… طھط­ط¯ظٹط« ط§ظ„ط¯ظˆط±')}
+                                      onChange={(e) => doAction(`role-${m.user_id}`, () => setTeamMemberRole(team.id, m.user_id, e.target.value), 'تم تحديث الدور')}
                                       className="px-1.5 py-1 rounded-lg theme-card-inner border text-[11px] theme-text-primary outline-none"
                                     >
-                                      <option value="admin">ظ…ط´ط±ظپ</option>
-                                      <option value="editor">ظ…ط­ط±ط±</option>
-                                      <option value="viewer">ظ…ط´ط§ظ‡ط¯</option>
+                                      <option value="admin">مشرف</option>
+                                      <option value="editor">محرر</option>
+                                      <option value="viewer">مشاهد</option>
                                     </select>
                                     <button
-                                      onClick={() => { if (window.confirm(`ط¥ط²ط§ظ„ط© ${m.name || m.email} ظ…ظ† ط§ظ„ظپط±ظٹظ‚طں`)) doAction(`rm-${m.user_id}`, () => removeTeamMember(team.id, m.user_id), 'طھظ…طھ ط¥ط²ط§ظ„ط© ط§ظ„ط¹ط¶ظˆ'); }}
+                                      onClick={() => { if (window.confirm(`إزالة ${m.name || m.email} من الفريق؟`)) doAction(`rm-${m.user_id}`, () => removeTeamMember(team.id, m.user_id), 'تمت إزالة العضو'); }}
                                       disabled={busy === `rm-${m.user_id}`}
                                       className="p-1.5 rounded-lg hover:text-rose-500 transition"
-                                      title="ط¥ط²ط§ظ„ط© ط§ظ„ط¹ط¶ظˆ"
+                                      title="إزالة العضو"
                                     >
                                       <UserMinus className="w-3.5 h-3.5" />
                                     </button>
@@ -345,9 +345,9 @@ export default function TeamsPanel({ onChanged }) {
                         </div>
 
                         <div>
-                          <p className="text-[11px] font-black theme-text-secondary mb-2">ط§ظ„ط¹ظ†ط§طµط± ط§ظ„ظ…ط´ط§ط±ظƒط© ({shares.length})</p>
+                          <p className="text-[11px] font-black theme-text-secondary mb-2">العناصر المشاركة ({shares.length})</p>
                           {shares.length === 0 ? (
-                            <p className="text-[11px] theme-text-muted">ظ„ط§ ط¹ظ†ط§طµط± ظ…ط´ط§ط±ظƒط© ط¨ط¹ط¯ â€” ط´ط§ط±ظƒ ظ…ط³طھظ†ط¯ط§ظ‹ ظ…ظ† ط¨ط·ط§ظ‚طھظ‡ ظپظٹ ط§ظ„ظ…ظƒطھط¨ط©.</p>
+                            <p className="text-[11px] theme-text-muted">لا عناصر مشاركة بعد — شارك مستنداً من بطاقته في المكتبة.</p>
                           ) : (
                             <div className="space-y-1.5">
                               {shares.map((s) => (
@@ -357,10 +357,10 @@ export default function TeamsPanel({ onChanged }) {
                                   </span>
                                   {canShare(team) && (
                                     <button
-                                      onClick={() => doAction(`un-${s.id}`, () => unshareFromTeam(team.id, s.entity_type, s.entity_id), 'طھظ… ط¥ظ„ط؛ط§ط، ط§ظ„ظ…ط´ط§ط±ظƒط©')}
+                                      onClick={() => doAction(`un-${s.id}`, () => unshareFromTeam(team.id, s.entity_type, s.entity_id), 'تم إلغاء المشاركة')}
                                       disabled={busy === `un-${s.id}`}
                                       className="p-1.5 rounded-lg hover:text-rose-500 transition shrink-0"
-                                      title="ط¥ظ„ط؛ط§ط، ط§ظ„ظ…ط´ط§ط±ظƒط©"
+                                      title="إلغاء المشاركة"
                                     >
                                       <Link2Off className="w-3.5 h-3.5" />
                                     </button>
@@ -373,12 +373,12 @@ export default function TeamsPanel({ onChanged }) {
 
                         {team.my_role === 'owner' && (
                           <button
-                            onClick={() => { if (window.confirm(`ط­ط°ظپ ظپط±ظٹظ‚ "${team.name}" ظ†ظ‡ط§ط¦ظٹط§ظ‹طں`)) doAction('del-team', () => deleteTeamApi(team.id), 'طھظ… ط­ط°ظپ ط§ظ„ظپط±ظٹظ‚'); }}
+                            onClick={() => { if (window.confirm(`حذف فريق "${team.name}" نهائياً؟`)) doAction('del-team', () => deleteTeamApi(team.id), 'تم حذف الفريق'); }}
                             disabled={busy === 'del-team'}
                             className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-rose-500 hover:bg-rose-500/10 transition flex items-center gap-1"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
-                            ط­ط°ظپ ط§ظ„ظپط±ظٹظ‚ ظ†ظ‡ط§ط¦ظٹط§ظ‹
+                            حذف الفريق نهائياً
                           </button>
                         )}
                       </div>
