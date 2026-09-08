@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EduAI — نماذج الواجهة المقترحة (دراسة هادئة)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+<style>
+/* ============ TOKENS (light default) ============ */
+:root{
+  --bg:#F5F6FA; --panel:#FFFFFF; --card:#FFFFFF; --card-hover:#F8FAFC;
+  --border:#E6E8EF; --border-strong:#D5D9E3;
+  --text-strong:#171E31; --text:#1F2A44; --text-muted:#64748B; --text-faint:#94A3B8;
+  --accent:#059669; --accent-strong:#047857; --accent-soft:rgba(5,150,105,.10); --accent-border:rgba(5,150,105,.28);
+  --danger:#E11D48; --danger-soft:#FFF1F2; --warning:#D97706; --warning-soft:#FFFBEB;
+  --success:#16A34A; --success-soft:#F0FDF4; --info:#0284C7; --info-soft:#F0F9FF;
+  --shadow-card:0 1px 2px rgba(15,23,42,.04),0 6px 18px -8px rgba(15,23,42,.08);
+  --shadow-float:0 10px 30px -10px rgba(15,23,42,.25);
+}
+html.dark{
+  --bg:#0A0E16; --panel:#101623; --card:#141B2B; --card-hover:#182136;
+  --border:rgba(255,255,255,.07); --border-strong:rgba(255,255,255,.14);
+  --text-strong:#F4F7FC; --text:#EDF1F7; --text-muted:#B4BFD0; --text-faint:#7C8AA0;
+  --accent:#34D399; --accent-strong:#6EE7B7; --accent-soft:rgba(52,211,153,.12); --accent-border:rgba(52,211,153,.32);
+  --danger:#FB7185; --danger-soft:rgba(225,29,72,.14); --warning:#FBBF24; --warning-soft:rgba(217,119,6,.14);
+  --success:#4ADE80; --success-soft:rgba(22,163,74,.14); --info:#38BDF8; --info-soft:rgba(2,132,199,.14);
+  --shadow-card:0 1px 2px rgba(0,0,0,.25),0 8px 22px -10px rgba(0,0,0,.45);
+  --shadow-float:0 12px 34px -10px rgba(0,0,0,.6);
+}
+
+/* ============ BASE ============ */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);line-height:1.65;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+h1,h2,h3,.font-head{font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+::selection{background:var(--accent);color:#fff}
+
+/* ============ MOCKUP CHROME (review tools — not part of product UI) ============ */
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--border)}
+.topbar .brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--text-strong)}
+.brand-badge{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#059669,#10B981)}
+.chrome-nav{display:flex;gap:6px;flex-wrap:wrap}
+.chrome-btn{font-size:13.5px;font-weight:600;padding:7px 14px;border-radius:10px;color:var(--text-muted);border:1px solid var(--border);background:var(--panel);transition:.15s}
+.chrome-btn:hover{color:var(--text);border-color:var(--border-strong)}
+.chrome-btn.on{background:var(--accent-soft);border-color:var(--accent-border);color:var(--accent)}
+.chrome-right{margin-inline-start:auto;display:flex;gap:8px;align-items:center}
+.sep{width:1px;height:22px;background:var(--border)}
+.chrome-hint{font-size:12px;color:var(--text-faint)}
+
+/* screen switching */
+.screen{display:none;animation:fade .25s ease}
+.screen.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* phone preview frame */
+.phone-mode{margin-top:-1px}
+.phone-mode .screen.active{max-width:392px;margin:16px auto 60px;background:var(--bg);border:10px solid #1E242F;border-radius:34px;box-shadow:var(--shadow-float);overflow:hidden}
+.phone-mode .phone-pad{display:flex;gap:4px;align-items:center;justify-content:center;max-width:392px;margin:-8px auto 0;padding:4px;border-radius:0 0 26px 26px;background:#1E242F;color:#7C8AA0;font-size:11px}
+.phone-pad span{width:8px;height:8px;border-radius:50%;background:#3B4252}
+.phone-mode .topbar .chrome-nav,
+
+.phone-mode {background:#0B0F17}
+html.phone-mode .topbar{position:static}
+
+@media(min-width:768px){.phone-mode .topbar{position:sticky}}
+
+/* ============ PRODUCT SHELL ============ */
+.shell{display:flex;min-height:calc(100vh - 1px)}
+.sidebar{width:230px;flex:none;padding:20px 14px;border-inline-end:1px solid var(--border);background:var(--panel);display:none}
+.sidebarlabel{font-size:11.5px;font-weight:700;color:var(--text-faint);letter-spacing:.04em;padding:10px 12px 6px}
+.navitem{display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px;border-radius:12px;font-size:14.5px;font-weight:500;color:var(--text-muted);transition:.15s;margin-bottom:2px}
+.navitem:hover{background:var(--card-hover);color:var(--text)}
+.navitem.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.navitem.on .ic{stroke-width:2.4}
+.navitem small{margin-inline-start:auto;font-size:11px;color:var(--text-faint);font-weight:600}
+.maincol{flex:1;min-width:0;padding:28px 24px 64px}
+.maincol-inner{max-width:1100px;margin:0 auto}
+.blank{height:14px}
+.toolbar-demo{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:22px}
+.toolbar-demo .crumb{font-size:13px;color:var(--text-muted)}
+.toolbar-demo .crumb b{color:var(--text-strong)}
+.mini-user{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:var(--text)}
+.avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,#0EA5E9,#6366F1)}
+.iconbtn{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:var(--text-muted);border:1px solid var(--border);background:var(--panel);transition:.15s}
+.iconbtn:hover{color:var(--text);border-color:var(--border-strong);background:var(--card-hover)}
+
+/* ============ CONTROLS ============ */
+.btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:46px;padding:0 20px;border-radius:12px;font-weight:700;font-size:15px;color:#fff;background:linear-gradient(135deg,var(--accent-strong),var(--accent));box-shadow:0 8px 20px -8px var(--accent);transition:.15s}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed}
+.btn-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:12px;font-weight:600;font-size:14.5px;color:var(--text-muted);border:1px solid var(--border);background:var(--panel);transition:.15s}
+.btn-ghost:hover{color:var(--text);border-color:var(--border-strong)}
+.btn-soft{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:12px;font-weight:700;font-size:14.5px;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent-border);transition:.15s}
+.btn-soft:hover{background:var(--accent-soft)}
+.radio-card{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;border:1px solid var(--border);background:var(--card);transition:.18s;text-align:start;width:100%}
+.radio-card:hover{border-color:var(--border-strong)}
+.radio-card.sel{border-color:var(--accent-border);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent-border)}
+.radio-card .r-ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:var(--accent);background:var(--accent-soft);flex:none}
+.radio-card .r-title{font-weight:700;font-size:14.5px;color:var(--text-strong)}
+.radio-card .r-sub{font-size:12.5px;color:var(--text-muted)}
+.pill{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 16px;border-radius:999px;border:1px solid var(--border);font-size:14px;font-weight:600;color:var(--text-muted);background:var(--panel);transition:.15s}
+.pill:hover{border-color:var(--border-strong);color:var(--text)}
+.pill.sel{border-color:var(--accent-border);background:var(--accent-soft);color:var(--accent);font-weight:700}
+.field{display:block;width:100%;min-height:46px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--panel);color:var(--text);font-family:inherit;font-size:14.5px;transition:.15s}
+.field:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.lbl{font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:7px;display:block}
+
+/* ============ COMPONENTS ============ */
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-card)}
+.card-pad{padding:22px}
+.progress{height:8px;border-radius:999px;background:var(--card-hover);overflow:hidden}
+.progress i{display:block;height:100%;border-radius:999px;background:var(--accent)}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow-card)}
+.stat .t{font-size:12.5px;color:var(--text-muted);font-weight:600}
+.stat .v{font-size:24px;font-weight:800;color:var(--text-strong);line-height:1.3}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px}
+.tag.success{color:var(--success);background:var(--success-soft)}
+.tag.warn{color:var(--warning);background:var(--warning-soft)}
+.tag.info{color:var(--info);background:var(--info-soft)}
+.tag.danger{color:var(--danger);background:var(--danger-soft)}
+
+.update-badge{display:none}
+
+/* ============ SCREEN: DESIGN SYSTEM ============ */
+.swatch{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--panel)}
+.swatch .dot{height:44px;border-radius:9px;border:1px solid rgba(0,0,0,.06)}
+.swatch .nm{font-size:12px;font-weight:700;color:var(--text)}
+.swatch .hv{font-size:11px;color:var(--text-faint);direction:ltr;text-align:start}
+.type-row{display:flex;align-items:baseline;gap:14px;padding:12px 4px;border-bottom:1px dashed var(--border)}
+.type-row:last-child{border-bottom:0}
+.type-row .meta{width:130px;flex:none;font-size:11px;color:var(--text-faint);direction:ltr;text-align:start;font-weight:600}
+.radius-demo{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.radius-box{width:76px;height:76px;background:var(--accent-soft);border:2px dashed var(--accent-border);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--accent)}
+
+/* ============ SCREEN: DASHBOARD ============ */
+.hero{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.hero h1{font-size:26px;font-weight:800;color:var(--text-strong)}
+.hero p{color:var(--text-muted);font-size:15px;margin-top:4px}
+.continue{padding:20px 22px;display:flex;flex-direction:column;gap:16px;margin-bottom:24px}
+.continue-head{display:flex;align-items:center;justify-content:space-between}
+.continue-head h3{font-size:16px;font-weight:700;color:var(--text-strong)}
+.continue-head small{color:var(--text-faint);font-size:12.5px}
+.continue-item{display:flex;align-items:center;gap:14px;padding:12px;border-radius:14px;border:1px solid var(--border);background:var(--panel)}
+.continue-item .doc-ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;color:var(--info);background:var(--info-soft);flex:none}
+.continue-item .name{font-weight:700;font-size:14px;color:var(--text-strong)}
+.continue-item .pg{font-size:12px;color:var(--text-faint)}
+.continue-item .progress{flex:1;min-width:60px}
+.continue-item .resume{min-height:38px;padding:0 14px;border-radius:10px;font-size:13px;font-weight:700;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent-border)}
+.tools-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:24px}
+@media(min-width:640px){.tools-grid{grid-template-columns:1fr 1fr}}
+@media(min-width:1024px){.tools-grid{grid-template-columns:repeat(3,1fr)}}
+.tool-card{display:flex;align-items:flex-start;gap:14px;padding:18px;border-radius:16px;border:1px solid var(--border);background:var(--card);box-shadow:var(--shadow-card);transition:.18s}
+.tool-card:hover{transform:translateY(-2px);border-color:var(--border-strong)}
+.tool-card .t-ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex:none}
+.tool-card .t-title{font-weight:700;font-size:15px;color:var(--text-strong)}
+.tool-card .t-sub{font-size:13px;color:var(--text-muted);margin-top:2px}
+.tool-card .t-arrow{margin-inline-start:auto;align-self:center;color:var(--text-faint)}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sec-head h2{font-size:17px;font-weight:700;color:var(--text-strong)}
+.sec-head small{color:var(--text-muted);font-size:13px}
+.stats-wrap{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:760px){.stats-wrap{grid-template-columns:repeat(3,1fr)}}
+
+/* ============ SCREEN: CHAT ============ */
+.chat-empty{max-width:640px;margin:12px auto 0;text-align:center;padding:14px}
+.chat-empty .ce-ic{width:64px;height:64px;border-radius:20px;margin:0 auto 18px;display:grid;place-items:center;color:var(--accent);background:var(--accent-soft)}
+.chat-empty h2{font-size:20px;font-weight:800;color:var(--text-strong);margin-bottom:8px}
+.chat-empty p{color:var(--text-muted);font-size:14.5px;margin-bottom:20px}
+.suggest{display:flex;flex-direction:column;gap:10px;max-width:420px;margin:0 auto}
+.suggest button{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-radius:14px;border:1px solid var(--border);background:var(--card);font-size:14px;font-weight:600;color:var(--text);transition:.15s}
+.suggest button:hover{border-color:var(--accent-border);background:var(--accent-soft)}
+.suggest .sg-arrow{color:var(--text-faint)}
+.chat-thread{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.msg-user{align-self:flex-end;max-width:76%;background:var(--accent);color:#fff;padding:13px 18px;border-radius:18px 18px 4px 18px;font-size:15px;line-height:1.7}
+.msg-ai{align-self:flex-start;max-width:86%;background:var(--card);border:1px solid var(--border);border-radius:4px 18px 18px 18px;padding:16px 18px;box-shadow:var(--shadow-card)}
+.msg-ai .chead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.msg-ai .chead b{font-size:13px;color:var(--text-strong)}
+.msg-ai .srcchip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--info);background:var(--info-soft);padding:3px 10px;border-radius:999px}
+.msg-ai .body{font-size:15px;color:var(--text);line-height:1.8}
+.msg-ai .body .hl{background:var(--accent-soft);color:var(--accent);font-weight:700;border-radius:6px;padding:0 4px}
+.msg-tools{display:flex;align-items:center;gap:6px;margin-top:10px}
+.mt-btn{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--text-faint);transition:.15s}
+.mt-btn:hover{background:var(--card-hover);color:var(--text)}
+.mt-spacer{flex:1}
+.composer-zone{max-width:760px;margin:0 auto;position:sticky;bottom:18px;margin-top:26px}
+.active-doc{display:inline-flex;align-items:center;gap:8px;max-width:100%;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:8px 14px;font-size:12.5px;color:var(--text-muted);margin-bottom:8px}
+.active-doc b{color:var(--text-strong);font-weight:700}
+.active-doc .close{color:var(--text-faint);margin-inline-start:4px}
+.composer{display:flex;align-items:flex-end;gap:10px;background:var(--card);border:1px solid var(--border-strong);border-radius:18px;padding:12px 14px;box-shadow:var(--shadow-float)}
+.composer textarea{flex:1;background:none;border:0;resize:none;font-family:inherit;font-size:15px;color:var(--text);min-height:46px;line-height:1.6;padding:6px 2px}
+.composer textarea::placeholder{color:var(--text-faint)}
+.composer textarea:focus{outline:none}
+.comp-tools{display:flex;align-items:center;gap:4px}
+.send-btn{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--accent-strong),var(--accent));box-shadow:0 6px 16px -6px var(--accent);flex:none}
+
+/* chat sidebar demo */
+.chat-side-demo{display:none;flex-direction:column;width:230px;border-inline-end:1px solid var(--border);background:var(--panel);padding:18px 14px;gap:6px}
+@media(min-width:900px){.chat-side-demo{display:flex}}
+.css-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;font-size:13.5px;color:var(--text-muted);cursor:pointer}
+.css-row .d{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.css-row .t{font-size:11px;color:var(--text-faint);flex:none}
+.css-row.on{background:var(--accent-soft);color:var(--text-strong);font-weight:700;box-shadow:inset 3px 0 0 var(--accent)}
+.css-row.on .t{color:var(--accent)}
+
+/* ============ SCREEN: QUIZ ============ */
+.wizard{display:flex;align-items:center;gap:0;margin-bottom:22px;max-width:680px}
+.wz-step{display:flex;align-items:center;gap:9px;flex:1}
+.wz-num{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800}
+.wz-step:not(.on):not(.done) .wz-num{background:var(--card-hover);color:var(--text-faint)}
+.wz-step.on .wz-num{background:var(--accent);color:#fff}
+.wz-step.done .wz-num{background:var(--success-soft);color:var(--success)}
+.wz-step .wz-label{font-size:13.5px;font-weight:600;color:var(--text-muted)}
+.wz-step.on .wz-label,.wz-step.done .wz-label{color:var(--text-strong)}
+.wz-line{flex:1;height:2px;background:var(--border);margin:0 14px}
+.wz-step.done ~ .wz-line{background:var(--success);opacity:.4}
+.quiz-grid{display:grid;grid-template-columns:1fr;gap:20px}
+@media(min-width:900px){.quiz-grid{grid-template-columns:8fr 4fr}}
+.qbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.qbar .progress{flex:1;min-width:120px}
+.opt-card{display:flex;align-items:center;gap:12px;width:100%;padding:15px 16px;border-radius:12px;border:1px solid var(--border);background:var(--panel);font-size:15px;text-align:start;transition:.15s}
+.opt-card .m{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:13px;font-weight:700;color:var(--text-faint);background:var(--card-hover);flex:none}
+.opt-card.sel{border-color:var(--accent-border);background:var(--accent-soft)}
+.opt-card.sel .m{background:var(--accent);color:#fff}
+.opt-card.correct{border-color:var(--success);background:var(--success-soft)}
+.opt-card.correct .m{background:var(--success);color:#fff}
+.opt-card.wrong{border-color:var(--danger);background:var(--danger-soft);opacity:.92}
+.opt-card .check{margin-inline-start:auto;color:var(--success)}
+.opt-card .x{margin-inline-start:auto;color:var(--danger)}
+.idx-card{position:sticky;top:90px;align-self:start;padding:18px}
+.idx-grid{display:grid;gap:8px}
+@media(min-width:400px){.idx-grid{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:900px){.idx-grid{grid-template-columns:repeat(4,1fr)}}
+.idx-cell{aspect-ratio:1/1;border-radius:11px;display:grid;place-items:center;font-size:13px;font-weight:700;color:var(--text-muted);background:var(--card-hover);transition:.15s}
+.idx-cell.done{background:var(--success-soft);color:var(--success)}
+.idx-cell.flag{background:var(--warning-soft);color:var(--warning)}
+.idx-cell.cur{background:var(--accent);color:#fff;box-shadow:0 0 0 3px var(--accent-soft)}
+.q-foot{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-top:22px;padding-top:18px;border-top:1px solid var(--border)}
+.q-foot .mid{display:flex;gap:8px}
+
+/* ============ SCREEN: SUMMARY ============ */
+.sum-step{max-width:680px;margin:0 auto}
+.sum-fake{display:none}
+.sum-controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px;padding:14px 16px}
+.sum-controls .sel{font-size:13.5px;font-weight:700;color:var(--text-strong);display:inline-flex;align-items:center;gap:7px}
+.sum-controls .sel .ic{color:var(--accent)}
+.sum-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+@media(min-width:640px){.sum-tabs{grid-template-columns:repeat(6,1fr)}}
+.sum-tab{min-height:46px;border-radius:999px;border:1px solid var(--border);font-size:13.5px;font-weight:600;color:var(--text-muted);background:var(--panel)}
+.sum-tab.on{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 6px 16px -6px var(--accent)}
+.sum-content{padding:28px}
+.sum-content h3{font-size:18px;font-weight:700;color:var(--text-strong);margin-bottom:14px}
+.sum-content p{font-size:16px;color:var(--text);line-height:2;margin-bottom:14px}
+.sum-content .clr{background:var(--accent-soft);color:var(--accent);font-weight:700;border-radius:6px;padding:0 4px}
+.sum-content ul{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.sum-content li{display:flex;gap:11px;font-size:15.5px;line-height:1.8;color:var(--text)}
+.sum-content li::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent);margin-top:10px;flex:none}
+
+/* ============ SCREEN: TRANSLATE ============ */
+.tr-grid{display:grid;grid-template-columns:1fr;gap:22px}
+@media(min-width:1000px){.tr-grid{grid-template-columns:340px 1fr}}
+.tr-settings{padding:20px;align-self:start;position:sticky;top:90px}
+.tr-row{display:flex;gap:8px;align-items:center}
+.tr-row .field{flex:1}
+.tr-swap{width:42px;height:42px;border-radius:12px;flex:none;display:grid;place-items:center;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent-border)}
+.tr-paper-wrap{padding:14px}
+@media(min-width:1000px){.tr-paper-wrap{padding:24px}}
+.tr-toolbar{display:inline-flex;align-items:center;gap:0;background:#1E242F;color:#EDF1F7;border-radius:999px;padding:6px;margin-bottom:18px;box-shadow:var(--shadow-float);flex-wrap:wrap}
+.tr-toolbar .grp{display:flex;align-items:center;gap:2px;padding:0 6px}
+.tr-toolbar .grp:not(:last-child){border-inline-end:1px solid rgba(255,255,255,.12)}
+.tt-btn{min-width:38px;height:38px;padding:0 10px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#CBD5E1;transition:.15s}
+.tt-btn:hover{background:rgba(255,255,255,.08);color:#fff}
+.tt-btn.active{background:var(--accent);color:#fff}
+.apear{background:#fff;color:#263044;border-radius:14px;box-shadow:var(--shadow-card);padding:clamp(24px,4vw,48px);min-height:620px}
+.apear .pnum{font-size:13px;color:#94A3B8;font-weight:700;margin-bottom:24px;display:flex;justify-content:space-between}
+.apear h2{font-family:'IBM Plex Sans Arabic',sans-serif;font-size:22px;font-weight:700;color:#171E31;margin-bottom:18px}
+.apear p{font-size:16px;line-height:2.15;color:#33415C;margin-bottom:16px}
+.apear p.ar-dir{direction:ltr;font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:32px}
+
+/* responsive: hide sidebar, stack */
+@media(max-width:899px){.sidebar{display:none}}
+
+html.phone-mode .screen.active{padding-bottom:10px}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="ic-msg" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H5l-2 2V12a8 8 0 0 1 10-7.7"/><path d="M9.5 10.5h7M9.5 14h4"/></symbol>
+    <symbol id="ic-doc" viewBox="0 0 24 24"><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z"/><path d="M14 2v5h6M9 13h6M9 17h4"/></symbol>
+    <symbol id="ic-scroll" viewBox="0 0 24 24"><path d="M14 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
+    <symbol id="ic-pen" viewBox="0 0 24 24"><path d="M17 3l4 4L7 21H3v-4z"/><path d="M14 6l4 4"/></symbol>
+    <symbol id="ic-present" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+    <symbol id="ic-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></symbol>
+    <symbol id="ic-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></symbol>
+    <symbol id="ic-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="ic-star" viewBox="0 0 24 24"><path d="M12 3l2.7 5.8 6.3.8-4.7 4.3 1.3 6.2L12 17l-5.6 3.1 1.3-6.2L3 9.6l6.3-.8z"/></symbol>
+    <symbol id="ic-volume" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></symbol>
+    <symbol id="ic-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+    <symbol id="ic-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></symbol>
+    <symbol id="ic-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h.1a1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+    <symbol id="ic-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="ic-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></symbol>
+    <symbol id="ic-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="ic-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="ic-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="ic-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></symbol>
+    <symbol id="ic-book" viewBox="0 0 24 24"><path d="M12 6.5C10.5 5 8 4.5 4 4.5v14c4 0 6.5.5 8 2 1.5-1.5 4-2 8-2v-14c-4 0-6.5.5-8 2z"/><path d="M12 6.5V20.5"/></symbol>
+    <symbol id="ic-lang" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9S14.5 18.5 12 21M12 3c-2.5 2.5-3.5 5.5-3.5 9S9.5 18.5 12 21"/></symbol>
+    <symbol id="ic-print" viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></symbol>
+    <symbol id="ic-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+    <symbol id="ic-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.7-6.4M21 3v6h-6"/></symbol>
+    <symbol id="ic-filter" viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></symbol>
+    <symbol id="ic-clip" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-9 9H8a4 4 0 0 1-4-4 4 4 0 0 1 4-4h4"/><path d="M15.5 4.5 8.6 11.4a2 2 0 1 0 2.8 2.8l6.9-6.9a3.5 3.5 0 0 0-5-5l-6.9 6.9"/></symbol>
+    <symbol id="ic-chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></symbol>
+    <symbol id="ic-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  </defs>
+</svg>
+
+<!-- ================= MOCKUP TOP CHROME ================= -->
+<header class="topbar">
+  <div class="brand"><span class="brand-badge"><svg class="ic" style="width:17px;height:17px"><use href="#ic-spark"/></svg></span> EduAI <span class="chrome-hint">— نماذج الواجهة المقترحة</span></div>
+  <nav class="chrome-nav" id="chromeNav">
+    <button class="chrome-btn on" data-screen="s-design">النظام</button>
+    <button class="chrome-btn" data-screen="s-dash">اللوحة</button>
+    <button class="chrome-btn" data-screen="s-chat">المحادثة</button>
+    <button class="chrome-btn" data-screen="s-quiz">الاختبار</button>
+    <button class="chrome-btn" data-screen="s-summary">الملخص</button>
+    <button class="chrome-btn" data-screen="s-tr">الترجمة</button>
+  </nav>
+  <div class="chrome-right">
+    <span class="chrome-hint" id="themeHint">فاتح</span>
+    <button class="chrome-btn" id="themeToggle" title="تبديل الثيم">🌓 الثيم</button>
+    <button class="chrome-btn" id="phoneToggle" title="معاينة الهاتف">📱 هاتف</button>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ================= SCREEN: DESIGN SYSTEM ================= -->
+<section class="screen active" id="s-design">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sidebarlabel">النماذج</div>
+      <button class="navitem on"><svg class="ic"><use href="#ic-doc"/></svg> النظام المرجعي</button>
+      <button class="navitem"><svg class="ic"><use href="#ic-grid"/></svg> اللوحة</button>
+    </aside>
+    <div class="maincol">
+      <div class="maincol-inner">
+        <div class="toolbar-demo">
+          <div class="crumb">نظام التصميم <b>«دراسة هادئة»</b> — العقد الأساسي للفريق</div>
+          <div class="mini-user"><span class="avatar">أح</span> أحمد</div>
+        </div>
+
+        <div class="card" style="margin-bottom:22px"><div class="card-pad">
+          <h2 style="font-size:18px;font-weight:800;color:var(--text-strong);margin-bottom:4px">قاعدة المصمّم</h2>
+          <p style="font-size:14px;color:var(--text-muted);margin-bottom:16px">قاعدة واحدة تتحكم في كل قسم: لا نص أصغر من 15px في الجسم، والفعل الرئيسي أخضر، والهدوء فقرة بفقرة.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:18px;font-size:13.5px;color:var(--text)">
+            <span>① المسافات <b style="color:var(--accent)">4/8/16/24</b></span>
+            <span>② نص أساسي <b style="color:var(--accent)">≥ text-base</b></span>
+            <span>③ زوايا: بطاقات <b style="color:var(--accent)">2xl</b> · أزرار <b style="color:var(--accent)">xl</b> · حبوب <b style="color:var(--accent)">full</b></span>
+            <span>④ سطوح: <b style="color:var(--accent)">لوحة + بطاقة</b> فقط</span>
+          </div>
+        </div></div>
+
+        <div class="sec-head"><h2>الألوان — فاتح</h2></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px;margin-bottom:24px">
+          <div class="swatch"><div class="dot" style="background:var(--bg);border-color:var(--border)"></div><span class="nm">الخلفية bg</span><span class="hv">#F5F6FA</span></div>
+          <div class="swatch"><div class="dot" style="background:var(--panel);border-color:var(--border)"></div><span class="nm">اللوحة panel</span><span class="hv">#FFFFFF</span></div>
+          <div class="swatch"><div class="dot" style="background:var(--card);border-color:var(--border)"></div><span class="nm">البطاقة card</span><span class="hv">#FFFFFF</span></div>
+          <div class="swatch"><div class="dot" style="background:var(--accent);border-color:transparent"></div><span class="nm">الهوية accent</span><span class="hv">#059669</span></div>
+          <div class="swatch"><div class="dot" style="background:var(--accent-soft);border-color:var(--accent-border)"></div><span class="nm">هوية خفيفة</span><span class="hv">rgba(5,150,105,.10)</span></div>
+          <div class="swatch"><div class="dot" style="background:var(--text-strong);border-color:transparent"></div><span class="nm">نص قوي</span><span class="hv">#171E31</span></div>
+          <div class="swatch"><div class="dot" style="background:var(--text-muted);border-color:transparent"></div><span class="nm">نص ثانوي</span><span class="hv">#64748B</span></div>
+        </div>
+
+        <div class="sec-head"><h2>سطحان فقط</h2></div>
+        <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:24px">
+          <div style="border:1px dashed var(--border);border-radius:16px;padding:18px;background:var(--panel)">
+            <b style="font-size:14px;color:var(--text-strong)">اللوحة Panel</b>
+            <p style="font-size:13px;color:var(--text-muted);margin-top:3px">للأقسام والأطر العامة — حدّ رقيق، بلا ظل.</p>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:16px;padding:18px;background:var(--card);box-shadow:var(--shadow-card)">
+            <b style="font-size:14px;color:var(--text-strong)">البطاقة Card</b>
+            <p style="font-size:13px;color:var(--text-muted);margin-top:3px">للعناصر التفاعلية — ظل ناعم، تتحمّل عند التحويم.</p>
+          </div>
+        </div>
+
+        <div class="sec-head"><h2>مقياس الخطوط</h2></div>
+        <div class="card" style="padding:6px 20px;margin-bottom:24px">
+          <div class="type-row"><span class="meta">Hero / 26px·800</span><span style="font-size:26px;font-weight:800;color:var(--text-strong);font-family:'IBM Plex Sans Arabic',sans-serif">مساء الخير، أحمد — واصل من حيث توقفت</span></div>
+          <div class="type-row"><span class="meta">Heading / 18px·700</span><span style="font-size:18px;font-weight:700;color:var(--text-strong);font-family:'IBM Plex Sans Arabic',sans-serif">متابعة الدراسة</span></div>
+          <div class="type-row"><span class="meta">Body / 16px</span><span style="font-size:16px;color:var(--text)">الخاصية الأساسية تبقى نصاً مريحاً للقراءة لفترات طويلة، هذا هو الحد الأدنى المسموح</span></div>
+          <div class="type-row"><span class="meta">Secondary / 14px</span><span style="font-size:14px;color:var(--text-muted)">شرح قصير أو وصف يصاحب عنصراً كبيراً بجانبه</span></div>
+          <div class="type-row"><span class="meta">Meta / 12px</span><span style="font-size:12px;color:var(--text-faint)">استثناء للأوقات والتسميات فقط</span></div>
+        </div>
+
+        <div class="sec-head"><h2>الأزرار — حالة واحدة فقط مشبعة</h2></div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px">
+          <button class="btn-primary">أساسي <svg class="ic" style="width:17px;height:17px"><use href="#ic-arrow"/></svg></button>
+          <button class="btn-soft">ثانوي مخضر</button>
+          <button class="btn-ghost"><svg class="ic"><use href="#ic-copy"/></svg> هاديء</button>
+          <button class="pill" style="margin:0">حبة اختيار</button>
+          <button class="pill sel">مختارة</button>
+        </div>
+
+        <div class="sec-head"><h2>الزوايا الوظيفية</h2></div>
+        <div class="card" style="padding:20px"><div class="radius-demo">
+          <div class="radius-box" style="border-radius:16px">بطاقة 2xl</div>
+          <div class="radius-box" style="border-radius:12px;width:66px;height:66px">زر xl</div>
+          <div class="radius-box" style="border-radius:999px;width:110px">حبة full</div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SCREEN: DASHBOARD ================= -->
+<section class="screen" id="s-dash">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sidebarlabel">الرئيسية</div>
+      <button class="navitem on"><svg class="ic"><use href="#ic-spark"/></svg> اللوحة</button>
+      <button class="navitem"><svg class="ic"><use href="#ic-doc"/></svg> مستنداتي <small>12</small></button>
+      <button class="navitem"><svg class="ic"><use href="#ic-present"/></svg> العروض</button>
+      <div class="sidebarlabel">أدوات الدراسة</div>
+      <button class="navitem"><svg class="ic"><use href="#ic-msg"/></svg> المحادثة</button>
+      <button class="navitem"><svg class="ic"><use href="#ic-scroll"/></svg> الملخص</button>
+      <button class="navitem"><svg class="ic"><use href="#ic-pen"/></svg> الاختبار</button>
+      <button class="navitem"><svg class="ic"><use href="#ic-lang"/></svg> الترجمة</button>
+      <div class="sidebarlabel">الحساب</div>
+      <button class="navitem"><svg class="ic"><use href="#ic-settings"/></svg> الإعدادات</button>
+    </aside>
+    <div class="maincol">
+      <div class="maincol-inner">
+        <div class="hero">
+          <div>
+            <h1>مساء الخير، أحمد <span style="color:var(--accent)">👋</span></h1>
+            <p>واصل من حيث توقفت — كل مادة تحتاج لقليل من الوقت اليوم.</p>
+          </div>
+          <button class="btn-ghost"><svg class="ic"><use href="#ic-plus"/></svg> رفع مستند</button>
+        </div>
+
+        <div class="card continue">
+          <div class="continue-head"><h3>متابعة الدراسة</h3><small>آخر ما فتحته</small></div>
+          <div class="continue-item">
+            <span class="doc-ic"><svg class="ic"><use href="#ic-doc"/></svg></span>
+            <div style="min-width:0;flex:1"><div class="name">محاضرات الفيزياء — الباب الثالث</div><div class="pg">تمت قراءة 18 من 24 صفحة</div></div>
+            <div class="progress"><i style="width:75%"></i></div>
+            <button class="resume">استئناف</button>
+          </div>
+          <div class="continue-item">
+            <span class="doc-ic" style="color:var(--success);background:var(--success-soft)"><svg class="ic"><use href="#ic-book"/></svg></span>
+            <div style="min-width:0;flex:1"><div class="name">طرق البحث العلمي — الوحدة الثانية</div><div class="pg">توقفت عند الصفحة 9</div></div>
+            <div class="progress"><i style="width:38%"></i></div>
+            <button class="resume">استئناف</button>
+          </div>
+        </div>
+
+        <div class="sec-head"><h2>أدواتك</h2><small>الكل بخطوة واحدة</small></div>
+        <div class="tools-grid">
+          <div class="tool-card">
+            <span class="t-ic" style="color:var(--accent);background:var(--accent-soft)"><svg class="ic"><use href="#ic-msg"/></svg></span>
+            <div><div class="t-title">المحادثة مع الذكاء</div><div class="t-sub">اسأل عن أي مستند واحصل على إجابات مرفقة بالمصادر</div></div>
+            <svg class="ic t-arrow"><use href="#ic-arrow"/></svg>
+          </div>
+          <div class="tool-card">
+            <span class="t-ic" style="color:var(--info);background:var(--info-soft)"><svg class="ic"><use href="#ic-scroll"/></svg></span>
+            <div><div class="t-title">الملخص الذكي</div><div class="t-sub">لخّص صفحات طويلة في نقاط يسهل مراجعتها</div></div>
+            <svg class="ic t-arrow"><use href="#ic-arrow"/></svg>
+          </div>
+          <div class="tool-card">
+            <span class="t-ic" style="color:var(--warning);background:var(--warning-soft)"><svg class="ic"><use href="#ic-pen"/></svg></span>
+            <div><div class="t-title">أسئلة واختبارات</div><div class="t-sub">اختبر فهمك بأسئلة مبنية على مستنداتك</div></div>
+            <svg class="ic t-arrow"><use href="#ic-arrow"/></svg>
+          </div>
+          <div class="tool-card">
+            <span class="t-ic" style="color:var(--success);background:var(--success-soft)"><svg class="ic"><use href="#ic-lang"/></svg></span>
+            <div><div class="t-title">الترجمة</div><div class="t-sub">ترجم المحاضرات من وإلى لغتك</div></div>
+            <svg class="ic t-arrow"><use href="#ic-arrow"/></svg>
+          </div>
+          <div class="tool-card">
+            <span class="t-ic" style="color:#8B5CF6;background:rgba(139,92,246,.12)"><svg class="ic"><use href="#ic-present"/></svg></span>
+            <div><div class="t-title">العروض التقديمية</div><div class="t-sub">حوّل المحتوى إلى شرائح جاهزة</div></div>
+            <svg class="ic t-arrow"><use href="#ic-arrow"/></svg>
+          </div>
+        </div>
+
+        <div class="sec-head"><h2>نشاطك</h2><small>منذ بداية الفصل</small></div>
+        <div class="stats-wrap">
+          <div class="stat"><div class="t">أسئلة أُجبت</div><div class="v">128</div><div class="progress" style="margin-top:10px"><i style="width:64%"></i></div><div style="font-size:12px;color:var(--text-faint);margin-top:7px">64% من هدفك الشهري</div></div>
+          <div class="stat"><div class="t">ملخصات أُنشئت</div><div class="v">14</div><div class="progress" style="margin-top:10px"><i style="width:46%"></i></div><div style="font-size:12px;color:var(--text-faint);margin-top:7px">+3 هذا الأسبوع</div></div>
+          <div class="stat"><div class="t">توكنات متبقية</div><div class="v">4.2k</div><div style="margin-top:10px"><span class="tag warn">منخفض</span></div><div style="font-size:12px;color:var(--text-faint);margin-top:7px">تتجدد في 12 يوماً</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SCREEN: CHAT ================= -->
+<section class="screen" id="s-chat">
+  <div class="shell">
+    <div class="chat-side-demo" style="display:flex">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:0 6px">
+        <b style="font-size:14px;color:var(--text-strong)">جلساتي</b>
+        <button class="iconbtn" style="width:34px;height:34px;border-radius:10px;color:var(--accent);border-color:var(--accent-border);background:var(--accent-soft)"><svg class="ic" style="width:17px;height:17px"><use href="#ic-plus"/></svg></button>
+      </div>
+      <input class="field" style="min-height:40px;font-size:13px;margin-bottom:10px" placeholder="بحث…" />
+      <div class="css-row on"><svg class="ic" style="width:17px;height:17px"><use href="#ic-msg"/></svg><span class="d">تلخيص الباب الثاني</span><span class="t">اليوم</span></div>
+      <div class="css-row"><svg class="ic" style="width:17px;height:17px"><use href="#ic-msg"/></svg><span class="d">مسائل المعادلات التفاضلية</span><span class="t">أمس</span></div>
+      <div class="css-row"><svg class="ic" style="width:17px;height:17px"><use href="#ic-msg"/></svg><span class="d">مراجعة ما قبل الامتحان</span><span class="t">3 أيام</span></div>
+    </div>
+    <div class="maincol">
+      <div class="maincol-inner">
+        <div class="chat-thread">
+          <div class="msg-user">ما هي أهم المفاهيم في الباب الثاني؟</div>
+          <div class="msg-ai">
+            <div class="chead"><span style="width:22px;height:22px;border-radius:7px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#059669,#10B981)"><svg class="ic" style="width:13px;height:13px"><use href="#ic-spark"/></svg></span>
+              <b>الذكاء الدراسي</b>
+              <span class="srcchip"><svg class="ic" style="width:12px;height:12px"><use href="#ic-doc"/></svg> محاضرة الباب الثاني · ص 3-9</span>
+            </div>
+            <div class="body">يتحدد الباب الثاني حول <span class="hl">قانون حفظ الطاقة</span> في الأنظمة المغلقة؛ وأهم مفاهيمه ثلاثة: الشغل والطاقة الحركية، ثم طاقة الوضع، وأخيراً قدرة الآلة. يمكنني تفصيل كل مفهوم مع مثال رقمي إن أردت.</div>
+            <div class="msg-tools">
+              <button class="mt-btn" title="أعجبني"><svg class="ic"><use href="#ic-check"/></svg></button>
+              <button class="mt-btn" title="لم يعجبني"><svg class="ic"><use href="#ic-x"/></svg></button>
+              <button class="mt-btn" title="مزيد"><svg class="ic"><use href="#ic-settings"/></svg></button>
+              <span class="mt-spacer"></span>
+              <button class="mt-btn" title="نسخ"><svg class="ic"><use href="#ic-copy"/></svg></button>
+              <button class="mt-btn" title="صوت"><svg class="ic"><use href="#ic-volume"/></svg></button>
+            </div>
+          </div>
+          <div class="msg-ai">
+            <div class="chead"><span style="width:22px;height:22px;border-radius:7px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#059669,#10B981)"><svg class="ic" style="width:13px;height:13px"><use href="#ic-spark"/></svg></span>
+              <b>الذكاء الدراسي</b><span class="srcchip" style="color:var(--text-muted);background:var(--card-hover)">بحث في المستند</span>
+            </div>
+            <div class="body">مثال على ذلك: عندما تسقط كتلة من ارتفاع h وتأخذ سرعة عند الوصول، فإنها مطبّقةً <span class="hl">حفظ الطاقة الميكانيكية</span> — طاقة الوضع تتحول بكاملها إلى طاقة حركية في نظام بلا احتكاك.</div>
+          </div>
+        </div>
+        <div class="composer-zone">
+          <div class="active-doc">
+            <svg class="ic" style="width:14px;height:14px;color:var(--info)"><use href="#ic-doc"/></svg>
+            المرجع: <b>محاضرة الباب الثاني</b> · 24 صفحة
+            <button class="close"><svg class="ic" style="width:14px;height:14px"><use href="#ic-x"/></svg></button>
+          </div>
+          <div class="composer">
+            <div class="comp-tools">
+              <button class="mt-btn" title="إرفاق"><svg class="ic"><use href="#ic-clip"/></svg></button>
+              <button class="mt-btn" title="قوالب"><svg class="ic"><use href="#ic-filter"/></svg></button>
+              <button class="mt-btn" title="تسجيل صوتي"><svg class="ic"><use href="#ic-volume"/></svg></button>
+            </div>
+            <textarea rows="1" placeholder="اكتب سؤالك هنا… (Enter للإرسال)"></textarea>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="pill" style="min-height:34px;font-size:12px;padding:0 10px">gemini-2.0-flash ▾</button>
+              <button class="send-btn"><svg class="ic"><use href="#ic-send"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SCREEN: QUIZ ================= -->
+<section class="screen" id="s-quiz">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sidebarlabel">أدوات الدراسة</div>
+      <button class="navitem"><svg class="ic"><use href="#ic-msg"/></svg> المحادثة</button>
+      <button class="navitem"><svg class="ic"><use href="#ic-scroll"/></svg> الملخص</button>
+      <button class="navitem on"><svg class="ic"><use href="#ic-pen"/></svg> الاختبار</button>
+    </aside>
+    <div class="maincol">
+      <div class="maincol-inner">
+        <div class="toolbar-demo">
+          <div class="crumb">الاختبار <b>إعداد اختبار ذكي</b></div>
+          <div class="mini-user"><span class="avatar">أح</span> أحمد</div>
+        </div>
+
+        <div class="wizard">
+          <div class="wz-step on"><span class="wz-num">١</span><span class="wz-label">الوضع واللغة</span></div>
+          <div class="wz-line"></div>
+          <div class="wz-step"><span class="wz-num">٢</span><span class="wz-label">الصعوبة والعدد</span></div>
+          <div class="wz-line"></div>
+          <div class="wz-step"><span class="wz-num">٣</span><span class="wz-label">المصدر</span></div>
+        </div>
+
+        <div class="card" style="padding:24px;margin-bottom:24px">
+          <span class="lbl">الوضع — اختر نوع الأسئلة</span>
+          <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:18px" class="wz-mode-grid">
+            <div class="radio-card sel"><span class="r-ic"><svg class="ic"><use href="#ic-check"/></svg></span><div><div class="r-title">اختيار من متعدد</div><div class="r-sub">سؤال مع 4 خيارات — تقييم تلقائي لحظي</div></div></div>
+            <div class="radio-card" style="opacity:.75"><span class="r-ic" style="color:var(--text-muted);background:var(--card-hover)"><svg class="ic"><use href="#ic-book"/></svg></span><div><div class="r-title">بطاقات فحص</div><div class="r-sub">إجابات قصيرة للتحقق السريع من الحفظ</div></div></div>
+          </div>
+          <span class="lbl">لغة الأسئلة</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+            <button class="pill sel">العربية</button>
+            <button class="pill">الإنجليزية</button>
+            <button class="pill">خليط</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+            <span style="font-size:13px;color:var(--text-muted)">ستنتقل إلى خطوة الصعوبة والعدد بعد الاختيار</span>
+            <button class="btn-primary">متابعة <svg class="ic" style="width:17px;height:17px"><use href="#ic-arrow"/></svg></button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:0;align-items:center;margin-bottom:10px">
+          <span style="background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:800;padding:3px 12px;border-radius:999px">مرحلة الحل — مثال معروض</span>
+        </div>
+
+        <div class="qbar">
+          <span class="tag info">MCQ</span>
+          <span style="font-size:13px;color:var(--text-muted)">السؤال 3 من 5</span>
+          <div class="progress" style="max-width:220px"><i style="width:60%"></i></div>
+          <span style="font-size:13px;color:var(--text-faint)">⏱ 08:12</span>
+          <div style="margin-inline-start:auto;display:flex;gap:8px">
+            <button class="btn-ghost" style="min-height:38px;font-size:13px"><svg class="ic" style="width:16px;height:16px"><use href="#ic-download"/></svg> تصدير</button>
+            <button class="iconbtn" style="width:38px;height:38px"><svg class="ic" style="width:17px;height:17px"><use href="#ic-settings"/></svg></button>
+          </div>
+        </div>
+
+        <div class="quiz-grid">
+          <div>
+            <div class="card" style="padding:22px;margin-bottom:18px">
+              <h3 style="font-size:18px;font-weight:700;color:var(--text-strong);line-height:1.7;margin-bottom:18px">عندما تتوقف السيارة فجأة، ماذا يحدث للركاب بسبب مبدأ القصور الذاتي؟</h3>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <button class="opt-card correct"><span class="m">أ</span> يستمرون في الحركة إلى الأمام بسبب القصور الذاتي <svg class="ic check"><use href="#ic-check"/></svg></button>
+                <button class="opt-card wrong"><span class="m">ب</span> يندفعون للخلف قليلاً ثم يثبتون <svg class="ic x"><use href="#ic-x"/></svg></button>
+                <button class="opt-card"><span class="m">ج</span> يتوقفون فوراً بدون أي حركة <span style="margin-inline-start:auto"></span></button>
+                <button class="opt-card"><span class="m">د</span> يتحركون جانبياً يميناً ويساراً <span style="margin-inline-start:auto"></span></button>
+              </div>
+            </div>
+            <div class="card" style="padding:12px 18px;background:var(--success-soft);border-color:var(--success)"><span style="display:flex;gap:9px;font-size:14px;color:var(--text)"><svg class="ic" style="color:var(--success)"><use href="#ic-check"/></svg><b>أحسنت!</b> إجابتك صحيحة — «القصور الذاتي» ميل الجسم للاستمرار في حالته الحركية.</span></div>
+          </div>
+          <div class="idx-card card"><div class="card-pad">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><b style="font-size:14px;color:var(--text-strong)">الأسئلة</b><button class="pill" style="min-height:32px;font-size:12px;padding:0 12px">مراجعة فقط</button></div>
+            <div class="idx-grid">
+              <button class="idx-cell done">١</button>
+              <button class="idx-cell done">٢</button>
+              <button class="idx-cell cur">٣</button>
+              <button class="idx-cell flag">٤</button>
+              <button class="idx-cell">٥</button>
+            </div>
+            <div style="margin-top:18px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text-muted)">
+              <span style="display:flex;gap:7px;align-items:center"><i style="width:9px;height:9px;border-radius:3px;background:var(--success)"></i> حُلّ</span>
+              <span style="display:flex;gap:7px;align-items:center"><i style="width:9px;height:9px;border-radius:3px;background:var(--warning)"></i> معلّمة للمراجعة</span>
+              <span style="display:flex;gap:7px;align-items:center"><i style="width:9px;height:9px;border-radius:3px;background:var(--accent)"></i> الجارية</span>
+            </div>
+          </div></div>
+        </div>
+
+        <div class="q-foot">
+          <button class="btn-ghost"><svg class="ic" style="width:17px;height:17px;transform:scaleX(-1)"><use href="#ic-arrow"/></svg> السابق</button>
+          <div class="mid">
+            <button class="btn-soft"><svg class="ic" style="width:17px;height:17px"><use href="#ic-star"/></svg> وضع علامة</button>
+          </div>
+          <button class="btn-primary">التالي <svg class="ic" style="width:17px;height:17px"><use href="#ic-arrow"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SCREEN: SUMMARY ================= -->
+<section class="screen" id="s-summary">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sidebarlabel">أدوات الدراسة</div>
+      <button class="navitem"><svg class="ic"><use href="#ic-msg"/></svg> المحادثة</button>
+      <button class="navitem on"><svg class="ic"><use href="#ic-scroll"/></svg> الملخص</button>
+      <button class="navitem"><svg class="ic"><use href="#ic-pen"/></svg> الاختبار</button>
+    </aside>
+    <div class="maincol">
+      <div class="maincol-inner">
+        <div class="toolbar-demo">
+          <div class="crumb">الملخص <b>نظرة عامة</b></div>
+          <div class="mini-user"><span class="avatar">أح</span> أحمد</div>
+        </div>
+
+        <div class="sum-step">
+          <div class="card" style="padding:24px">
+            <span class="lbl">مستوى التفصيل</span>
+            <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:22px" class="wz-mode-grid">
+              <div class="radio-card sel"><span class="r-ic"><svg class="ic"><use href="#ic-doc"/></svg></span><div><div class="r-title">قصير — للاستعراض</div><div class="r-sub">5-7 نقاط تلخّص الفكرة العامة</div></div></div>
+              <div class="radio-card"><span class="r-ic" style="color:var(--info);background:var(--info-soft)"><svg class="ic"><use href="#ic-scroll"/></svg></span><div><div class="r-title">متوسط — للدراسة</div><div class="r-sub">فقرات مرتّبة بكل المفاهيم الأساسية</div></div></div>
+              <div class="radio-card"><span class="r-ic" style="color:var(--warning);background:var(--warning-soft)"><svg class="ic"><use href="#ic-book"/></svg></span><div><div class="r-title">مفصّل — للمراجعة الشاملة</div><div class="r-sub">تغطية كاملة مع أمثلة وأمور تجنّبها</div></div></div>
+            </div>
+            <span class="lbl">اللغة</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px">
+              <button class="pill sel">العربية</button><button class="pill">الإنجليزية</button><button class="pill">خليط</button>
+            </div>
+            <span class="lbl">المصدر</span>
+            <button class="field" style="display:flex;align-items:center;justify-content:space-between;text-align:start;color:var(--text)">
+              <span style="display:flex;gap:9px;align-items:center"><svg class="ic" style="color:var(--info)"><use href="#ic-doc"/></svg> محاضرات الفيزياء — الباب الثالث</span>
+              <svg class="ic"><use href="#ic-chev"/></svg>
+            </button>
+            <div style="margin-top:24px"><button class="btn-primary" style="width:100%"><svg class="ic" style="width:18px;height:18px"><use href="#ic-spark"/></svg> توليد الملخص</button></div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:0;align-items:center;margin-top:30px;margin-bottom:10px">
+          <span style="background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:800;padding:3px 12px;border-radius:999px">مرحلة النتيجة — مثال معروض</span>
+        </div>
+
+        <div class="card sum-controls">
+          <button class="sel">المستوى ▾</button>
+          <button class="sel">اللغة ▾</button>
+          <div style="display:flex;gap:6px">
+            <button class="mt-btn" title="إعادة التوليد"><svg class="ic"><use href="#ic-refresh"/></svg></button>
+            <button class="mt-btn" title="تصدير"><svg class="ic"><use href="#ic-download"/></svg></button>
+          </div>
+        </div>
+
+        <div class="sum-tabs">
+          <button class="sum-tab on">الخلاصة</button>
+          <button class="sum-tab">النقاط الرئيسية</button>
+          <button class="sum-tab">المفاهيم</button>
+          <button class="sum-tab">الصيغ</button>
+          <button class="sum-tab">الخريطة الذهنية</button>
+          <button class="sum-tab">الأسئلة</button>
+        </div>
+
+        <div class="card">
+          <div style="height:44px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 24px;color:var(--text-muted);font-size:13.5px">
+            <svg class="ic" style="width:16px;height:16px;color:var(--info)"><use href="#ic-doc"/></svg> المصدر: محاضرات الفيزياء — الباب الثالث
+            <span class="tag info" style="margin-inline-start:auto">متوسط</span>
+          </div>
+          <div class="sum-content">
+            <h3>نظرة عامة على الباب الثالث</h3>
+            <p>يتناول الباب الثالث <span class="clr">القوة والحركة الدائرية</span> من خلال ثلاثة محاور رئيسية. يبدأ بتعريف <span class="clr">العجلة المركزية</span> وهي تسارع جسم متحرك في مسار دائري واتجاهه يبقى نحو المركز، ثم ينتقل إلى دراسة <span class="clr">قوة الشد</span> في الأجسام المعلّقة وعلاقتها بكتلة الجسم وربطه الكمي بمعادلة حركية موحدة.</p>
+            <ul>
+              <li>القوة المركزية تتناسب طردياً مع الكتلة ومربع السرعة، وعكسياً مع نصف القطر.</li>
+              <li>عند تغيّر نصف القطر يبقى الزخم الزاوي محفوظاً ما لم تحلّ عزم خارجي.</li>
+              <li>الحركة التابعة (كبندول) تختلف عنها في الحلزون بسبب اتجاه العجلة باستمرار.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SCREEN: TRANSLATE ================= -->
+<section class="screen" id="s-tr">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sidebarlabel">أدوات الدراسة</div>
+      <button class="navitem"><svg class="ic"><use href="#ic-msg"/></svg> المحادثة</button>
+      <button class="navitem"><svg class="ic"><use href="#ic-scroll"/></svg> الملخص</button>
+      <button class="navitem on"><svg class="ic"><use href="#ic-lang"/></svg> الترجمة</button>
+    </aside>
+    <div class="maincol">
+      <div class="maincol-inner">
+        <div class="toolbar-demo">
+          <div class="crumb">الترجمة <b>مستند مفرد</b></div>
+          <div class="mini-user"><span class="avatar">أح</span> أحمد</div>
+        </div>
+
+        <div class="tr-grid">
+          <div class="card tr-settings">
+            <span class="lbl">من</span>
+            <div class="tr-row" style="margin-bottom:16px">
+              <input class="field" style="padding:0" value="EN" />
+              <button class="pill" style="min-height:40px">اختيار لغة ▾</button>
+            </div>
+            <div style="text-align:center;margin-bottom:16px"><button class="tr-swap"><svg class="ic"><use href="#ic-refresh"/></svg></button></div>
+            <span class="lbl">إلى</span>
+            <div class="tr-row" style="margin-bottom:18px">
+              <input class="field" style="padding:0" value="AR" />
+              <button class="pill" style="min-height:40px">العربية ▾</button>
+            </div>
+            <span class="lbl">النمط</span>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px">
+              <button class="btn-ghost" style="min-height:56px;flex-direction:column;gap:4px;font-size:11.5px"><svg class="ic" style="width:18px;height:18px"><use href="#ic-doc"/></svg> رسمي</button>
+              <button class="btn-soft" style="min-height:56px;flex-direction:column;gap:4px;font-size:11.5px"><svg class="ic" style="width:18px;height:18px"><use href="#ic-book"/></svg> أكاديمي</button>
+              <button class="btn-ghost" style="min-height:56px;flex-direction:column;gap:4px;font-size:11.5px"><svg class="ic" style="width:18px;height:18px"><use href="#ic-msg"/></svg> مبسّط</button>
+            </div>
+            <span class="lbl">النطاق</span>
+            <div class="tr-row" style="margin-bottom:20px">
+              <input class="field" type="number" value="1" />
+              <span style="color:var(--text-faint);font-size:13px">إلى</span>
+              <input class="field" type="number" value="24" />
+            </div>
+            <button class="btn-primary" style="width:100%"><svg class="ic" style="width:17px;height:17px"><use href="#ic-lang"/></svg> ترجمة المستند</button>
+          </div>
+
+          <div class="tr-paper-wrap">
+            <div class="tr-toolbar">
+              <div class="grp">
+                <button class="tt-btn">A-</button>
+                <button class="tt-btn">A</button>
+                <button class="tt-btn">A+</button>
+              </div>
+              <div class="grp">
+                <button class="tt-btn">85%</button>
+                <button class="tt-btn active">100%</button>
+                <button class="tt-btn">115%</button>
+              </div>
+              <div class="grp">
+                <button class="tt-btn"><svg class="ic" style="width:16px;height:16px"><use href="#ic-download"/></svg></button>
+                <button class="tt-btn"><svg class="ic" style="width:16px;height:16px"><use href="#ic-print"/></svg></button>
+              </div>
+            </div>
+            <div class="apear">
+              <div class="pnum"><span>الترجمة المعتمدة</span><span>صفحة ١ من ٢٤</span></div>
+              <h2>The Laws of Motion and Circular Dynamics</h2>
+              <p class="ar-dir">قوانين الحركة والديناميكا الدائرية — الباب الثالث من مقرر الفيزياء العامة يركّز على تفسير حركة الأجسام في مسارات منحنية. يبدأ الفصل بتعريف العجلة المركزية بأنها التغيّر في اتجاه السرعة نحو مركز الانحناء، ثم ينتقل إلى اشتقاق القانون الدائري الأساسي الذي يربط بين القوة والكتلة ونصف القطر.</p>
+              <p class="ar-dir">ويستعرض المقرر بعد ذلك تطبيقات عملية تبدأ من حركة الأجسام المعلّقة في البندول البسيط، وصولاً إلى السيارات عند المنعطفات، حيث يُعتمد على قوة الاحتكاك لتوفير القوة المركزية اللازمة. ويختم الفصل بمناقشة حالات فقدان التوازن عند السرعات العالية، وهو ما يفسّر حاجة الطرق للميلان الجانبي في المنحنيات.</p>
+              <p class="ar-dir">كذلك تتم الإشارة إلى مسألة المتبقي المهمة: بقاء الزخم الزاوي عندما لا تؤثر عوازل خارجية حول المركز، وهي مبدأ يحكم حركة الأقمار الصناعية وتغيّر نصف المدار.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var main=document.getElementById('main');
+  var navBtns=document.querySelectorAll('[data-screen]');
+  var current='s-design';
+  function show(id){
+    current=id;
+    main.querySelectorAll('.screen').forEach(function(s){s.classList.toggle('active',s.id===id);});
+    navBtns.forEach(function(b){b.classList.toggle('on',b.dataset.screen===id);});
+    window.scrollTo({top:0,behavior:'instant' in window?'instant':'auto'});
+  }
+  navBtns.forEach(function(b){b.addEventListener('click',function(){show(b.dataset.screen);});});
+
+  var themeHint=document.getElementById('themeHint');
+  document.getElementById('themeToggle').addEventListener('click',function(){
+    document.documentElement.classList.toggle('dark');
+    themeHint.textContent=document.documentElement.classList.contains('dark')?'داكن':'فاتح';
+  });
+  document.getElementById('phoneToggle').addEventListener('click',function(){
+    document.documentElement.classList.toggle('phone-mode');
+    this.textContent=document.documentElement.classList.contains('phone-mode')?'🖥 خارج الهاتف':'📱 هاتف';
+  });
+})();
+</script>
+</body>
+</html>
