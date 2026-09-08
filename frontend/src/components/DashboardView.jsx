@@ -8,7 +8,8 @@ import {
   Upload, 
   Zap, 
   ArrowLeft,
-  Presentation
+  Presentation,
+  BookMarked
 } from 'lucide-react';
 import StudentAnalytics from './StudentAnalytics';
 
@@ -52,6 +53,15 @@ export default function DashboardView({
       gradient: 'from-amber-600 to-orange-700',
       badge: 'أكاديمي',
       badgeColor: 'bg-amber-500/15 text-amber-500 border-amber-500/30'
+    },
+    {
+      id: 'terms',
+      title: 'المصطلحات الأكاديمية',
+      desc: 'استخراج المصطلحات العلمية مع تعريفات وترجمات أكاديمية واختبار تفاعلي',
+      icon: BookMarked,
+      gradient: 'from-cyan-600 to-sky-700',
+      badge: 'Interactive',
+      badgeColor: 'bg-cyan-500/15 text-cyan-500 border-cyan-500/30'
     },
     {
       id: 'presentations',
