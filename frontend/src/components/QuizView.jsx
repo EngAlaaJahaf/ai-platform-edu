@@ -5,43 +5,32 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import { 
   BrainCircuit, 
-  Sparkles, 
   CheckCircle2, 
   XCircle, 
   RotateCcw, 
   Award, 
   ArrowLeft, 
   ArrowRight, 
-  TrendingUp, 
   AlertTriangle, 
   Lightbulb, 
   Upload, 
-  KeyRound, 
-  Wand2, 
   Download, 
-  FileSpreadsheet, 
-  FileCode, 
-  Copy, 
-  Check, 
   FileInput, 
+  Flag, 
   X, 
-  Play, 
   Sliders, 
-  HelpCircle, 
-  BookOpen, 
-  Target, 
-  GraduationCap, 
   Languages, 
   Repeat, 
-  Clock, 
   Settings, 
   Trash2, 
-  History, 
-  MoreHorizontal 
+  History 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { fetchQuiz, exportQuizData, importQuizFromText, fetchQuizProgress, saveQuizProgress } from '../services/api';
 import ExportModal from './ExportModal';
+import QWizard from './QWizard';
+
+const toAr = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
 
 export default function QuizView({ 
   activeDoc, 
@@ -964,213 +953,36 @@ export default function QuizView({
   if (!quizData && !loading) {
     return (
       <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
-        <div className="glass-panel rounded-3xl p-8 border shadow-xl space-y-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-1.5">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-black">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>استوديو توليد بنك الأسئلة الأكاديمي المتقدم</span>
-              </div>
-              <h2 className="text-2xl font-black theme-text-primary">
-                توليد أسئلة MCQ وبطاقات استذكار
-              </h2>
-              <p className="text-xs theme-text-secondary">
-                المستند الحالي: <b className="theme-text-primary">{activeDoc.filename}</b> ({activeDoc.pages_count} صفحة • {activeDoc.words_count || 0} كلمة)
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
-              {history.length > 0 && (
-                <button
-                  onClick={() => setIsHistoryOpen(true)}
-                  className="px-3.5 py-2 rounded-xl theme-card-inner border text-xs font-bold text-amber-400 hover:border-amber-400/50 transition flex items-center gap-1.5 font-['Tajawal']"
-                  title="سجل الاختبارات والمحاولات السابقة"
-                >
-                  <History className="w-3.5 h-3.5" />
-                  <span>الاختبارات المحفوظة ({history.length})</span>
-                </button>
-              )}
-              <button
-                onClick={() => setIsImportOpen(true)}
-                className="px-3.5 py-2 rounded-xl theme-card-inner border text-xs font-bold text-teal-500 hover:border-teal-400 transition flex items-center gap-1.5 font-['Tajawal']"
-                title="استيراد بنك أسئلة نصي جاهز"
-              >
-                <FileInput className="w-3.5 h-3.5" />
-                <span>استيراد أسئلة جاهزة</span>
-              </button>
-              {cachedQuizData ? (
-                <button
-                  onClick={() => setQuizData(cachedQuizData)}
-                  className="px-3.5 py-2 rounded-xl theme-card-inner border text-xs font-bold text-emerald-400 hover:border-emerald-400/50 hover:text-emerald-300 transition flex items-center gap-1.5 font-['Tajawal'] shadow-sm"
-                  title="الرجوع للاختبار الحالي"
-                >
-                  <X className="w-3.5 h-3.5 text-rose-400" />
-                  <span>الرجوع للاختبار</span>
-                </button>
-              ) : history.length > 0 ? (
-                <button
-                  onClick={() => {
-                    const lastAttempt = history[0];
-                    if (lastAttempt && (lastAttempt.quizData || lastAttempt.selectedAnswers)) {
-                      if (lastAttempt.quizData) setQuizData(lastAttempt.quizData);
-                      setReviewAttemptId(lastAttempt.id);
-                    } else {
-                      setIsHistoryOpen(true);
-                    }
-                  }}
-                  className="px-3.5 py-2 rounded-xl theme-card-inner border text-xs font-bold text-amber-400 hover:border-amber-400/50 transition flex items-center gap-1.5 font-['Tajawal']"
-                  title="الرجوع للاختبارات المحفوظة"
-                >
-                  <X className="w-3.5 h-3.5 text-rose-400" />
-                  <span>الرجوع للاختبارات</span>
-                </button>
-              ) : null}
-            </div>
-          </div>
-
-          {/* Mode Selector */}
-          <div className="space-y-2">
-            <label className="text-xs font-black theme-text-primary block">نوع الأداة المطلوبة:</label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setMode('mcq')}
-                className={`p-4 rounded-2xl border text-right transition flex items-center justify-between ${
-                  mode === 'mcq'
-                    ? 'bg-gradient-to-r from-emerald-600/25 to-teal-600/15 border-emerald-500 shadow-md shadow-emerald-600/10'
-                    : 'theme-card-inner border'
-                }`}
-              >
-                <div>
-                  <b className="text-sm font-black theme-text-primary block">اختيار من متعدد (MCQ)</b>
-                  <span className="text-xs theme-text-secondary mt-0.5 block">أسئلة ثنائية وشروحات وتنبؤ بالدرجة</span>
-                </div>
-                {mode === 'mcq' && <span className="w-2.5 h-2.5 rounded-full bg-teal-400"></span>}
-              </button>
-
-              <button
-                onClick={() => setMode('flashcard')}
-                className={`p-4 rounded-2xl border text-right transition flex items-center justify-between ${
-                  mode === 'flashcard'
-                    ? 'bg-gradient-to-r from-emerald-600/25 to-teal-600/15 border-emerald-500 shadow-md shadow-emerald-600/10'
-                    : 'theme-card-inner border'
-                }`}
-              >
-                <div>
-                  <b className="text-sm font-black theme-text-primary block">بطاقات استذكار (Flashcards)</b>
-                  <span className="text-xs theme-text-secondary mt-0.5 block">بطاقات تفاعلية تدعم التبديل اللغوي الفوري</span>
-                </div>
-                {mode === 'flashcard' && <span className="w-2.5 h-2.5 rounded-full bg-teal-400"></span>}
-              </button>
-            </div>
-          </div>
-
-          {/* Language Selector Option */}
-          <div className="space-y-2">
-            <label className="text-xs font-black theme-text-primary flex items-center gap-1.5">
-              <Languages className="w-4 h-4 text-teal-400" />
-              <span>لغة توليد الأسئلة والبطاقات:</span>
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {[
-                { id: 'bilingual', label: 'ثنائي اللغة (EN + AR)', desc: 'السؤال والخيارات والشروحات باللغتين 🌐', badge: 'موصى به' },
-                { id: 'ar', label: 'اللغة العربية فقط', desc: 'صياغة ومصطلحات عربية فصحى 🇸🇦', badge: 'عربي' },
-                { id: 'en', label: 'English Only', desc: 'Pure Academic English Terminology 🇬🇧', badge: 'English' },
-              ].map((l) => (
-                <button
-                  key={l.id}
-                  onClick={() => setLanguage(l.id)}
-                  className={`p-3.5 rounded-2xl border text-right transition flex flex-col justify-between cursor-pointer ${
-                    language === l.id
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 border-teal-500 shadow-md theme-text-primary ring-2 ring-teal-500/20'
-                      : 'theme-card-inner border hover:border-emerald-400/40'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <b className={`text-xs font-black ${language === l.id ? 'text-teal-600 dark:text-teal-400' : 'theme-text-primary'}`}>{l.label}</b>
-                    {language === l.id && <span className="w-2 h-2 rounded-full bg-teal-500"></span>}
-                  </div>
-                  <p className="text-xs theme-text-secondary leading-relaxed">{l.desc}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Difficulty & Count Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-xs font-black theme-text-primary block">مستوى الصعوبة الأكاديمية:</label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                {[
-                  { id: 'easy', label: 'سهل (مفاهيم)' },
-                  { id: 'medium', label: 'متوسط (شامل)' },
-                  { id: 'hard', label: 'صعب (امتحان)' },
-                ].map((d) => (
-                  <button
-                    key={d.id}
-                    onClick={() => setDifficulty(d.id)}
-                    className={`py-2.5 px-2 rounded-xl border text-xs font-bold text-center transition cursor-pointer ${
-                      difficulty === d.id
-                        ? 'bg-emerald-600 text-white border-emerald-500 shadow-md'
-                        : 'theme-card-inner border theme-text-muted hover:theme-text-primary'
-                    }`}
-                  >
-                    {d.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-black theme-text-primary block">عدد الأسئلة المطلوب:</label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[5, 10, 15, 20].map((cnt) => (
-                  <button
-                    key={cnt}
-                    onClick={() => setQuestionCount(cnt)}
-                    className={`py-2.5 rounded-xl border text-xs font-mono font-bold text-center transition cursor-pointer ${
-                      questionCount === cnt
-                        ? 'bg-teal-600 text-white border-teal-500 shadow-md'
-                        : 'theme-card-inner border theme-text-muted hover:theme-text-primary'
-                    }`}
-                  >
-                    {cnt} أسئلة
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-2xl theme-card-inner flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs">
-              <Wand2 className="w-4 h-4 text-teal-400" />
-              <span className="theme-text-muted">قالب البرومبت:</span>
-              <span className="font-bold theme-text-primary">{activePrompt?.title || 'الافتراضي المعتمد'}</span>
-            </div>
-            <button
-              onClick={onOpenPromptManager}
-              className="text-xs font-bold text-emerald-500 hover:underline"
-            >
-              اختيار قالب آخر
-            </button>
-          </div>
-
-          <div className="pt-2 flex flex-col gap-3">
-            <button
-              onClick={() => handleGenerateQuiz(difficulty, questionCount, language, false)}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-600 hover:scale-[1.01] text-white font-black text-sm flex items-center justify-center gap-3 shadow-xl shadow-emerald-600/25 border border-white/20 transition cursor-pointer"
-            >
-              <Play className="w-4 h-4 fill-white text-white" />
-              <span>بدء توليد بنك الأسئلة الأكاديمي الآن 🎯</span>
-            </button>
-            <button
-              onClick={() => handleGenerateQuiz(difficulty, questionCount, language, true)}
-              className="w-full py-4 rounded-2xl bg-transparent hover:bg-white/5 text-emerald-400 font-bold text-sm flex items-center justify-center gap-3 border border-emerald-500/30 transition cursor-pointer"
-            >
-              <FileInput className="w-4 h-4" />
-              <span>استخراج الأسئلة الجاهزة من الملف (بدون تأليف) 📄</span>
-            </button>
-          </div>
-        </div>
+        <QWizard
+          mode={mode}
+          setMode={setMode}
+          language={language}
+          setLanguage={setLanguage}
+          difficulty={difficulty}
+          setDifficulty={setDifficulty}
+          questionCount={questionCount}
+          setQuestionCount={setQuestionCount}
+          activeDoc={activeDoc}
+          activePrompt={activePrompt}
+          onOpenPromptManager={onOpenPromptManager}
+          onHistory={() => setIsHistoryOpen(true)}
+          historyCount={history.length}
+          onOpenImport={() => setIsImportOpen(true)}
+          showReturnToQuiz={!!cachedQuizData}
+          onReturnToQuiz={() => setQuizData(cachedQuizData)}
+          showResumeLast={history.length > 0 && !cachedQuizData}
+          onResumeLast={() => {
+            const lastAttempt = history[0];
+            if (lastAttempt && (lastAttempt.quizData || lastAttempt.selectedAnswers)) {
+              if (lastAttempt.quizData) setQuizData(lastAttempt.quizData);
+              setReviewAttemptId(lastAttempt.id);
+            } else {
+              setIsHistoryOpen(true);
+            }
+          }}
+          onGenerate={() => handleGenerateQuiz(difficulty, questionCount, language, false)}
+          onExtract={() => handleGenerateQuiz(difficulty, questionCount, language, true)}
+        />
         {renderModals()}
       </div>
     );
@@ -1410,45 +1222,45 @@ export default function QuizView({
 
       {/* MCQ Mode View */}
       {mode === 'mcq' && currentQ && !loading && !isCompleted && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          {/* Main Question Card Column */}
-          <div className="lg:col-span-8 space-y-4">
-
-            <div className="glass-card rounded-3xl p-6 md:p-8 border space-y-6 shadow-lg">
-              
-              {/* Question Header */}
-              <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-200 dark:border-slate-800">
-                <div className="flex items-center gap-2.5">
-                  <span className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm font-black flex items-center gap-1.5">
-                    <HelpCircle className="w-4 h-4" />
-                    <span>السؤال رقم {currentIdx + 1} من {questions.length}</span>
-                  </span>
-                  {currentQ.cognitive_level && (
-                    <span className="px-2.5 py-1 rounded-lg theme-card-inner border text-xs font-bold theme-text-muted">
-                      {currentQ.cognitive_level}
-                    </span>
-                  )}
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  {quizSettings.mode === 'exam' && timeLeft !== null && (
-                    <span className="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-mono font-bold flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>{formatTime(timeLeft)}</span>
-                    </span>
-                  )}
-                  <span className="text-xs font-bold theme-text-muted">
-                    المستوى: <b>{difficulty === 'hard' ? 'متقدم (Exam)' : difficulty === 'easy' ? 'مبتدئ' : 'متوسط'}</b>
-                  </span>
-                  {currentQ.topic && (
-                    <span className="text-xs font-bold theme-text-muted">
-                      • {currentQ.topic}
-                    </span>
-                  )}
-                </div>
+        <div className="quiz-grid">
+          {/* Main Question Column */}
+          <div className="space-y-4">
+            <div className="qbar">
+              <span className="tag info">MCQ</span>
+              <span className="text-[13px] theme-text-muted">السؤال {toAr(currentIdx + 1)} من {toAr(questions.length)}</span>
+              <div className="progress" style={{ maxWidth: 220 }}>
+                <i style={{ width: `${((currentIdx + 1) / (questions.length || 1)) * 100}%` }}></i>
               </div>
+              {quizSettings.mode === 'exam' && timeLeft !== null && (
+                <span className="text-[13px] theme-text-faint font-mono font-bold flex items-center gap-1">
+                  ⏱ {formatTime(timeLeft)}
+                </span>
+              )}
+              {currentQ.topic && (
+                <span className="text-[13px] theme-text-faint">{currentQ.topic}</span>
+              )}
+              <div style={{ marginInlineStart: 'auto' }} className="flex gap-2">
+                <button
+                  onClick={() => setIsAcademicExportOpen(true)}
+                  className="btn-ghost"
+                  style={{ minHeight: 38, fontSize: 13, padding: '0 14px' }}
+                  title="تصدير بنك الأسئلة PDF / HTML"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>تصدير</span>
+                </button>
+                <button
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="iconbtn"
+                  style={{ width: 38, height: 38 }}
+                  title="إعدادات وتخصيص الاختبار"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
 
+            <div className="card card-pad space-y-4">
               {/* Dynamic Question Text based on viewLang with KaTeX Support */}
               <div className="space-y-2.5">
                 {viewLang === 'ar' ? (
@@ -1482,36 +1294,29 @@ export default function QuizView({
               </div>
 
               {/* Options List with KaTeX Support */}
-              <div className="space-y-3 pt-2">
+              <div className="flex flex-col gap-2.5 pt-1">
                 {currentQ.options?.map((opt, optIdx) => {
-                  const letters = ['A', 'B', 'C', 'D', 'E'];
-                  const letter = letters[optIdx];
+                  const letters = ['أ', 'ب', 'ج', 'د', 'هـ'];
+                  const letter = letters[optIdx] || String.fromCharCode(1569 + optIdx);
                   const isSelected = activeAnswers[currentQ.id] === optIdx;
                   const isAnswered = activeAnswers[currentQ.id] !== undefined;
                   const isCorrect = optIdx === currentQ.correct_index;
 
                   const hideCorrection = (quizSettings.mode === 'exam' || quizSettings.showResult === 'final') && !isReviewActive;
 
-                  let optClass = 'theme-card-inner border hover:border-emerald-500/50';
+                  let optClass = '';
+                  let dimmed = false;
                   if (isAnswered) {
                     if (hideCorrection) {
-                      if (isSelected) {
-                        optClass = 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-md';
-                      } else {
-                        optClass = 'opacity-60 theme-card-inner border';
-                      }
+                      if (isSelected) optClass = 'sel';
+                      else dimmed = true;
                     } else {
-                      if (isCorrect) {
-                        optClass = 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-md shadow-emerald-500/10';
-                      } else if (isSelected) {
-                        optClass = 'bg-rose-500/20 border-rose-500 text-rose-300';
-                      } else {
-                        optClass = 'opacity-50 theme-card-inner border';
-                      }
+                      if (isCorrect) optClass = 'correct';
+                      else if (isSelected) optClass = 'wrong';
+                      else dimmed = true;
                     }
                   }
 
-                  // Option display logic
                   let displayOpt = opt;
                   if (viewLang === 'ar' && currentQ.options_ar?.[optIdx]) {
                     displayOpt = currentQ.options_ar[optIdx];
@@ -1522,73 +1327,33 @@ export default function QuizView({
                   return (
                     <button
                       key={optIdx}
+                      type="button"
                       onClick={() => {
                         if (isReviewActive) return;
                         handleSelectOption(currentQ.id, optIdx);
                       }}
                       disabled={isAnswered || isReviewActive}
-                      className={`w-full p-4 rounded-2xl text-right transition-all flex items-start gap-3.5 cursor-pointer ${optClass}`}
+                      className={`opt-card ${optClass}`}
+                      style={dimmed ? { opacity: 0.5 } : undefined}
                     >
-                      <span className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${
-                        isAnswered && !hideCorrection && isCorrect
-                          ? 'bg-emerald-500 text-slate-950 font-black'
-                          : isAnswered && !hideCorrection && isSelected
-                          ? 'bg-rose-500 text-white font-black'
-                          : isAnswered && hideCorrection && isSelected
-                          ? 'bg-emerald-500 text-white font-black'
-                          : 'bg-white/10 theme-text-primary'
-                      }`}>
-                        {letter}
-                      </span>
+                      <span className="m">{letter}</span>
                       <div className="flex-1 text-sm font-bold theme-text-primary leading-relaxed">
                         <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
                           {displayOpt}
                         </ReactMarkdown>
                       </div>
-                      {isAnswered && !hideCorrection && isCorrect && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-1" />}
-                      {isAnswered && !hideCorrection && isSelected && !isCorrect && <XCircle className="w-5 h-5 text-rose-400 shrink-0 mt-1" />}
+                      {isAnswered && !hideCorrection && isCorrect && (
+                        <CheckCircle2 className="check" style={{ width: 19, height: 19 }} />
+                      )}
+                      {isAnswered && !hideCorrection && isSelected && !isCorrect && (
+                        <XCircle className="x" style={{ width: 19, height: 19 }} />
+                      )}
+                      {isAnswered && hideCorrection && isSelected && (
+                        <CheckCircle2 className="check" style={{ width: 19, height: 19 }} />
+                      )}
                     </button>
                   );
                 })}
-              </div>
-
-              {/* Navigation Pagination Buttons */}
-              <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                <button
-                  onClick={handlePrev}
-                  disabled={currentIdx === 0}
-                  className="px-4 py-2.5 rounded-xl theme-header-btn border text-xs font-bold transition disabled:opacity-40 flex items-center gap-1.5 font-['Tajawal']"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                  <span>السابق</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    if (isReviewActive) return;
-                    const qId = currentQ.id;
-                    setMarkedQuestions(prev => ({
-                      ...prev,
-                      [qId]: !prev[qId]
-                    }));
-                  }}
-                  className={`px-4 py-2.5 rounded-xl border text-xs font-bold transition flex items-center gap-1.5 font-['Tajawal'] ${
-                    activeMarked[currentQ.id]
-                      ? 'bg-rose-500/20 border-rose-500 text-rose-300'
-                      : 'theme-header-btn border'
-                  }`}
-                >
-                  <span>{activeMarked[currentQ.id] ? 'إلغاء التعليم ⚪' : 'تعليم السؤال 🔴'}</span>
-                </button>
-
-                <button
-                  onClick={handleNext}
-                  disabled={activeAnswers[currentQ.id] === undefined && !isReviewActive}
-                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition disabled:opacity-40 flex items-center gap-1.5 shadow-md shadow-emerald-600/25 font-['Tajawal']"
-                >
-                  <span>{currentIdx === questions.length - 1 ? 'عرض النتيجة النهائية' : 'السؤال التالي'}</span>
-                  <ArrowLeft className="w-4 h-4" />
-                </button>
               </div>
 
               {/* Scientific Rationale Collapsible Explanation Box */}
@@ -1625,85 +1390,126 @@ export default function QuizView({
                   )}
                 </div>
               )}
+            </div>
 
+            {/* Navigation Pagination Footer */}
+            <div className="q-foot">
+              <button
+                type="button"
+                onClick={handlePrev}
+                disabled={currentIdx === 0}
+                className="btn-ghost"
+                style={{ minHeight: 40 }}
+              >
+                <ArrowRight className="w-4 h-4" />
+                <span>السابق</span>
+              </button>
+
+              <div className="mid">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isReviewActive) return;
+                    const qId = currentQ.id;
+                    setMarkedQuestions(prev => ({
+                      ...prev,
+                      [qId]: !prev[qId]
+                    }));
+                  }}
+                  className="btn-soft"
+                  style={{
+                    minHeight: 40,
+                    background: activeMarked[currentQ.id] ? 'var(--warning-soft)' : undefined,
+                    borderColor: activeMarked[currentQ.id] ? 'var(--warning)' : undefined,
+                    color: activeMarked[currentQ.id] ? 'var(--warning)' : undefined
+                  }}
+                >
+                  <Flag className="w-4 h-4" />
+                  <span>{activeMarked[currentQ.id] ? 'إلغاء التعليم' : 'وضع علامة'}</span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={activeAnswers[currentQ.id] === undefined && !isReviewActive}
+                className="btn-primary"
+                style={{ minHeight: 40 }}
+              >
+                <span>{currentIdx === questions.length - 1 ? 'عرض النتيجة' : 'التالي'}</span>
+                <ArrowLeft className="w-4 h-4" />
+              </button>
             </div>
           </div>
 
-          {/* Right Column */}
-          <div className="lg:col-span-4 space-y-4">
-
-            <div className="glass-card rounded-2xl p-5 border space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-extrabold text-xs theme-text-muted font-['Tajawal']">فهرس الأسئلة</h4>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-teal-500/10 text-teal-400 font-bold font-mono">
-                  {questions.length} سؤال
+          {/* Index Side Column */}
+          <div className="idx-card card">
+            <div className="card-pad">
+              <div className="flex items-center justify-between mb-3">
+                <b className="text-sm theme-text-primary">الأسئلة</b>
+                <span className="pill" style={{ minHeight: 30, fontSize: 12, padding: '0 10px' }}>
+                  {toAr(questions.length)} سؤال
                 </span>
               </div>
 
-              {/* Chapter Selector Dropdown */}
               {quizData && quizData.chapters && quizData.chapters.length > 0 && (
-                <div className="space-y-1">
-                  <select
-                    value={activeChapterIdx}
-                    onChange={(e) => {
-                      if (isReviewActive) return;
-                      handleChapterChange(e.target.value);
-                    }}
-                    disabled={isReviewActive}
-                    className="w-full text-xs font-bold theme-card-inner border rounded-xl p-2.5 outline-none focus:border-teal-500 transition cursor-pointer theme-text-primary font-['Tajawal'] disabled:opacity-50"
-                  >
-                    <option value="all">عرض الكل / All Chapters ({quizData.chapters.flatMap(c => c.questions || []).length} سؤال)</option>
-                    {quizData.chapters.map((ch, i) => (
-                      <option key={ch.id || i} value={i}>
-                        {ch.title || `الشابتر ${i + 1}`} ({ch.questions?.length || 0} أسئلة)
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <select
+                  value={activeChapterIdx}
+                  onChange={(e) => {
+                    if (isReviewActive) return;
+                    handleChapterChange(e.target.value);
+                  }}
+                  disabled={isReviewActive}
+                  className="field mb-3 font-['Tajawal'] text-xs"
+                >
+                  <option value="all">عرض الكل / All Chapters ({quizData.chapters.flatMap(c => c.questions || []).length} سؤال)</option>
+                  {quizData.chapters.map((ch, i) => (
+                    <option key={ch.id || i} value={i}>
+                      {ch.title || `الشابتر ${i + 1}`} ({ch.questions?.length || 0} أسئلة)
+                    </option>
+                  ))}
+                </select>
               )}
 
-              <div className="grid grid-cols-5 gap-2">
+              <div className="idx-grid">
                 {questions.map((q, idx) => {
                   const isAns = activeAnswers[q.id] !== undefined;
-                  const isCorrect = isAns && activeAnswers[q.id] === q.correct_index;
                   const isCur = currentIdx === idx;
                   const isMarked = activeMarked[q.id];
+                  let cellClass = '';
+                  if (isCur) cellClass = 'cur';
+                  else if (isAns) cellClass = 'done';
+                  else if (isMarked) cellClass = 'flag';
                   return (
-                    <div key={q.id || idx} className="relative">
-                      <button
-                        onClick={() => setCurrentIdx(idx)}
-                        className={`w-full h-9 rounded-xl font-bold text-xs transition ${
-                          isCur
-                            ? 'border-2 border-teal-400 bg-teal-500/20 text-teal-300 font-extrabold shadow-sm ring-1 ring-teal-400/20'
-                            : isAns
-                            ? isCorrect
-                              ? 'bg-emerald-600 dark:bg-emerald-600/90 text-white font-black shadow-sm'
-                              : 'bg-rose-600 dark:bg-rose-600/90 text-white font-black shadow-sm'
-                            : 'theme-card-inner theme-text-muted hover:theme-text-primary'
-                        }`}
-                      >
-                        {idx + 1}
-                      </button>
-                      {isMarked && (
-                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-500 border border-slate-900 animate-pulse shadow-sm shadow-rose-500/50"></span>
-                      )}
-                    </div>
+                    <button
+                      key={q.id || idx}
+                      type="button"
+                      onClick={() => setCurrentIdx(idx)}
+                      className={`idx-cell ${cellClass}`}
+                    >
+                      {toAr(idx + 1)}
+                    </button>
                   );
                 })}
+              </div>
+
+              <div className="mt-4 flex flex-col gap-1.5 text-xs theme-text-muted">
+                <span className="flex items-center gap-2"><i style={{ width: 9, height: 9, borderRadius: 3, background: 'var(--success)' }}></i> حُلّ</span>
+                <span className="flex items-center gap-2"><i style={{ width: 9, height: 9, borderRadius: 3, background: 'var(--warning)' }}></i> معلّمة للمراجعة</span>
+                <span className="flex items-center gap-2"><i style={{ width: 9, height: 9, borderRadius: 3, background: 'var(--accent)' }}></i> الجارية</span>
               </div>
 
               {history.length > 0 && (
                 <button
                   onClick={() => setIsHistoryOpen(true)}
-                  className="w-full py-2.5 px-3 rounded-xl theme-card-inner border text-xs font-bold text-amber-400 hover:border-amber-400/50 transition flex items-center justify-center gap-1.5 font-['Tajawal']"
+                  className="w-full py-2.5 px-3 rounded-xl theme-card-inner border text-xs font-bold text-amber-400 hover:border-amber-400/50 transition flex items-center justify-center gap-1.5 font-['Tajawal'] mt-4"
                 >
                   <History className="w-3.5 h-3.5" />
-                  <span>سجل الاختبارات السابقة ({history.length}) 📋</span>
+                  <span>سجل الاختبارات السابقة ({toAr(history.length)})</span>
                 </button>
               )}
             </div>
           </div>
-
         </div>
       )}
 
