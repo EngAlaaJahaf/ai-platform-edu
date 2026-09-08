@@ -323,10 +323,8 @@ export default function App() {
             activeDoc={activeDoc}
             activePrompt={activeChatPrompt}
             onOpenPromptManager={() => handleOpenPromptForCategory('chat')}
-            onSwitchToQuiz={() => setActiveTab('quiz')}
-            onSwitchToSummary={() => setActiveTab('summary')}
             onOpenUpload={() => setIsUploadOpen(true)}
-            onOpenApiKey={() => setIsApiKeyOpen(true)}
+            onCloseActiveDoc={() => setActiveDoc(null)}
           />
         </div>
 
