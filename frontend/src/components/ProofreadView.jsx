@@ -8,7 +8,6 @@ import {
   ArrowRight, 
   ShieldCheck, 
   FileEdit,
-  Wand2,
   Download
 } from 'lucide-react';
 import { proofreadText } from '../services/api';
@@ -56,7 +55,7 @@ export default function ProofreadView({ onOpenApiKey, onOpenPromptManager }) {
     <div className="max-w-5xl mx-auto space-y-6 animate-fade-in">
       
       {/* Header */}
-      <div className="glass-panel rounded-2xl p-6 border shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-500 dark:text-emerald-300">
@@ -73,7 +72,8 @@ export default function ProofreadView({ onOpenApiKey, onOpenPromptManager }) {
           {result && (
             <button
               onClick={() => setIsExportOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-xs font-black text-white shadow-lg shadow-emerald-600/25 border border-white/20 transition cursor-pointer"
+              className="btn-primary"
+              style={{ minHeight: 40, fontSize: 12.5, padding: '0 16px' }}
             >
               <Download className="w-3.5 h-3.5" />
               <span>تصدير وطباعة 📄</span>
@@ -83,7 +83,8 @@ export default function ProofreadView({ onOpenApiKey, onOpenPromptManager }) {
           <button
             onClick={handleAudit}
             disabled={loading || !inputText.trim()}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 disabled:opacity-50 text-xs font-black text-white shadow-lg shadow-emerald-600/25 border border-white/20 transition cursor-pointer"
+            className="btn-primary"
+            style={{ minHeight: 40, fontSize: 12.5, padding: '0 18px' }}
           >
             <Sparkles className={`w-4 h-4 text-amber-300 ${loading ? 'animate-spin' : ''}`} />
             <span>{loading ? 'جاري الفحص الدقيق...' : 'تدقيق النص الآن'}</span>
@@ -95,7 +96,7 @@ export default function ProofreadView({ onOpenApiKey, onOpenPromptManager }) {
         
         {/* Text Input Area */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="glass-card rounded-2xl p-5 border flex flex-col h-[480px]">
+          <div className="card p-5 flex flex-col h-[480px]">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-extrabold theme-text-primary flex items-center gap-2">
                 <FileEdit className="w-4 h-4 text-teal-500" /> أدخل نص فقرتك أو بحثك:
@@ -132,7 +133,7 @@ export default function ProofreadView({ onOpenApiKey, onOpenPromptManager }) {
               
               {/* Score Gauges */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="glass-card rounded-2xl p-4 border text-center">
+                <div className="card p-4 text-center">
                   <span className="text-xs theme-text-secondary font-bold">نسبة الأصالة الأكاديمية</span>
                   <div className="text-3xl font-black text-emerald-500 dark:text-emerald-400 font-['JetBrains_Mono'] my-1">
                     {result.originality_score}%
@@ -142,7 +143,7 @@ export default function ProofreadView({ onOpenApiKey, onOpenPromptManager }) {
                   </span>
                 </div>
 
-                <div className="glass-card rounded-2xl p-4 border text-center">
+                <div className="card p-4 text-center">
                   <span className="text-xs theme-text-secondary font-bold">سلامة اللغة والنحو</span>
                   <div className="text-3xl font-black text-teal-600 dark:text-teal-400 font-['JetBrains_Mono'] my-1">
                     {result.grammar_score}%
@@ -155,7 +156,7 @@ export default function ProofreadView({ onOpenApiKey, onOpenPromptManager }) {
 
               {/* Issues List */}
               {result.issues && result.issues.length > 0 && (
-                <div className="glass-card rounded-2xl p-5 border space-y-3">
+                <div className="card p-5 space-y-3">
                   <h4 className="text-xs font-extrabold text-emerald-500 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
                     <AlertCircle className="w-4 h-4 text-amber-500" /> التنبيهات والتصحيحات المقترحة
                   </h4>
@@ -187,7 +188,7 @@ export default function ProofreadView({ onOpenApiKey, onOpenPromptManager }) {
 
               {/* Paraphrased Version */}
               {result.paraphrased_version && (
-                <div className="glass-card rounded-2xl p-5 border space-y-3">
+                <div className="card p-5 space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-extrabold text-teal-500 dark:text-teal-300 uppercase tracking-wider flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-amber-500" /> إعادة الصياغة الأكاديمية المقترحة
@@ -208,7 +209,7 @@ export default function ProofreadView({ onOpenApiKey, onOpenPromptManager }) {
 
             </div>
           ) : (
-            <div className="glass-card rounded-2xl p-8 border text-center flex flex-col items-center justify-center h-[480px]">
+            <div className="card p-8 text-center flex flex-col items-center justify-center h-[480px]">
               <div className="w-12 h-12 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-teal-500 mb-3">
                 <ShieldCheck className="w-6 h-6" />
               </div>
