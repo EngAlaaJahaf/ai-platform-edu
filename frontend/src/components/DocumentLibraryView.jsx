@@ -411,6 +411,7 @@ export default function DocumentLibraryView({
         </div>
       ) : (
         <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-xs text-right">
             <thead className="bg-slate-100 dark:bg-slate-900 font-black theme-text-primary">
               <tr>
@@ -494,6 +495,7 @@ onClick={(e) => { e.stopPropagation(); setShareDoc(doc); }}
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

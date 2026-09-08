@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { RefreshCw, Check, Save, ArrowRight } from 'lucide-react';
+import { RefreshCw, Check, Save, ArrowRight, Menu } from 'lucide-react';
 
 import AdminSidebar from './admin/AdminSidebar';
 import BrandingSettings from './admin/settings/BrandingSettings';
@@ -53,6 +53,7 @@ export default function AdminDashboardView({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   
   // User Management State
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
@@ -278,18 +279,27 @@ export default function AdminDashboardView({
       {/* Sidebar Navigation */}
       <AdminSidebar 
         activeSection={activeSection}
-        setActiveSection={setActiveSection}
+        setActiveSection={(id) => { setActiveSection(id); setMobileSidebarOpen(false); }}
         stats={stats}
         onSave={handleSaveSettings}
         saving={saving}
         saveSuccess={saveSuccess}
         loading={loading}
         onRefresh={loadAdminData}
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
       />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
-        <div className="absolute top-0 right-0 p-4 z-50">
+        <div className="absolute top-0 right-0 p-4 z-50 flex items-center gap-2">
+           <button
+            onClick={() => setMobileSidebarOpen(true)}
+            className="lg:hidden p-2.5 rounded-xl theme-header-btn border text-xs font-bold transition cursor-pointer"
+            aria-label="فتح قائمة الإدارة"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
            <button
             onClick={onBackToApp}
             className="px-4 py-2 rounded-xl theme-header-btn border text-xs font-bold transition flex items-center gap-2 cursor-pointer"

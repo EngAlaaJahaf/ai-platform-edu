@@ -1,7 +1,7 @@
 ﻿import React from 'react';
-import { Palette, Users, Cpu, Settings, MessageSquare, Save, Server, Shield, Activity, HardDrive, RefreshCw, Layers, Sliders } from 'lucide-react';
+import { Palette, Users, Cpu, Settings, MessageSquare, Save, Server, Shield, Activity, HardDrive, RefreshCw, Layers, Sliders, X } from 'lucide-react';
 
-export default function AdminSidebar({ activeSection, setActiveSection, stats, onSave, saving, saveSuccess, loading, onRefresh }) {
+export default function AdminSidebar({ activeSection, setActiveSection, stats, onSave, saving, saveSuccess, loading, onRefresh, mobileOpen, onCloseMobile }) {
   const sections = [
     { id: 'branding', label: 'الهوية البصرية والاسم', icon: Palette, category: 'General' },
     { id: 'users', label: 'المستخدمين والصلاحيات', icon: Users, category: 'Access' },
@@ -12,11 +12,20 @@ export default function AdminSidebar({ activeSection, setActiveSection, stats, o
     { id: 'logs', label: 'سجلات النشاط (Logs)', icon: Activity, category: 'Access' },
   ];
 
-  return (
-    <div className="w-64 flex flex-col theme-bg-panel border-l border-slate-200 dark:border-slate-800 min-h-screen shrink-0 font-['Tajawal'] select-none">
-      <div className="p-6 border-b border-slate-200 dark:border-slate-800">
-        <h2 className="text-xl font-black theme-text-primary mb-1">الإدارة الشاملة</h2>
-        <p className="text-xs theme-text-muted font-bold">تحكم كامل (Atom Level)</p>
+  const inner = (
+    <>
+      <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-black theme-text-primary mb-1">الإدارة الشاملة</h2>
+          <p className="text-xs theme-text-muted font-bold">تحكم كامل (Atom Level)</p>
+        </div>
+        <button
+          onClick={onCloseMobile}
+          className="lg:hidden p-2 rounded-xl theme-header-btn border text-text-muted hover:text-text cursor-pointer"
+          aria-label="إغلاق القائمة"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       <div className="flex-1 py-4 overflow-y-auto">
@@ -131,6 +140,26 @@ export default function AdminSidebar({ activeSection, setActiveSection, stats, o
           <span>{saveSuccess ? 'تم الحفظ بنجاح ✓' : 'حفظ التعديلات الشاملة'}</span>
         </button>
       </div>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+          onClick={onCloseMobile}
+        />
+      )}
+      {/* Desktop fixed sidebar */}
+      <div className="hidden lg:flex w-64 flex-col theme-bg-panel border-l border-slate-200 dark:border-slate-800 min-h-screen shrink-0 font-['Tajawal'] select-none relative z-30">
+        {inner}
+      </div>
+      {/* Mobile slide-in drawer */}
+      <div className={`lg:hidden fixed top-0 bottom-0 right-0 z-50 w-80 max-w-[85vw] flex flex-col theme-bg-panel border-l border-slate-200 dark:border-slate-800 font-['Tajawal'] select-none shadow-2xl transition-transform duration-300 ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        {inner}
+      </div>
+    </>
   );
 }

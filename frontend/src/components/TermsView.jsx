@@ -367,6 +367,7 @@ export default function TermsView({
                   {data.level && ` • المستوى: ${LEVELS.find(l => l.id === data.level)?.label || data.level}`}
                 </p>
                 <div className="card overflow-hidden">
+                  <div className="overflow-x-auto">
                   <table className="w-full text-xs font-bold">
                     <thead>
                       <tr className="theme-card-inner border-b border-slate-200 dark:border-slate-800">
@@ -428,6 +429,7 @@ export default function TermsView({
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </div>
             )}
