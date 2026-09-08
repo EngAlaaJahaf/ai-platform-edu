@@ -33,6 +33,7 @@ import {
   fetchDocumentDetails 
 } from '../services/api';
 import ShareEntityModal from './ShareEntityModal';
+import TeamsPanel from './TeamsPanel';
 
 export default function DocumentLibraryView({ 
   activeDoc, 
@@ -148,7 +149,7 @@ export default function DocumentLibraryView({
     <div className="space-y-6 animate-fade-in pb-12">
       
       {/* Header Banner */}
-      <div className="glass-card rounded-3xl p-6 border shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="card p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 via-emerald-600 to-emerald-700 flex items-center justify-center text-white shadow-lg shadow-teal-500/25">
             <FolderOpen className="w-7 h-7" />
@@ -169,7 +170,8 @@ export default function DocumentLibraryView({
         <div className="flex items-center gap-2.5 self-end md:self-auto">
           <button
             onClick={onOpenUpload}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-md shadow-emerald-600/25 transition flex items-center gap-2 border border-white/20"
+            className="btn-primary"
+            style={{ minHeight: 40, fontSize: 12.5, padding: '0 18px' }}
           >
             <Plus className="w-4 h-4" />
             <span>رفع مقرر جديد</span>
@@ -178,7 +180,7 @@ export default function DocumentLibraryView({
           <button
             onClick={loadDocs}
             disabled={loading}
-            className="p-2.5 rounded-xl theme-header-btn border hover:text-teal-500 transition"
+            className="iconbtn"
             title="تحديث القائمة"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -190,7 +192,7 @@ export default function DocumentLibraryView({
       <TeamsPanel onChanged={loadDocs} />
 
       {/* Search, Filter & View Controls */}
-      <div className="glass-card rounded-2xl p-4 border flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="card p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-96">
           <Search className="w-4 h-4 theme-text-muted absolute right-3 top-1/2 -translate-y-1/2" />
           <input
@@ -228,12 +230,12 @@ export default function DocumentLibraryView({
 
       {/* Main Document Content */}
       {loading ? (
-        <div className="py-24 text-center space-y-3 glass-card rounded-3xl p-8 border animate-pulse">
+        <div className="py-24 text-center space-y-3 card p-8 animate-pulse">
           <RefreshCw className="w-8 h-8 animate-spin text-teal-500 mx-auto" />
           <p className="text-xs theme-text-muted">جاري قراءة واسترجاع ملفاتك من قاعدة البيانات...</p>
         </div>
       ) : filteredDocs.length === 0 ? (
-        <div className="py-24 text-center space-y-4 glass-card rounded-3xl p-8 border">
+        <div className="py-24 text-center space-y-4 card p-8">
           <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-500 mx-auto flex items-center justify-center">
             <FileText className="w-7 h-7" />
           </div>
@@ -245,7 +247,8 @@ export default function DocumentLibraryView({
           </p>
           <button
             onClick={onOpenUpload}
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-bold shadow-md shadow-emerald-600/25 transition inline-flex items-center gap-2"
+            className="btn-primary"
+            style={{ minHeight: 42, fontSize: 12.5, padding: '0 20px' }}
           >
             <Upload className="w-4 h-4" />
             <span>رفع أول مقرر الآن</span>
@@ -260,7 +263,7 @@ export default function DocumentLibraryView({
             return (
               <div
                 key={doc.id}
-                className={`glass-card rounded-3xl p-5 border transition-all duration-200 flex flex-col justify-between space-y-4 hover:shadow-xl ${
+                className={`card p-5 transition-all duration-200 flex flex-col justify-between space-y-4 hover:shadow-xl ${
                   isActive
                     ? 'ring-2 ring-teal-500/40 border-teal-500 shadow-teal-500/10 bg-gradient-to-br from-emerald-50/50 to-teal-50/40 dark:from-emerald-950/70 dark:to-teal-950/40'
                     : 'hover:border-emerald-400/40'
@@ -407,7 +410,7 @@ export default function DocumentLibraryView({
           })}
         </div>
       ) : (
-        <div className="glass-card rounded-3xl overflow-hidden border">
+        <div className="card overflow-hidden">
           <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-xs text-right">
             <thead className="bg-slate-100 dark:bg-slate-900 font-black theme-text-primary">
               <tr>
@@ -515,7 +518,7 @@ onClick={(e) => { e.stopPropagation(); setShareDoc(doc); }}
               return (
                 <div
                   key={`shared-${doc.id}-${doc.team_id}`}
-                  className={`glass-card rounded-3xl p-5 border transition-all duration-200 flex flex-col justify-between space-y-4 hover:shadow-xl hover:border-violet-400/40 ${
+                  className={`card p-5 transition-all duration-200 flex flex-col justify-between space-y-4 hover:shadow-xl hover:border-violet-400/40 ${
                     isActive ? 'ring-2 ring-violet-500/40 border-violet-500' : ''
                   }`}
                 >
@@ -594,7 +597,7 @@ onClick={(e) => { e.stopPropagation(); setShareDoc(doc); }}
       {/* Document Text Preview Modal / Drawer */}
       {previewDoc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-4xl glass-panel rounded-3xl p-6 border shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+          <div className="relative w-full max-w-4xl card p-6 space-y-4 max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-500 flex items-center justify-center">
@@ -625,7 +628,8 @@ onClick={(e) => { e.stopPropagation(); setShareDoc(doc); }}
                   onSelectDoc(previewDoc);
                   setPreviewDoc(null);
                 }}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs shadow-md"
+                className="btn-primary"
+                style={{ minHeight: 42, fontSize: 12.5, padding: '0 18px' }}
               >
                 تعيين كمستند نشط للمنصة
               </button>
