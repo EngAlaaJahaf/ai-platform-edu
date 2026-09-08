@@ -304,7 +304,7 @@ export default function SummaryView({
 
   if (!activeDoc) {
     return (
-      <div className="glass-panel rounded-3xl p-16 text-center max-w-2xl mx-auto space-y-6 shadow-2xl">
+      <div className="card p-16 text-center max-w-2xl mx-auto space-y-6">
         <div className="w-16 h-16 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 mx-auto flex items-center justify-center text-teal-400">
           <Upload className="w-8 h-8" />
         </div>

@@ -804,7 +804,7 @@ export default function ChatView({
       
       {/* Right Sidebar - Manus style with options menu */}
       <div className={`flex-col gap-3 h-full ${isChatFullscreen ? 'flex lg:col-span-3 xl:col-span-3 min-h-0' : 'hidden lg:flex lg:col-span-3 xl:col-span-3 min-h-[500px]'}`}>
-        <div className="glass-panel rounded-2xl border flex flex-col h-full overflow-hidden">
+        <div className="card flex flex-col h-full overflow-hidden">
           <ChatSidebar
             sessions={sessions}
             activeSessionId={activeSessionId}
@@ -1014,7 +1014,7 @@ export default function ChatView({
       {/* Master Chat Sessions & Fast Full-Text Search Modal (mobile) */}
       {isSessionsModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in text-right font-['Tajawal']" dir="rtl">
-          <div className="relative w-full max-w-2xl glass-panel rounded-3xl p-6 border shadow-2xl space-y-5 max-h-[90vh] flex flex-col">
+          <div className="relative w-full max-w-2xl card p-6 space-y-5 max-h-[90vh] flex flex-col">
             
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10 shrink-0">
@@ -1247,7 +1247,7 @@ export default function ChatView({
       {/* Custom Confirmation Modal (replaces native window.confirm) */}
       {confirmDialog && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in text-right font-['Tajawal']" dir="rtl">
-          <div className="relative w-full max-w-sm glass-panel rounded-3xl p-6 border shadow-2xl space-y-5 animate-fade-in">
+          <div className="relative w-full max-w-sm card p-6 space-y-5 animate-fade-in">
             <div className="w-14 h-14 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center mx-auto">
               <AlertTriangle className="w-7 h-7 text-rose-500" />
             </div>

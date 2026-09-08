@@ -557,7 +557,7 @@ export default function QuizView({
 
   if (!activeDoc) {
     return (
-      <div className="glass-panel rounded-3xl p-16 text-center max-w-2xl mx-auto space-y-6 shadow-2xl">
+      <div className="card p-16 text-center max-w-2xl mx-auto space-y-6">
         <div className="w-16 h-16 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 mx-auto flex items-center justify-center text-teal-400">
           <Upload className="w-8 h-8" />
         </div>
@@ -583,7 +583,7 @@ export default function QuizView({
       {/* Import Modal */}
       {isImportOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in text-right" dir="rtl">
-          <div className="relative w-full max-w-2xl glass-panel rounded-3xl p-6 border shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-2xl card p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsImportOpen(false)}
               className="absolute top-5 left-5 p-1.5 rounded-xl theme-header-btn border"
@@ -662,7 +662,7 @@ export default function QuizView({
       {/* Quiz Customization Settings Modal */}
       {isSettingsOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in text-right" dir="rtl">
-          <div className="relative w-full max-w-xl glass-panel rounded-3xl p-6 border shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-xl card p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsSettingsOpen(false)}
               className="absolute top-5 left-5 p-1.5 rounded-xl theme-header-btn border"
@@ -830,7 +830,7 @@ export default function QuizView({
       {/* Quiz History & Saved Attempts Modal */}
       {isHistoryOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in text-right" dir="rtl">
-          <div className="relative w-full max-w-2xl glass-panel rounded-3xl p-6 border shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-2xl card p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsHistoryOpen(false)}
               className="absolute top-5 left-5 p-1.5 rounded-xl theme-header-btn border"
@@ -1031,7 +1031,7 @@ export default function QuizView({
     <div className="space-y-6">
       
       {/* Studio Header Bar */}
-      <div className="glass-panel rounded-2xl p-5 border shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-20">
+      <div className="card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-20">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center shrink-0">
             <BrainCircuit className="w-5 h-5" />
@@ -1107,7 +1107,7 @@ export default function QuizView({
             </button>
 
             {isMoreMenuOpen && (
-              <div className="absolute left-0 mt-2 w-60 glass-panel rounded-2xl p-2 shadow-2xl z-30 border theme-nav text-xs font-bold space-y-1 animate-fade-in font-['Tajawal']">
+              <div className="absolute left-0 mt-2 w-60 card p-2 z-30 theme-nav text-xs font-bold space-y-1 animate-fade-in font-['Tajawal']">
                 <button
                   onClick={() => {
                     setIsMoreMenuOpen(false);
@@ -1165,7 +1165,7 @@ export default function QuizView({
 
       {/* Loading Overlay */}
       {loading && (
-        <div className="glass-panel rounded-3xl p-16 text-center space-y-4 border animate-pulse">
+        <div className="card p-16 text-center animate-pulse">
           <BrainCircuit className="w-10 h-10 animate-pulse text-emerald-400 mx-auto" />
           <h3 className="text-lg font-black theme-text-primary">الذكاء الاصطناعي يستخرج أسئلة امتحانات محكمة...</h3>
           <p className="text-xs theme-text-muted">يتم إعداد الأسئلة والمشتتات والشروحات باللغة المحددة</p>
@@ -1515,7 +1515,7 @@ export default function QuizView({
 
       {/* Completed Summary View */}
       {isCompleted && (
-        <div className="glass-panel rounded-3xl p-10 max-w-xl mx-auto text-center space-y-6 shadow-2xl animate-fade-in border">
+        <div className="card p-10 max-w-xl mx-auto text-center space-y-6 animate-fade-in">
           <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-500 mx-auto flex items-center justify-center text-emerald-400">
             <Award className="w-10 h-10" />
           </div>
@@ -1610,7 +1610,7 @@ export default function QuizView({
           {/* Interactive Flip Card */}
           <div
             onClick={() => setFlipped(!flipped)}
-            className="glass-card rounded-3xl p-12 min-h-[320px] border flex flex-col items-center justify-center text-center cursor-pointer shadow-2xl hover:scale-[1.01] transition-all select-none relative group"
+            className="card p-12 min-h-[320px] flex flex-col items-center justify-center text-center cursor-pointer hover:scale-[1.01] transition-all select-none relative group"
           >
             <span className="absolute top-4 right-4 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">
               بطاقة {cardIdx + 1} من {flashcards.length}

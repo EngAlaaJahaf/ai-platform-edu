@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   BookMarked, Sparkles, Download, FileText, Search, GraduationCap,
   RefreshCw, Volume2, CircleCheck, CircleX, ArrowRight, RotateCcw,
@@ -7,9 +7,9 @@ import {
 import { fetchTerms, exportTermsData } from '../services/api';
 
 const LEVELS = [
-  { id: 'weak', label: 'طالب ضعيف', color: 'amber', desc: 'مصطلحات أساسية وتعريفات مبسطة' },
-  { id: 'medium', label: 'طالب متوسط', color: 'blue', desc: 'مصطلحات متوسطة وتعريفات تحليلية' },
-  { id: 'excellent', label: 'طالب ممتاز', color: 'emerald', desc: 'مصطلحات متقدمة وتعريفات معمقة' }
+  { id: 'weak', label: 'ط·ط§ظ„ط¨ ط¶ط¹ظٹظپ', color: 'amber', desc: 'ظ…طµط·ظ„ط­ط§طھ ط£ط³ط§ط³ظٹط© ظˆطھط¹ط±ظٹظپط§طھ ظ…ط¨ط³ط·ط©' },
+  { id: 'medium', label: 'ط·ط§ظ„ط¨ ظ…طھظˆط³ط·', color: 'blue', desc: 'ظ…طµط·ظ„ط­ط§طھ ظ…طھظˆط³ط·ط© ظˆطھط¹ط±ظٹظپط§طھ طھط­ظ„ظٹظ„ظٹط©' },
+  { id: 'excellent', label: 'ط·ط§ظ„ط¨ ظ…ظ…طھط§ط²', color: 'emerald', desc: 'ظ…طµط·ظ„ط­ط§طھ ظ…طھظ‚ط¯ظ…ط© ظˆطھط¹ط±ظٹظپط§طھ ظ…ط¹ظ…ظ‚ط©' }
 ];
 
 function shuffleArray(arr) {
@@ -96,7 +96,7 @@ export default function TermsView({
 
   const handleExtract = async () => {
     if (!activeDoc) {
-      setError('يرجى رفع أو اختيار مادة تعليمية أولاً.');
+      setError('ظٹط±ط¬ظ‰ ط±ظپط¹ ط£ظˆ ط§ط®طھظٹط§ط± ظ…ط§ط¯ط© طھط¹ظ„ظٹظ…ظٹط© ط£ظˆظ„ط§ظ‹.');
       return;
     }
     setLoading(true);
@@ -107,7 +107,7 @@ export default function TermsView({
       setViewTab('extract');
       if (result?.error) setError(result.error);
     } catch (err) {
-      setError(err.message || 'حدث خطأ أثناء استخراج المصطلحات.');
+      setError(err.message || 'ط­ط¯ط« ط®ط·ط£ ط£ط«ظ†ط§ط، ط§ط³طھط®ط±ط§ط¬ ط§ظ„ظ…طµط·ظ„ط­ط§طھ.');
     } finally {
       setLoading(false);
     }
@@ -125,21 +125,21 @@ export default function TermsView({
   if (!activeDoc) {
     return (
       <div className="space-y-6 animate-fade-in pb-16">
-        <div className="glass-panel rounded-3xl p-12 max-w-lg mx-auto text-center border shadow-2xl">
+        <div className="card p-12 max-w-lg mx-auto text-center">
           <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center mx-auto mb-4">
             <BookMarked className="w-8 h-8" />
           </div>
           <h3 className="text-lg font-black theme-text-primary mb-2">
-            قسم المصطلحات الأكاديمية
+            ظ‚ط³ظ… ط§ظ„ظ…طµط·ظ„ط­ط§طھ ط§ظ„ط£ظƒط§ط¯ظٹظ…ظٹط©
           </h3>
           <p className="text-sm theme-text-muted mb-6 leading-relaxed">
-            استخرج المصطلحات العلمية من مادتك الدراسية مع تعريفات وترجمات أكاديمية مضبوطة حسب مستواك الدراسي
+            ط§ط³طھط®ط±ط¬ ط§ظ„ظ…طµط·ظ„ط­ط§طھ ط§ظ„ط¹ظ„ظ…ظٹط© ظ…ظ† ظ…ط§ط¯طھظƒ ط§ظ„ط¯ط±ط§ط³ظٹط© ظ…ط¹ طھط¹ط±ظٹظپط§طھ ظˆطھط±ط¬ظ…ط§طھ ط£ظƒط§ط¯ظٹظ…ظٹط© ظ…ط¶ط¨ظˆط·ط© ط­ط³ط¨ ظ…ط³طھظˆط§ظƒ ط§ظ„ط¯ط±ط§ط³ظٹ
           </p>
           <button
             onClick={onOpenUpload}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-sm shadow-lg hover:scale-105 transition cursor-pointer"
+            className="btn-primary"
           >
-            رفع مادة تعليمية الآن
+            ط±ظپط¹ ظ…ط§ط¯ط© طھط¹ظ„ظٹظ…ظٹط© ط§ظ„ط¢ظ†
           </button>
         </div>
       </div>
@@ -154,15 +154,15 @@ export default function TermsView({
         <div>
           <h2 className="text-lg font-black theme-text-primary flex items-center gap-2">
             <BookMarked className="w-5 h-5 text-emerald-500" />
-            المصطلحات الأكاديمية
+            ط§ظ„ظ…طµط·ظ„ط­ط§طھ ط§ظ„ط£ظƒط§ط¯ظٹظ…ظٹط©
             {data && (
               <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-                {terms.length} مصطلح
+                {terms.length} ظ…طµط·ظ„ط­
               </span>
             )}
           </h2>
           <p className="text-xs theme-text-muted font-bold">
-            استخراج وحفظ المصطلحات العلمية من: {activeDoc.filename}
+            ط§ط³طھط®ط±ط§ط¬ ظˆط­ظپط¸ ط§ظ„ظ…طµط·ظ„ط­ط§طھ ط§ظ„ط¹ظ„ظ…ظٹط© ظ…ظ†: {activeDoc.filename}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -173,7 +173,7 @@ export default function TermsView({
                 ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
                 : 'theme-card-inner theme-text-muted border'
             }`}
-            title={speechOn ? 'إيقاف النطق' : 'تشغيل النطق'}
+            title={speechOn ? 'ط¥ظٹظ‚ط§ظپ ط§ظ„ظ†ط·ظ‚' : 'طھط´ط؛ظٹظ„ ط§ظ„ظ†ط·ظ‚'}
           >
             <Volume2 className="w-4 h-4" />
           </button>
@@ -188,7 +188,7 @@ export default function TermsView({
             viewTab === 'extract' ? 'text-emerald-600 dark:text-emerald-400' : 'theme-text-muted hover:theme-text-primary'
           }`}
         >
-          استخراج المصطلحات
+          ط§ط³طھط®ط±ط§ط¬ ط§ظ„ظ…طµط·ظ„ط­ط§طھ
           {viewTab === 'extract' && (
             <span className="absolute -bottom-2.5 left-0 right-0 h-0.5 bg-emerald-500 rounded-full"></span>
           )}
@@ -199,7 +199,7 @@ export default function TermsView({
             viewTab === 'test' ? 'text-emerald-600 dark:text-emerald-400' : 'theme-text-muted hover:theme-text-primary'
           }`}
         >
-          اختبار المصطلحات التفاعلي
+          ط§ط®طھط¨ط§ط± ط§ظ„ظ…طµط·ظ„ط­ط§طھ ط§ظ„طھظپط§ط¹ظ„ظٹ
           {viewTab === 'test' && (
             <span className="absolute -bottom-2.5 left-0 right-0 h-0.5 bg-emerald-500 rounded-full"></span>
           )}
@@ -211,12 +211,12 @@ export default function TermsView({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
           {/* Left: Controls */}
-          <aside className="lg:col-span-4 glass-panel rounded-3xl p-6 border shadow-xl sticky top-20">
+          <aside className="lg:col-span-4 card p-6 sticky top-20">
             <div className="space-y-4">
 
               {/* Level Selector */}
               <div className="space-y-2">
-                <label className="text-xs font-bold theme-text-secondary block">مستوى الطالب المستهدف</label>
+                <label className="text-xs font-bold theme-text-secondary block">ظ…ط³طھظˆظ‰ ط§ظ„ط·ط§ظ„ط¨ ط§ظ„ظ…ط³طھظ‡ط¯ظپ</label>
                 {LEVELS.map(lv => (
                   <button
                     key={lv.id}
@@ -242,7 +242,7 @@ export default function TermsView({
 
               {/* Count */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold theme-text-secondary block">عدد المصطلحات المطلوبة</label>
+                <label className="text-xs font-bold theme-text-secondary block">ط¹ط¯ط¯ ط§ظ„ظ…طµط·ظ„ط­ط§طھ ط§ظ„ظ…ط·ظ„ظˆط¨ط©</label>
                 <div className="flex items-center gap-2">
                   {[10, 15, 20, 30].map(n => (
                     <button
@@ -266,7 +266,7 @@ export default function TermsView({
                   onClick={onOpenPromptManager}
                   className="w-full py-2 rounded-xl theme-card-inner border text-xs font-bold theme-text-muted hover:theme-text-primary transition cursor-pointer"
                 >
-                  استخدام برومبت مخصص لاستخراج المصطلحات
+                  ط§ط³طھط®ط¯ط§ظ… ط¨ط±ظˆظ…ط¨طھ ظ…ط®طµطµ ظ„ط§ط³طھط®ط±ط§ط¬ ط§ظ„ظ…طµط·ظ„ط­ط§طھ
                 </button>
               )}
 
@@ -279,17 +279,17 @@ export default function TermsView({
               <button
                 onClick={handleExtract}
                 disabled={loading}
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
+                className="btn-primary w-full"
               >
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>جاري استخراج المصطلحات...</span>
+                    <span>ط¬ط§ط±ظٹ ط§ط³طھط®ط±ط§ط¬ ط§ظ„ظ…طµط·ظ„ط­ط§طھ...</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 text-amber-300" />
-                    <span>استخراج المصطلحات</span>
+                    <span>ط§ط³طھط®ط±ط§ط¬ ط§ظ„ظ…طµط·ظ„ط­ط§طھ</span>
                   </>
                 )}
               </button>
@@ -307,7 +307,7 @@ export default function TermsView({
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="بحث في المصطلحات..."
+                  placeholder="ط¨ط­ط« ظپظٹ ط§ظ„ظ…طµط·ظ„ط­ط§طھ..."
                   className="w-full pr-10 pl-4 py-2 rounded-xl theme-card-inner border text-xs font-bold theme-text-primary outline-none focus:border-emerald-500 transition"
                 />
               </div>
@@ -316,7 +316,7 @@ export default function TermsView({
                   onClick={() => handleExport('xlsx')}
                   disabled={!data}
                   className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
-                  title="تصدير Excel"
+                  title="طھطµط¯ظٹط± Excel"
                 >
                   <FileSpreadsheet className="w-3.5 h-3.5" />
                   <span>Excel</span>
@@ -325,7 +325,7 @@ export default function TermsView({
                   onClick={() => handleExport('csv')}
                   disabled={!data}
                   className="px-3 py-2 rounded-xl theme-card-inner border theme-text-primary text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
-                  title="تصدير CSV"
+                  title="طھطµط¯ظٹط± CSV"
                 >
                   CSV
                 </button>
@@ -333,7 +333,7 @@ export default function TermsView({
                   onClick={() => handleExport('txt')}
                   disabled={!data}
                   className="px-3 py-2 rounded-xl theme-card-inner border theme-text-primary text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
-                  title="تصدير TXT"
+                  title="طھطµط¯ظٹط± TXT"
                 >
                   TXT
                 </button>
@@ -341,7 +341,7 @@ export default function TermsView({
                   onClick={() => handleExport('json')}
                   disabled={!data}
                   className="px-3 py-2 rounded-xl theme-card-inner border theme-text-primary text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
-                  title="تصدير JSON"
+                  title="طھطµط¯ظٹط± JSON"
                 >
                   <FileJson className="w-3.5 h-3.5" />
                 </button>
@@ -350,33 +350,33 @@ export default function TermsView({
 
             {/* Terms List */}
             {!data ? (
-              <div className="glass-panel rounded-3xl p-16 text-center border shadow-xl">
+              <div className="card p-16 text-center">
                 <GraduationCap className="w-12 h-12 theme-text-muted mx-auto mb-4 opacity-50" />
                 <p className="text-sm theme-text-muted font-bold">
-                  اضغط "استخراج المصطلحات" لتوليد القاموس الأكاديمي من المادة الدراسية الحالية
+                  ط§ط¶ط؛ط· "ط§ط³طھط®ط±ط§ط¬ ط§ظ„ظ…طµط·ظ„ط­ط§طھ" ظ„طھظˆظ„ظٹط¯ ط§ظ„ظ‚ط§ظ…ظˆط³ ط§ظ„ط£ظƒط§ط¯ظٹظ…ظٹ ظ…ظ† ط§ظ„ظ…ط§ط¯ط© ط§ظ„ط¯ط±ط§ط³ظٹط© ط§ظ„ط­ط§ظ„ظٹط©
                 </p>
               </div>
             ) : filteredTerms.length === 0 ? (
-              <div className="glass-panel rounded-3xl p-12 text-center border shadow-xl">
-                <p className="text-sm theme-text-muted font-bold">لا توجد نتائج مطابقة للبحث</p>
+              <div className="card p-12 text-center">
+                <p className="text-sm theme-text-muted font-bold">ظ„ط§ طھظˆط¬ط¯ ظ†طھط§ط¦ط¬ ظ…ط·ط§ط¨ظ‚ط© ظ„ظ„ط¨ط­ط«</p>
               </div>
             ) : (
               <div className="space-y-2">
                 <p className="text-xs theme-text-muted font-bold px-1">
-                  عرض {filteredTerms.length} من أصل {terms.length} مصطلح
-                  {data.level && ` • المستوى: ${LEVELS.find(l => l.id === data.level)?.label || data.level}`}
+                  ط¹ط±ط¶ {filteredTerms.length} ظ…ظ† ط£طµظ„ {terms.length} ظ…طµط·ظ„ط­
+                  {data.level && ` â€¢ ط§ظ„ظ…ط³طھظˆظ‰: ${LEVELS.find(l => l.id === data.level)?.label || data.level}`}
                 </p>
-                <div className="glass-panel rounded-3xl border shadow-xl overflow-hidden">
+                <div className="card overflow-hidden">
                   <table className="w-full text-xs font-bold">
                     <thead>
                       <tr className="theme-card-inner border-b border-slate-200 dark:border-slate-800">
                         <th className="p-3 text-right theme-text-primary w-8">#</th>
-                        <th className="p-3 text-right theme-text-primary">المصطلح بالإنجليزية</th>
-                        <th className="p-3 text-right theme-text-primary">الترجمة الأكاديمية</th>
-                        <th className="p-3 text-right theme-text-primary">التعريف</th>
-                        <th className="p-3 text-right theme-text-primary">مثال</th>
-                        <th className="p-3 text-right theme-text-primary">التصنيف</th>
-                        <th className="p-3 text-center theme-text-primary">النطق</th>
+                        <th className="p-3 text-right theme-text-primary">ط§ظ„ظ…طµط·ظ„ط­ ط¨ط§ظ„ط¥ظ†ط¬ظ„ظٹط²ظٹط©</th>
+                        <th className="p-3 text-right theme-text-primary">ط§ظ„طھط±ط¬ظ…ط© ط§ظ„ط£ظƒط§ط¯ظٹظ…ظٹط©</th>
+                        <th className="p-3 text-right theme-text-primary">ط§ظ„طھط¹ط±ظٹظپ</th>
+                        <th className="p-3 text-right theme-text-primary">ظ…ط«ط§ظ„</th>
+                        <th className="p-3 text-right theme-text-primary">ط§ظ„طھطµظ†ظٹظپ</th>
+                        <th className="p-3 text-center theme-text-primary">ط§ظ„ظ†ط·ظ‚</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -392,7 +392,7 @@ export default function TermsView({
                               <button
                                 onClick={() => speak(t.term_en, 'en-US')}
                                 className="text-emerald-500 hover:text-emerald-400 transition cursor-pointer"
-                                title="نطق المصطلح"
+                                title="ظ†ط·ظ‚ ط§ظ„ظ…طµط·ظ„ط­"
                               >
                                 <Volume2 className="w-3.5 h-3.5" />
                               </button>
@@ -405,7 +405,7 @@ export default function TermsView({
                             {t.definition}
                           </td>
                           <td className="p-3 theme-text-secondary max-w-[150px] leading-relaxed italic text-[11px]">
-                            {t.example || '—'}
+                            {t.example || 'â€”'}
                           </td>
                           <td className="p-3">
                             <span className="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-[10px] theme-text-secondary font-bold">
@@ -419,7 +419,7 @@ export default function TermsView({
                                 setTimeout(() => speak(t.definition, 'ar-SA'), 1800);
                               }}
                               className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/30 transition cursor-pointer"
-                              title="نطق المصطلح والتعريف"
+                              title="ظ†ط·ظ‚ ط§ظ„ظ…طµط·ظ„ط­ ظˆط§ظ„طھط¹ط±ظٹظپ"
                             >
                               <Volume2 className="w-3.5 h-3.5" />
                             </button>
@@ -481,7 +481,7 @@ function TermsInteractiveTest({ terms, speak, speechOn, onUpload, hasTerms }) {
       qs.push({
         id: id++,
         type: 'meaning',
-        questionText: `ما هي الترجمة الأكاديمية للمصطلح الإنجليزي:`,
+        questionText: `ظ…ط§ ظ‡ظٹ ط§ظ„طھط±ط¬ظ…ط© ط§ظ„ط£ظƒط§ط¯ظٹظ…ظٹط© ظ„ظ„ظ…طµط·ظ„ط­ ط§ظ„ط¥ظ†ط¬ظ„ظٹط²ظٹ:`,
         termEn: t.term_en,
         termAr: t.term_ar,
         definition: t.definition,
@@ -504,7 +504,7 @@ function TermsInteractiveTest({ terms, speak, speechOn, onUpload, hasTerms }) {
       qs.push({
         id: id++,
         type: 'term',
-        questionText: `ما المصطلح الإنجليزي الذي يعني:`,
+        questionText: `ظ…ط§ ط§ظ„ظ…طµط·ظ„ط­ ط§ظ„ط¥ظ†ط¬ظ„ظٹط²ظٹ ط§ظ„ط°ظٹ ظٹط¹ظ†ظٹ:`,
         termEn: t.term_en,
         termAr: t.term_ar,
         definition: t.definition,
@@ -555,16 +555,16 @@ function TermsInteractiveTest({ terms, speak, speechOn, onUpload, hasTerms }) {
 
   if (!hasTerms) {
     return (
-      <div className="glass-panel rounded-3xl p-12 text-center border shadow-xl">
+      <div className="card p-12 text-center">
         <BookMarked className="w-12 h-12 theme-text-muted mx-auto mb-4 opacity-50" />
         <p className="text-sm theme-text-muted font-bold mb-4">
-          لا توجد مصطلحات بعد. استخرج المصطلحات أولاً من تبويب "استخراج المصطلحات"
+          ظ„ط§ طھظˆط¬ط¯ ظ…طµط·ظ„ط­ط§طھ ط¨ط¹ط¯. ط§ط³طھط®ط±ط¬ ط§ظ„ظ…طµط·ظ„ط­ط§طھ ط£ظˆظ„ط§ظ‹ ظ…ظ† طھط¨ظˆظٹط¨ "ط§ط³طھط®ط±ط§ط¬ ط§ظ„ظ…طµط·ظ„ط­ط§طھ"
         </p>
         <button
           onClick={onUpload}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-sm cursor-pointer hover:scale-105 transition"
+          className="btn-primary"
         >
-          رفع مادة تعليمية
+          ط±ظپط¹ ظ…ط§ط¯ط© طھط¹ظ„ظٹظ…ظٹط©
         </button>
       </div>
     );
@@ -572,20 +572,20 @@ function TermsInteractiveTest({ terms, speak, speechOn, onUpload, hasTerms }) {
 
   if (!testState) {
     return (
-      <div className="glass-panel rounded-3xl p-12 max-w-lg mx-auto text-center border shadow-xl">
+      <div className="card p-12 max-w-lg mx-auto text-center">
         <Trophy className="w-14 h-14 text-amber-500 mx-auto mb-4" />
-        <h3 className="text-lg font-black theme-text-primary mb-2">اختبار المصطلحات التفاعلي</h3>
+        <h3 className="text-lg font-black theme-text-primary mb-2">ط§ط®طھط¨ط§ط± ط§ظ„ظ…طµط·ظ„ط­ط§طھ ط§ظ„طھظپط§ط¹ظ„ظٹ</h3>
         <p className="text-sm theme-text-muted mb-2 leading-relaxed">
-          اختبار من نوعين: ترجمة المصطلح الإنجليزي ↔ الترجمة العربية مع نطق صوتي فوري
+          ط§ط®طھط¨ط§ط± ظ…ظ† ظ†ظˆط¹ظٹظ†: طھط±ط¬ظ…ط© ط§ظ„ظ…طµط·ظ„ط­ ط§ظ„ط¥ظ†ط¬ظ„ظٹط²ظٹ â†” ط§ظ„طھط±ط¬ظ…ط© ط§ظ„ط¹ط±ط¨ظٹط© ظ…ط¹ ظ†ط·ظ‚ طµظˆطھظٹ ظپظˆط±ظٹ
         </p>
         <p className="text-xs theme-text-muted mb-6">
-          عدد الأسئلة: <span className="font-black theme-text-primary">{Math.min(questions.length, 20)}</span> سؤال
+          ط¹ط¯ط¯ ط§ظ„ط£ط³ط¦ظ„ط©: <span className="font-black theme-text-primary">{Math.min(questions.length, 20)}</span> ط³ط¤ط§ظ„
         </p>
         <button
           onClick={startTest}
           className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/25 hover:scale-105 transition cursor-pointer"
         >
-          ابدأ الاختبار الآن
+          ط§ط¨ط¯ط£ ط§ظ„ط§ط®طھط¨ط§ط± ط§ظ„ط¢ظ†
         </button>
       </div>
     );
@@ -594,32 +594,32 @@ function TermsInteractiveTest({ terms, speak, speechOn, onUpload, hasTerms }) {
   if (testState.done) {
     const total = testState.questions.length;
     const pct = total > 0 ? Math.round((testState.score / total) * 100) : 0;
-    const grade = pct >= 90 ? 'ممتاز ⭐' : pct >= 70 ? 'جيد جداً' : pct >= 50 ? 'مقبول' : 'يحتاج مراجعة';
+    const grade = pct >= 90 ? 'ظ…ظ…طھط§ط² â­گ' : pct >= 70 ? 'ط¬ظٹط¯ ط¬ط¯ط§ظ‹' : pct >= 50 ? 'ظ…ظ‚ط¨ظˆظ„' : 'ظٹط­طھط§ط¬ ظ…ط±ط§ط¬ط¹ط©';
     return (
       <div className="space-y-4">
-        <div className="glass-panel rounded-3xl p-12 text-center border shadow-xl">
+        <div className="card p-12 text-center">
           <Trophy className="w-14 h-14 text-amber-500 mx-auto mb-4" />
-          <h3 className="text-lg font-black theme-text-primary mb-2">النتيجة النهائية</h3>
+          <h3 className="text-lg font-black theme-text-primary mb-2">ط§ظ„ظ†طھظٹط¬ط© ط§ظ„ظ†ظ‡ط§ط¦ظٹط©</h3>
           <div className="flex items-center justify-center gap-4 mb-4">
             <div className="text-center">
               <div className="text-4xl font-black text-emerald-500">{testState.score}</div>
-              <div className="text-xs theme-text-muted font-bold">صحيحة</div>
+              <div className="text-xs theme-text-muted font-bold">طµط­ظٹط­ط©</div>
             </div>
             <div className="text-2xl theme-text-muted">/</div>
             <div className="text-center">
               <div className="text-4xl font-black theme-text-primary">{total}</div>
-              <div className="text-xs theme-text-muted font-bold">إجمالي</div>
+              <div className="text-xs theme-text-muted font-bold">ط¥ط¬ظ…ط§ظ„ظٹ</div>
             </div>
           </div>
           <div className="text-lg font-black mb-2">
-            <span className="text-emerald-500">{pct}%</span> — {grade}
+            <span className="text-emerald-500">{pct}%</span> â€” {grade}
           </div>
         </div>
 
         {/* Review Wrong Answers */}
-        <div className="glass-panel rounded-3xl border shadow-xl overflow-hidden">
+        <div className="card overflow-hidden">
           <div className="p-4 border-b border-slate-200 dark:border-slate-800 theme-card-inner">
-            <h4 className="text-sm font-black theme-text-primary">مراجعة الإجابات الخاطئة</h4>
+            <h4 className="text-sm font-black theme-text-primary">ظ…ط±ط§ط¬ط¹ط© ط§ظ„ط¥ط¬ط§ط¨ط§طھ ط§ظ„ط®ط§ط·ط¦ط©</h4>
           </div>
           <div className="p-4 space-y-3">
             {testState.questions.map(q => {
@@ -632,11 +632,11 @@ function TermsInteractiveTest({ terms, speak, speechOn, onUpload, hasTerms }) {
                   {q.type === 'meaning' && <span className="font-black text-amber-500">{q.termEn}</span>}
                   {q.type === 'term' && <span className="font-black text-amber-500">{q.termAr}</span>}
                   <div className="mt-1">
-                    <span className="text-rose-500 font-bold">إجابتك: </span>
+                    <span className="text-rose-500 font-bold">ط¥ط¬ط§ط¨طھظƒ: </span>
                     <span className="theme-text-secondary">{q.options[a.optionIndex]?.text}</span>
                   </div>
                   <div>
-                    <span className="text-emerald-500 font-bold">الإجابة الصحيحة: </span>
+                    <span className="text-emerald-500 font-bold">ط§ظ„ط¥ط¬ط§ط¨ط© ط§ظ„طµط­ظٹط­ط©: </span>
                     <span className="font-black text-emerald-600 dark:text-emerald-400">{correctText}</span>
                   </div>
                 </div>
@@ -647,9 +647,9 @@ function TermsInteractiveTest({ terms, speak, speechOn, onUpload, hasTerms }) {
 
         <button
           onClick={startTest}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-sm cursor-pointer hover:scale-105 transition"
+          className="btn-primary"
         >
-          إعادة الاختبار
+          ط¥ط¹ط§ط¯ط© ط§ظ„ط§ط®طھط¨ط§ط±
         </button>
       </div>
     );
@@ -675,15 +675,15 @@ function TermsInteractiveTest({ terms, speak, speechOn, onUpload, hasTerms }) {
         </span>
       </div>
 
-      <div className="glass-panel rounded-3xl p-8 border shadow-xl">
+      <div className="card p-8">
         {/* Question Header */}
         <div className="flex items-center justify-between mb-4">
           <span className="text-xs font-bold theme-text-muted">
-            السؤال {testState.index + 1} •{' '}
-            {currentQ.type === 'meaning' ? 'ترجمة إنجليزي → عربي' : 'ترجمة عربي → إنجليزي'}
+            ط§ظ„ط³ط¤ط§ظ„ {testState.index + 1} â€¢{' '}
+            {currentQ.type === 'meaning' ? 'طھط±ط¬ظ…ط© ط¥ظ†ط¬ظ„ظٹط²ظٹ â†’ ط¹ط±ط¨ظٹ' : 'طھط±ط¬ظ…ط© ط¹ط±ط¨ظٹ â†’ ط¥ظ†ط¬ظ„ظٹط²ظٹ'}
           </span>
           <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-            النتيجة: {testState.score}
+            ط§ظ„ظ†طھظٹط¬ط©: {testState.score}
           </span>
         </div>
 
@@ -697,7 +697,7 @@ function TermsInteractiveTest({ terms, speak, speechOn, onUpload, hasTerms }) {
                 <button
                   onClick={() => speak(currentQ.termEn, 'en-US')}
                   className="p-1.5 rounded-lg bg-amber-500/15 text-amber-500 hover:bg-amber-500/30 transition cursor-pointer"
-                  title="نطق المصطلح"
+                  title="ظ†ط·ظ‚ ط§ظ„ظ…طµط·ظ„ط­"
                 >
                   <Volume2 className="w-4 h-4" />
                 </button>
@@ -711,7 +711,7 @@ function TermsInteractiveTest({ terms, speak, speechOn, onUpload, hasTerms }) {
                 <button
                   onClick={() => speak(currentQ.termAr, 'ar-SA')}
                   className="p-1.5 rounded-lg bg-amber-500/15 text-amber-500 hover:bg-amber-500/30 transition cursor-pointer"
-                  title="نطق المصطلح"
+                  title="ظ†ط·ظ‚ ط§ظ„ظ…طµط·ظ„ط­"
                 >
                   <Volume2 className="w-4 h-4" />
                 </button>
@@ -755,7 +755,7 @@ function TermsInteractiveTest({ terms, speak, speechOn, onUpload, hasTerms }) {
               ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
               : 'bg-rose-500/10 border border-rose-500/20 text-rose-500'
           }`}>
-            {testState.answers[currentQ.id].correct ? '✔ إجابة صحيحة!' : '✖ إجابة خاطئة'}
+            {testState.answers[currentQ.id].correct ? 'âœ” ط¥ط¬ط§ط¨ط© طµط­ظٹط­ط©!' : 'âœ– ط¥ط¬ط§ط¨ط© ط®ط§ط·ط¦ط©'}
           </div>
         )}
       </div>
@@ -768,20 +768,20 @@ function TermsInteractiveTest({ terms, speak, speechOn, onUpload, hasTerms }) {
           className="px-4 py-2 rounded-xl theme-card-inner border theme-text-primary text-xs font-bold flex items-center gap-1 cursor-pointer disabled:opacity-40"
         >
           <ChevronRight className="w-4 h-4" />
-          السابق
+          ط§ظ„ط³ط§ط¨ظ‚
         </button>
         <button
           onClick={finishTest}
           className="px-5 py-2 rounded-xl bg-rose-500 hover:bg-rose-400 text-white text-xs font-bold cursor-pointer"
         >
-          إنهاء الاختبار
+          ط¥ظ†ظ‡ط§ط، ط§ظ„ط§ط®طھط¨ط§ط±
         </button>
         <button
           onClick={() => navigateQuestion(1)}
           disabled={testState.index === testState.questions.length - 1}
           className="px-4 py-2 rounded-xl theme-card-inner border theme-text-primary text-xs font-bold flex items-center gap-1 cursor-pointer disabled:opacity-40"
         >
-          التالي
+          ط§ظ„طھط§ظ„ظٹ
           <ChevronLeft className="w-4 h-4" />
         </button>
       </div>

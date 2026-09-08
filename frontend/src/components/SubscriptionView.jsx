@@ -76,7 +76,7 @@ export default function SubscriptionView({ user, onOpenApiKeyModal, onOpenAuthMo
       </div>
 
       {/* Live Token Usage */}
-      <div className="theme-bg-card border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl">
+      <div className="card p-6">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-black theme-text-primary flex items-center gap-2"><BarChart3 className="w-4 h-4 text-emerald-500" /> استهلاكك الحقيقي</h3>
           <span className="text-xs font-mono theme-text-muted">{tokensUsed.toLocaleString()} / {tokensLimit.toLocaleString()} توكن</span>
@@ -96,7 +96,7 @@ export default function SubscriptionView({ user, onOpenApiKeyModal, onOpenAuthMo
         {plans.map((plan) => (
           <div
             key={plan.id}
-            className={`glass-panel rounded-3xl p-8 border transition-all relative flex flex-col justify-between shadow-xl ${
+            className={`card p-8 transition-all relative flex flex-col justify-between ${
               plan.highlight
                 ? 'border-emerald-500/50 shadow-emerald-600/15'
                 : 'border-slate-200 dark:border-slate-800'
@@ -155,7 +155,7 @@ export default function SubscriptionView({ user, onOpenApiKeyModal, onOpenAuthMo
       </div>
 
       {/* BYOK Option Banner */}
-      <div className="glass-card rounded-3xl p-6 border border-teal-500/30 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+      <div className="card p-6 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white shadow-lg shadow-teal-500/25 shrink-0">
             <KeyRound className="w-7 h-7" />

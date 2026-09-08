@@ -74,7 +74,7 @@ export default function StudentAnalytics() {
         </div>
       </div>
 
-      <div className="theme-bg-card border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl">
+      <div className="card p-6">
         <h3 className="text-sm font-black theme-text-primary mb-4 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-500" /> تقدمك حسب المادة (progress_json)</h3>
         <div className="space-y-3">
           {perDoc.map(item => (
