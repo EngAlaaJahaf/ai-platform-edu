@@ -166,12 +166,12 @@ export default function ExportModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-2xl glass-panel rounded-3xl p-6 border shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-2xl card p-6 space-y-5 max-h-[90vh] overflow-y-auto">
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 left-5 p-1.5 rounded-xl theme-header-btn border"
+          className="absolute top-5 left-5 iconbtn"
         >
           <X className="w-5 h-5" />
         </button>
@@ -281,7 +281,8 @@ export default function ExportModal({
         <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl theme-header-btn border text-xs font-bold font-['Tajawal']"
+            className="btn-ghost"
+            style={{ minHeight: 42, fontSize: 12.5, padding: '0 16px' }}
           >
             رجوع / إلغاء
           </button>
@@ -289,7 +290,8 @@ export default function ExportModal({
           <button
             onClick={handleExecuteExport}
             disabled={exporting}
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-lg shadow-emerald-600/25 transition flex items-center gap-2 border border-white/20"
+            className="btn-primary"
+            style={{ minHeight: 42, fontSize: 12.5, padding: '0 18px' }}
           >
             <Download className="w-4 h-4" />
             <span>تصدير {currentScopeOptions.find(o => o.id === scope)?.badge || 'الملف'} الآن</span>

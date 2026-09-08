@@ -189,7 +189,7 @@ export default function TemplateModal({ isOpen, onClose, onApply }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-4xl glass-panel rounded-3xl p-6 border shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-4xl card p-6 space-y-5 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shrink-0">
@@ -294,7 +294,8 @@ export default function TemplateModal({ isOpen, onClose, onApply }) {
                 type="button"
                 disabled={!selected}
                 onClick={handleApply}
-                className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 text-xs font-bold shadow-lg shadow-emerald-500/25 hover:scale-[1.02] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="btn-primary"
+                style={{ minHeight: 40, fontSize: 12.5, padding: '0 16px' }}
               >
                 <Check className="w-3.5 h-3.5" /> استخدام هذه الهوية
               </button>

@@ -153,12 +153,12 @@ export default function GoogleAuthModal({ isOpen, onClose, user, onUserUpdated }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in font-['Tajawal']">
-      <div className="relative w-full max-w-lg glass-panel rounded-3xl p-6 border shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-lg card p-6 space-y-5 max-h-[90vh] overflow-y-auto">
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 left-5 p-1.5 rounded-xl theme-header-btn border"
+          className="absolute top-5 left-5 iconbtn"
         >
           <X className="w-5 h-5" />
         </button>
@@ -314,7 +314,8 @@ export default function GoogleAuthModal({ isOpen, onClose, user, onUserUpdated }
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-black text-xs shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-2"
+                    className="btn-primary w-full"
+                    style={{ minHeight: 44, fontSize: 12.5 }}
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
                     <span>دخول فوري كطالب</span>

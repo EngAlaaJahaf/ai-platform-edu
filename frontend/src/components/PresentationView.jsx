@@ -71,7 +71,7 @@ function Collapsible({ title, subtitle, icon: Icon, badge, open, onToggle, tone 
     sky: 'from-sky-500 to-blue-600'
   };
   return (
-    <div className="glass-panel rounded-3xl border shadow-2xl overflow-hidden">
+    <div className="card overflow-hidden">
       <button
         type="button"
         onClick={onToggle}
@@ -418,7 +418,7 @@ export default function PresentationView({ onOpenApiKey }) {
   return (
     <div className="animate-fade-in font-['Tajawal'] space-y-4 max-w-5xl mx-auto">
       {/* رأس مضغوط (بدل hero ضخم) */}
-      <header className="flex flex-wrap items-center gap-3 glass-panel rounded-3xl border shadow-2xl px-5 py-4">
+      <header className="flex flex-wrap items-center gap-3 card p-4" style={{ paddingInline: 20 }}>
         <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25 shrink-0">
           <Presentation className="w-5 h-5" />
         </div>
@@ -688,7 +688,7 @@ export default function PresentationView({ onOpenApiKey }) {
                 type="button"
                 onClick={handleGenerate}
                 disabled={generating || apiKeyMissing}
-                className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/25 hover:scale-[1.02] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="btn-primary"
               >
                 {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
                 {generating ? 'جاري بناء العرض...' : 'توليد هيكل العرض'}
