@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, CheckCircle2, Clock, Award, Target } from 'lucide-react';
+import { BarChart3, TrendingUp, CheckCircle2, Award, Target } from 'lucide-react';
 import { fetchDocuments, fetchQuizProgress } from '../services/api';
 
 export default function StudentAnalytics() {
@@ -41,15 +41,20 @@ export default function StudentAnalytics() {
   }
 
   // Aggregate stats
-  let totalScore = 0, totalCount = 0, completed = 0;
+  let totalScore = 0, completed = 0;
   const perDoc = entries.map(([docId, p]) => {
-    const score = p.score || 0;
-    const total = p.history ? p.history.length : (p.score ? 1 : 0);
-    const pct = p.isCompleted ? (score / Math.max(1, (p.selectedAnswers ? Object.keys(p.selectedAnswers).length : 1)) * 100) : 0;
-    totalScore += score;
-    totalCount += 1;
+    let pct = 0;
+    const history = p.history || [];
+    if (history.length > 0) {
+      const latest = history[0];
+      pct = (latest.score / Math.max(1, latest.totalQuestions)) * 100;
+    } else if (p.isCompleted && p.selectedAnswers) {
+      pct = (p.score || 0) / Math.max(1, Object.keys(p.selectedAnswers).length) * 100;
+    }
+    pct = Math.min(100, Math.max(0, pct));
+    totalScore += p.score || 0;
     if (p.isCompleted) completed += 1;
-    return { docId, score, pct, title: docs.find(d => (d.doc_id||d.id)===docId)?.filename || docId };
+    return { docId, pct, title: docs.find(d => (d.doc_id||d.id)===docId)?.filename || docId };
   });
 
   const avgPct = perDoc.length ? (perDoc.reduce((a,b)=>a+b.pct,0)/perDoc.length).toFixed(1) : 0;
@@ -75,7 +80,7 @@ export default function StudentAnalytics() {
       </div>
 
       <div className="card p-6">
-        <h3 className="text-sm font-black theme-text-primary mb-4 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-500" /> تقدمك حسب المادة (progress_json)</h3>
+        <h3 className="text-sm font-black theme-text-primary mb-4 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-500" /> تقدمك حسب المادة</h3>
         <div className="space-y-3">
           {perDoc.map(item => (
             <div key={item.docId} className="space-y-1">
@@ -84,12 +89,11 @@ export default function StudentAnalytics() {
                 <span className="font-mono">{item.pct.toFixed(0)}%</span>
               </div>
               <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                <div className={`h-full transition-all ${item.pct>=80?'bg-emerald-500': item.pct>=50?'bg-amber-500':'bg-emerald-500'}`} style={{width: `${Math.min(100,item.pct)}%`}}></div>
+                <div className={`h-full transition-all ${item.pct>=80?'bg-emerald-500': item.pct>=50?'bg-amber-500':'bg-rose-500'}`} style={{width: `${Math.min(100,item.pct)}%`}}></div>
               </div>
             </div>
           ))}
         </div>
-        <p className="text-[11px] theme-text-muted mt-4">بدل `predicted_score` الثابت (85)، يُحسب الآن من `progress_json` الحقيقي لكل محاولة.</p>
       </div>
     </div>
   );
