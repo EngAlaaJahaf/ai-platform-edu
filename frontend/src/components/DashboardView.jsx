@@ -68,8 +68,8 @@ export default function DashboardView({
     <div className="space-y-8">
       
       {/* Hero Welcome Banner */}
-      <div className="relative rounded-3xl p-8 overflow-hidden glass-panel">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-transparent blur-3xl -z-10"></div>
+      <div className="card p-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-transparent blur-3xl"></div>
         
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
@@ -101,33 +101,36 @@ export default function DashboardView({
 
         {/* Mini Stats Bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t border-white/10">
-          <div className="p-4 rounded-2xl theme-card-inner text-center">
-            <b className="text-xl font-black theme-text-primary font-['JetBrains_Mono']">10,000+</b>
-            <p className="text-xs theme-text-muted font-bold mt-0.5">ملخص أكاديمي</p>
+          <div className="stat p-4 text-center">
+            <b className="v font-['JetBrains_Mono']">10,000+</b>
+            <p className="t mt-0.5 font-bold">ملخص أكاديمي</p>
           </div>
-          <div className="p-4 rounded-2xl theme-card-inner text-center">
-            <b className="text-xl font-black text-teal-400 font-['JetBrains_Mono']">98%</b>
-            <p className="text-xs theme-text-muted font-bold mt-0.5">دقة RAG بالصفحات</p>
+          <div className="stat p-4 text-center">
+            <b className="v text-teal-400 font-['JetBrains_Mono']">98%</b>
+            <p className="t mt-0.5 font-bold">دقة RAG بالصفحات</p>
           </div>
-          <div className="p-4 rounded-2xl theme-card-inner text-center">
-            <b className="text-xl font-black text-emerald-400 font-['JetBrains_Mono']">&lt; 1.5s</b>
-            <p className="text-xs theme-text-muted font-bold mt-0.5">سرعة الاستجابة</p>
+          <div className="stat p-4 text-center">
+            <b className="v text-emerald-400 font-['JetBrains_Mono']">&lt; 1.5s</b>
+            <p className="t mt-0.5 font-bold">سرعة الاستجابة</p>
           </div>
-          <div className="p-4 rounded-2xl theme-card-inner text-center">
-            <b className="text-xl font-black text-amber-400 font-['JetBrains_Mono']">24/7</b>
-            <p className="text-xs theme-text-muted font-bold mt-0.5">متاح دائماً للطالب</p>
+          <div className="stat p-4 text-center">
+            <b className="v text-amber-400 font-['JetBrains_Mono']">24/7</b>
+            <p className="t mt-0.5 font-bold">متاح دائماً للطالب</p>
           </div>
         </div>
       </div>
 
       {/* Quick Interactive Features Grid */}
       <div className="space-y-4">
-        <h3 className="text-lg font-black theme-text-primary flex items-center gap-2">
-          <Zap className="w-5 h-5 text-amber-400" />
-          <span>الأدوات الأكاديمية التفاعلية</span>
-        </h3>
+        <div className="sec-head">
+          <h2 className="flex items-center gap-2">
+            <Zap className="w-5 h-5 text-amber-400" />
+            <span>الأدوات الأكاديمية التفاعلية</span>
+          </h2>
+          <small>الكل بخطوة واحدة</small>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div className="tools-grid">
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
@@ -141,30 +144,23 @@ export default function DashboardView({
                   }
                 }}
                 tabIndex={0}
-                className="glass-card rounded-2xl p-6 hover:scale-[1.02] focus-visible:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer transition-all duration-300 flex flex-col justify-between group"
+                className="tool-card group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.gradient} flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform`}>
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
-                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${action.badgeColor}`}>
+                <span className={`t-ic bg-gradient-to-br ${action.gradient} text-white shadow-md group-hover:scale-110 transition-transform`}>
+                  <Icon className="w-5 h-5" />
+                </span>
+
+                <div style={{ minWidth: 0 }}>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="t-title group-hover:text-teal-400 transition">{action.title}</div>
+                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${action.badgeColor}`}>
                       {action.badge}
                     </span>
                   </div>
-
-                  <h4 className="font-extrabold text-base theme-text-primary mb-1.5 group-hover:text-teal-400 transition">
-                    {action.title}
-                  </h4>
-                  <p className="text-xs theme-text-secondary leading-relaxed">
-                    {action.desc}
-                  </p>
+                  <div className="t-sub leading-relaxed mt-1">{action.desc}</div>
                 </div>
 
-                <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-xs font-bold text-emerald-400 group-hover:translate-x-[-3px] transition-transform">
-                  <span>فتح الأداة</span>
-                  <ArrowLeft className="w-4 h-4" />
-                </div>
+                <ArrowLeft className="w-4 h-4 t-arrow group-hover:text-emerald-400 transition-colors" />
               </div>
             );
           })}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Header from './components/Header';
+import AppShell from './components/AppShell';
 import ChatView from './components/ChatView';
 import SummaryView from './components/SummaryView';
 import QuizView from './components/QuizView';
@@ -14,12 +14,11 @@ import DocumentLibraryView from './components/DocumentLibraryView';
 import AdminDashboardView from './components/AdminDashboardView';
 import TranslateView from './components/TranslateView';
 import TermsView from './components/TermsView';
-import DocumentFAB from './components/DocumentFAB';
 import AuthGateView from './components/AuthGateView';
 import PresentationView from './components/PresentationView';
 import TeamWorkspaceView from './components/TeamWorkspaceView';
 import { checkHealth, getUserProfile, getLatestDocument, fetchPublicSettings, setGoogleClientId } from './services/api';
-import { ShieldAlert, ShieldCheck } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 
 const VALID_TABS = [
   'dashboard', 
@@ -69,28 +68,29 @@ export default function App() {
     }
   };
 
+  // Keep-alive: render the active tab + the last 3 visited (never all 12)
+  const [visitedTabs, setVisitedTabs] = useState([getTabFromUrl()]);
+
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isApiKeyOpen, setIsApiKeyOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isPromptOpen, setIsPromptOpen] = useState(false);
   const [promptCategory, setPromptCategory] = useState('quiz');
   
-  // Theme state: 'dark' or 'light'
+  // Theme state: 'dark' or 'light' (default detected in index.html)
   const [theme, setTheme] = useState(() => localStorage.getItem('eduai_theme') || 'dark');
 
   const [health, setHealth] = useState({ has_gemini: false, status: 'ok' });
-  // User state
   const [user, setUser] = useState(getUserProfile);
 
-  // Persistent activeDoc strictly scoped per user
   const [activeDoc, setActiveDoc] = useState(null);
 
-  // Active prompt overrides per tool
   const [activeQuizPrompt, setActiveQuizPrompt] = useState(null);
   const [activeSummaryPrompt, setActiveSummaryPrompt] = useState(null);
   const [activeChatPrompt, setActiveChatPrompt] = useState(null);
   const [activeTranslatePrompt, setActiveTranslatePrompt] = useState(null);
   const [activeTermsPrompt, setActiveTermsPrompt] = useState(null);
+  const [activeProofreadPrompt, setActiveProofreadPrompt] = useState(null);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
@@ -105,17 +105,20 @@ export default function App() {
     checkHealth().then(data => {
       if (data) setHealth(data);
     });
-    // Sync Google Client ID from server (admin-set)
     fetchPublicSettings().then(ps => {
       if (ps && ps.google_client_id) {
         setGoogleClientId(ps.google_client_id);
       }
     }).catch(()=>{});
 
-    // Sync active tab with browser URL history (Back / Forward buttons)
     const handlePopState = () => {
       const tabFromUrl = getTabFromUrl();
       setActiveTabState(tabFromUrl);
+      setVisitedTabs(prev => {
+        const next = prev.filter(t => t !== tabFromUrl && VALID_TABS.includes(t));
+        next.push(tabFromUrl);
+        return next.slice(-4);
+      });
       localStorage.setItem('eduai_active_tab', tabFromUrl);
     };
 
@@ -123,9 +126,17 @@ export default function App() {
     updateBrowserUrl(activeTab);
 
     return () => window.removeEventListener('popstate', handlePopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fetch or restore document strictly belonging to this authenticated user
+  useEffect(() => {
+    setVisitedTabs(prev => {
+      const next = prev.filter(t => t !== activeTab && VALID_TABS.includes(t));
+      next.push(activeTab);
+      return next.slice(-4);
+    });
+  }, [activeTab]);
+
   useEffect(() => {
     if (user && user.id) {
       try {
@@ -137,19 +148,13 @@ export default function App() {
             setActiveDoc(doc || null);
           });
         }
-      } catch (e) {
+      } catch {
         setActiveDoc(null);
       }
     } else {
       setActiveDoc(null);
     }
   }, [user?.id]);
-
-  useEffect(() => {
-    if (activeTab) {
-      localStorage.setItem('eduai_active_tab', activeTab);
-    }
-  }, [activeTab]);
 
   useEffect(() => {
     if (user && user.id) {
@@ -163,7 +168,6 @@ export default function App() {
 
   const handleUploadSuccess = (uploadedDoc) => {
     setActiveDoc(uploadedDoc);
-    // Keep user in their current active section
   };
 
   const handleKeyUpdated = () => {
@@ -188,12 +192,14 @@ export default function App() {
       setActiveTranslatePrompt({ prompt: systemPrompt, title });
     } else if (promptCategory === 'terms') {
       setActiveTermsPrompt({ prompt: systemPrompt, title });
+    } else if (promptCategory === 'proofread') {
+      setActiveProofreadPrompt({ prompt: systemPrompt, title });
     }
   };
 
   if (!user) {
     return (
-      <div className={`min-h-screen flex flex-col relative transition-colors duration-300 ${theme}`}>
+      <div className="min-h-screen flex flex-col relative">
         <AuthGateView
           onAuthSuccess={(authenticatedUser) => {
             setUser(authenticatedUser);
@@ -203,36 +209,27 @@ export default function App() {
     );
   }
 
-  return (
-    <div className={`min-h-screen flex flex-col relative transition-colors duration-300 ${theme}`}>
-      
-      {/* Background Visual Mesh */}
-      <div className="glow-mesh"></div>
-      <div className="grid-bg"></div>
+  const tabKeep = (id) => visitedTabs.includes(id);
 
-      {/* Navigation Header */}
-      <Header
+  return (
+    <>
+      <AppShell
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenUpload={() => setIsUploadOpen(true)}
-        onOpenDocumentLibrary={() => setActiveTab('documents')}
-        onOpenAdminDashboard={() => setActiveTab('admin')}
+        onCloseActiveDoc={() => setActiveDoc(null)}
         activeDoc={activeDoc}
-        health={health}
         user={user}
-        onOpenAuth={() => setIsAuthOpen(true)}
-        onOpenApiKey={() => setIsApiKeyOpen(true)}
-        onOpenPromptManager={() => handleOpenPromptForCategory('quiz')}
+        health={health}
         theme={theme}
         onToggleTheme={toggleTheme}
-      />
+        onOpenApiKey={() => setIsApiKeyOpen(true)}
+        onOpenPromptManager={() => handleOpenPromptForCategory('quiz')}
+        onOpenAuth={() => setIsAuthOpen(true)}
+      >
 
-      {/* Main Content Workspace */}
-      {/* Main Content Workspace - Keep-Alive Architecture across all sections */}
-      <main className={`flex-1 w-full mx-auto ${activeTab === 'chat' || activeTab === 'translate' ? 'max-w-[1600px] p-2 md:p-4' : 'max-w-7xl p-4 md:p-8'}`}>
-        
-        {/* Dashboard Workspace */}
-        <div className={activeTab === 'dashboard' ? 'contents' : 'hidden'}>
+        {/* Dashboard */}
+        <div className={tabKeep('dashboard') ? (activeTab === 'dashboard' ? 'contents' : 'hidden') : 'hidden'}>
           <DashboardView
             onSelectTab={setActiveTab}
             onOpenUpload={() => setIsUploadOpen(true)}
@@ -240,39 +237,32 @@ export default function App() {
           />
         </div>
 
-        {/* Document Library Workspace */}
-        <div className={activeTab === 'documents' ? 'contents' : 'hidden'}>
+        {/* Document Library */}
+        <div className={tabKeep('documents') ? (activeTab === 'documents' ? 'contents' : 'hidden') : 'hidden'}>
           <DocumentLibraryView
             activeDoc={activeDoc}
             onSelectDoc={(doc) => {
               setActiveDoc(doc);
-              if (user && user.id) {
-                if (doc) {
-                  localStorage.setItem(`eduai_active_doc_${user.id}`, JSON.stringify(doc));
-                } else {
-                  localStorage.removeItem(`eduai_active_doc_${user.id}`);
-                }
-              }
             }}
             onOpenUpload={() => setIsUploadOpen(true)}
             onNavigateToTab={setActiveTab}
           />
         </div>
 
-        {/* Presentation Generator Workspace */}
-        <div className={activeTab === 'presentations' ? 'contents' : 'hidden'}>
+        {/* Presentation Generator */}
+        <div className={tabKeep('presentations') ? (activeTab === 'presentations' ? 'contents' : 'hidden') : 'hidden'}>
           <PresentationView
             onOpenApiKey={() => setIsApiKeyOpen(true)}
           />
         </div>
 
-        {/* Team Collaboration Workspace */}
-        <div className={activeTab === 'teams' ? 'contents' : 'hidden'}>
+        {/* Team Collaboration */}
+        <div className={tabKeep('teams') ? (activeTab === 'teams' ? 'contents' : 'hidden') : 'hidden'}>
           <TeamWorkspaceView />
         </div>
 
-        {/* Academic Translation Workspace */}
-        <div className={activeTab === 'translate' ? 'contents' : 'hidden'}>
+        {/* Translation */}
+        <div className={tabKeep('translate') ? (activeTab === 'translate' ? 'contents' : 'hidden') : 'hidden'}>
           <TranslateView
             activeDoc={activeDoc}
             activePrompt={activeTranslatePrompt}
@@ -282,8 +272,8 @@ export default function App() {
           />
         </div>
 
-        {/* Academic Terms Glossary Workspace */}
-        <div className={activeTab === 'terms' ? 'contents' : 'hidden'}>
+        {/* Academic Terms Glossary */}
+        <div className={tabKeep('terms') ? (activeTab === 'terms' ? 'contents' : 'hidden') : 'hidden'}>
           <TermsView
             activeDoc={activeDoc}
             activePrompt={activeTermsPrompt}
@@ -293,32 +283,32 @@ export default function App() {
           />
         </div>
 
-        {/* Admin Dashboard Workspace */}
-        <div className={activeTab === 'admin' ? 'contents' : 'hidden'}>
+        {/* Admin Dashboard */}
+        <div className={tabKeep('admin') ? (activeTab === 'admin' ? 'contents' : 'hidden') : 'hidden'}>
           {user && user.role === 'admin' ? (
             <AdminDashboardView
               onBackToApp={() => setActiveTab('dashboard')}
               onNavigateToTab={setActiveTab}
             />
           ) : (
-            <div className="glass-panel rounded-3xl p-8 max-w-md mx-auto text-center space-y-4 my-12 border shadow-2xl animate-fade-in font-['Tajawal']">
-              <div className="w-16 h-16 rounded-3xl bg-amber-500/20 text-amber-500 flex items-center justify-center mx-auto shadow-inner">
+            <div className="rounded-3xl p-8 max-w-md mx-auto text-center space-y-4 my-12">
+              <div className="w-16 h-16 rounded-2xl bg-warning-soft text-warning flex items-center justify-center mx-auto">
                 <ShieldAlert className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-black theme-text-primary">لوحة الإدارة مقفلة (Admin Only)</h3>
-              <p className="text-xs theme-text-secondary leading-relaxed">
+              <h3 className="font-head text-xl font-bold text-text-strong">لوحة الإدارة مقفلة (Admin Only)</h3>
+              <p className="text-sm text-text-muted leading-relaxed">
                 هذه المنطقة مخصصة لإدارة خوادم الذكاء الاصطناعي والإحصائيات وتتطلب تسجيل الدخول بصلاحيات مدير النظام.
               </p>
               <div className="pt-2 flex items-center justify-center gap-2">
                 <button
                   onClick={() => setIsAuthOpen(true)}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 hover:scale-105 transition"
+                  className="btn-primary text-sm"
                 >
                   تسجيل الدخول كمدير
                 </button>
                 <button
                   onClick={() => setActiveTab('dashboard')}
-                  className="px-4 py-2.5 rounded-xl theme-card-inner border text-xs font-bold theme-text-secondary hover:theme-text-primary transition"
+                  className="btn-ghost"
                 >
                   العودة للرئيسية
                 </button>
@@ -327,21 +317,19 @@ export default function App() {
           )}
         </div>
 
-        {/* Interactive Chat Workspace */}
-        <div className={activeTab === 'chat' ? 'contents' : 'hidden'}>
+        {/* Chat */}
+        <div className={tabKeep('chat') ? (activeTab === 'chat' ? 'contents' : 'hidden') : 'hidden'}>
           <ChatView
             activeDoc={activeDoc}
             activePrompt={activeChatPrompt}
             onOpenPromptManager={() => handleOpenPromptForCategory('chat')}
-            onSwitchToQuiz={() => setActiveTab('quiz')}
-            onSwitchToSummary={() => setActiveTab('summary')}
             onOpenUpload={() => setIsUploadOpen(true)}
-            onOpenApiKey={() => setIsApiKeyOpen(true)}
+            onCloseActiveDoc={() => setActiveDoc(null)}
           />
         </div>
 
-        {/* AI Summary & Mindmap Workspace */}
-        <div className={activeTab === 'summary' ? 'contents' : 'hidden'}>
+        {/* Summary */}
+        <div className={tabKeep('summary') ? (activeTab === 'summary' ? 'contents' : 'hidden') : 'hidden'}>
           <SummaryView
             activeDoc={activeDoc}
             activePrompt={activeSummaryPrompt}
@@ -352,8 +340,8 @@ export default function App() {
           />
         </div>
 
-        {/* Question Bank & Interactive Exam Workspace */}
-        <div className={activeTab === 'quiz' ? 'contents' : 'hidden'}>
+        {/* Quiz */}
+        <div className={tabKeep('quiz') ? (activeTab === 'quiz' ? 'contents' : 'hidden') : 'hidden'}>
           <QuizView
             activeDoc={activeDoc}
             activePrompt={activeQuizPrompt}
@@ -364,25 +352,26 @@ export default function App() {
           />
         </div>
 
-        {/* Academic Proofreader Workspace */}
-        <div className={activeTab === 'proofread' ? 'contents' : 'hidden'}>
-          <ProofreadView 
+        {/* Proofreader */}
+        <div className={tabKeep('proofread') ? (activeTab === 'proofread' ? 'contents' : 'hidden') : 'hidden'}>
+          <ProofreadView
             onOpenApiKey={() => setIsApiKeyOpen(true)}
+            activePrompt={activeProofreadPrompt}
             onOpenPromptManager={() => handleOpenPromptForCategory('proofread')}
           />
         </div>
 
-        {/* Subscription & Plans Workspace */}
-        <div className={activeTab === 'subscription' ? 'contents' : 'hidden'}>
+        {/* Subscription */}
+        <div className={tabKeep('subscription') ? (activeTab === 'subscription' ? 'contents' : 'hidden') : 'hidden'}>
           <SubscriptionView
             user={user}
             onOpenApiKeyModal={() => setIsApiKeyOpen(true)}
             onOpenAuthModal={() => setIsAuthOpen(true)}
           />
         </div>
-      </main>
 
-      {/* Modals */}
+      </AppShell>
+
       <FileUploadModal
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
@@ -408,7 +397,6 @@ export default function App() {
         activeCategory={promptCategory}
         onSelectPrompt={handleSelectPrompt}
       />
-
-    </div>
+    </>
   );
 }

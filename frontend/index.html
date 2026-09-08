@@ -4,16 +4,17 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#4F46E5" />
+    <meta name="theme-color" content="#059669" />
     <meta name="description" content="منصة RAG وتلخيص واختبارات تعمل Offline" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
     <title>ذكاء | EduAI — المساعد الأكاديمي الذكي المتكامل</title>
     <script>
       (function() {
         try {
-          var saved = localStorage.getItem('eduai_theme') || 'dark';
+          var saved = localStorage.getItem('eduai_theme');
+          var theme = saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
           document.documentElement.classList.remove('dark', 'light');
-          document.documentElement.classList.add(saved);
+          document.documentElement.classList.add(theme);
         } catch (e) {}
       })();
     </script>

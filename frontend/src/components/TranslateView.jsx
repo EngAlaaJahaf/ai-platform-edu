@@ -242,35 +242,24 @@ export default function TranslateView({
     <div className="space-y-6 animate-fade-in pb-16">
       
       {/* Main Canva Docs Translation Studio Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="tr-grid">
         
         {/* 1. LEFT: Canva Translate Side Panel */}
-        <aside className="lg:col-span-4 glass-panel rounded-3xl p-6 border shadow-xl flex flex-col gap-5 sticky top-20">
+        <aside className="card tr-settings flex flex-col gap-5">
           
           {/* Canva Tabs (Translate / Settings) */}
-          <div className="flex items-center gap-6 border-b border-slate-200 dark:border-slate-800 pb-2">
+          <div className="flex items-center gap-1.5 theme-bg-card p-1 rounded-2xl border w-fit">
             <button
               onClick={() => setCanvaTab('translate')}
-              className={`text-sm font-extrabold pb-2 transition relative cursor-pointer ${
-                canvaTab === 'translate' ? 'text-emerald-600 dark:text-emerald-400' : 'theme-text-muted hover:theme-text-primary'
-              }`}
+              className={`pill text-xs px-4 py-2 font-extrabold transition cursor-pointer ${canvaTab === 'translate' ? 'sel' : ''}`}
             >
               Translate
-              {canvaTab === 'translate' && (
-                <span className="absolute -bottom-2.5 left-0 right-0 h-0.5 bg-emerald-500 rounded-full"></span>
-              )}
             </button>
-
             <button
               onClick={() => setCanvaTab('settings')}
-              className={`text-sm font-extrabold pb-2 transition relative cursor-pointer ${
-                canvaTab === 'settings' ? 'text-emerald-600 dark:text-emerald-400' : 'theme-text-muted hover:theme-text-primary'
-              }`}
+              className={`pill text-xs px-4 py-2 font-extrabold transition cursor-pointer ${canvaTab === 'settings' ? 'sel' : ''}`}
             >
               Settings
-              {canvaTab === 'settings' && (
-                <span className="absolute -bottom-2.5 left-0 right-0 h-0.5 bg-emerald-500 rounded-full"></span>
-              )}
             </button>
           </div>
 
@@ -280,21 +269,20 @@ export default function TranslateView({
               
               {/* Language Selection */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold theme-text-secondary block">Translate to</label>
+                <label className="lbl">الترجمة إلى (Translate to)</label>
                 <select
                   value={targetLang}
                   onChange={(e) => setTargetLang(e.target.value)}
-                  className="w-full p-2.5 rounded-xl theme-card-inner border theme-text-primary text-xs font-bold outline-none focus:border-emerald-500"
+                  className="field w-full theme-text-primary text-xs font-bold outline-none focus:border-emerald-500"
                 >
                   {languages.map((l) => (
                     <option key={l.code} value={l.code}>{l.flag} {l.label}</option>
                   ))}
                 </select>
-                <div className="flex items-center justify-between text-xs theme-text-muted pt-0.5">
-                  <span>المستند المصدر: <b className="theme-text-primary">{sourceLang.toUpperCase()}</b></span>
-                  <button onClick={handleSwapLanguages} className="text-emerald-500 hover:underline font-bold flex items-center gap-1 cursor-pointer">
-                    <ArrowLeftRight className="w-3 h-3" />
-                    <span>تبديل</span>
+                <div className="tr-row">
+                  <span className="text-xs theme-text-muted flex-1">المستند المصدر: <b className="theme-text-primary">{sourceLang.toUpperCase()}</b></span>
+                  <button onClick={handleSwapLanguages} type="button" className="tr-swap" title="تبديل اللغتين">
+                    <ArrowLeftRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -303,52 +291,37 @@ export default function TranslateView({
 
               {/* 3 Layout Modes Selection */}
               <div className="space-y-2">
-                <label className="text-xs font-bold theme-text-secondary block">طريقة عرض الترجمة (Layout Mode)</label>
-                
-                <div className="space-y-1.5">
+                <label className="lbl">طريقة عرض الترجمة (Layout Mode)</label>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                   <button
                     onClick={() => setMode('a4_sheet')}
-                    className={`w-full text-right p-3 rounded-xl border text-xs font-bold transition flex items-center justify-between cursor-pointer ${
-                      mode === 'a4_sheet' 
-                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 shadow-sm' 
-                        : 'theme-card-inner hover:bg-white/5 theme-text-primary'
-                    }`}
+                    className="btn-ghost"
+                    style={{ minHeight: 64, flexDirection: 'column', gap: 4, fontSize: 11.5, ...(mode === 'a4_sheet' ? { background: 'var(--accent)', color: '#fff', borderColor: 'var(--accent)' } : {}) }}
+                    title="الوضع 1: ورقة A4 كاملة (Canva Sheet)"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <BookOpen className="w-4 h-4 text-emerald-500" />
-                      <span>الوضع 1: ورقة A4 كاملة (Canva Sheet)</span>
-                    </div>
-                    {mode === 'a4_sheet' && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
+                    <BookOpen className="w-4 h-4" />
+                    <span>ورقة A4</span>
                   </button>
 
                   <button
                     onClick={() => setMode('line_by_line')}
-                    className={`w-full text-right p-3 rounded-xl border text-xs font-bold transition flex items-center justify-between cursor-pointer ${
-                      mode === 'line_by_line' 
-                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 shadow-sm' 
-                        : 'theme-card-inner hover:bg-white/5 theme-text-primary'
-                    }`}
+                    className="btn-ghost"
+                    style={{ minHeight: 64, flexDirection: 'column', gap: 4, fontSize: 11.5, ...(mode === 'line_by_line' ? { background: 'var(--accent)', color: '#fff', borderColor: 'var(--accent)' } : {}) }}
+                    title="الوضع 2: سطر بسطر (Bilingual Book)"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <Rows className="w-4 h-4 text-emerald-500" />
-                      <span>الوضع 2: سطر بسطر (Bilingual Book)</span>
-                    </div>
-                    {mode === 'line_by_line' && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
+                    <Rows className="w-4 h-4" />
+                    <span>سطر بسطر</span>
                   </button>
 
                   <button
                     onClick={() => setMode('page_by_page')}
-                    className={`w-full text-right p-3 rounded-xl border text-xs font-bold transition flex items-center justify-between cursor-pointer ${
-                      mode === 'page_by_page' 
-                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 shadow-sm' 
-                        : 'theme-card-inner hover:bg-white/5 theme-text-primary'
-                    }`}
+                    className="btn-ghost"
+                    style={{ minHeight: 64, flexDirection: 'column', gap: 4, fontSize: 11.5, ...(mode === 'page_by_page' ? { background: 'var(--accent)', color: '#fff', borderColor: 'var(--accent)' } : {}) }}
+                    title="الوضع 3: صفحة بصفحة (White A4 Sheets)"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <Columns className="w-4 h-4 text-emerald-500" />
-                      <span>الوضع 3: صفحة بصفحة (White A4 Sheets)</span>
-                    </div>
-                    {mode === 'page_by_page' && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
+                    <Columns className="w-4 h-4" />
+                    <span>صفحة بصفحة</span>
                   </button>
                 </div>
               </div>
@@ -357,10 +330,10 @@ export default function TranslateView({
 
               {/* Scope Selection */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold theme-text-secondary block">Apply to page</label>
-                <div className="p-2.5 rounded-xl theme-card-inner border text-xs font-bold flex items-center justify-between">
-                  <span>الصفحة 1 (الصفحة الحالية)</span>
-                  <span className="text-xs theme-text-muted">من أصل {activeDoc?.pages_count || 1}</span>
+                <label className="lbl">النطاق (Apply to page)</label>
+                <div className="tr-row">
+                  <span className="field" style={{ padding: '0 12px', display: 'inline-flex', alignItems: 'center' }}>الصفحة 1 — الحالية</span>
+                  <span className="text-xs theme-text-muted">من {activeDoc?.pages_count || 1}</span>
                 </div>
               </div>
 
@@ -374,7 +347,8 @@ export default function TranslateView({
               <button
                 onClick={handleTranslate}
                 disabled={loading}
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
+                className="btn-primary w-full"
+                style={{ fontSize: 13.5 }}
               >
                 {loading ? (
                   <>
@@ -445,47 +419,49 @@ export default function TranslateView({
         </aside>
 
         {/* 2. RIGHT: Canva Document Canvas */}
-        <main className="lg:col-span-8 flex flex-col items-center gap-6">
+        <main className="tr-paper-wrap flex flex-col items-center gap-6 w-full">
           
           {/* Floating Canva Studio Toolbar (Zoom, Font Size & Export) */}
-          <div className="sticky top-20 z-40 flex items-center gap-3 bg-slate-900/90 dark:bg-slate-900/95 text-white px-4 py-2 rounded-full border border-slate-700 shadow-2xl backdrop-blur-md text-xs font-bold">
+          <div className="tr-toolbar sticky top-20 z-40">
             
             {/* Font Size controls */}
-            <div className="flex items-center gap-1.5 pl-3 border-l border-slate-700">
-              <span className="text-slate-400">الخط:</span>
+            <div className="grp">
+              <span className="text-[11px] text-slate-400 px-1">الخط:</span>
               <button 
                 onClick={() => setFontSize(Math.max(13, fontSize - 1))}
-                className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 cursor-pointer"
+                className="tt-btn"
+                title="تصغير الخط"
               >A-</button>
-              <span className="font-mono text-emerald-400">{fontSize}px</span>
+              <span className="font-mono text-emerald-400 px-1">{fontSize}px</span>
               <button 
                 onClick={() => setFontSize(Math.min(24, fontSize + 1))}
-                className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 cursor-pointer"
+                className="tt-btn"
+                title="تكبير الخط"
               >A+</button>
             </div>
 
             {/* Zoom controls */}
-            <div className="flex items-center gap-1.5 pl-3 border-l border-slate-700">
-              <span className="text-slate-400">الزوم:</span>
-              <button onClick={() => setZoomScale(0.85)} className={`px-2 py-0.5 rounded cursor-pointer ${zoomScale === 0.85 ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300'}`}>85%</button>
-              <button onClick={() => setZoomScale(1.0)} className={`px-2 py-0.5 rounded cursor-pointer ${zoomScale === 1.0 ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300'}`}>100%</button>
-              <button onClick={() => setZoomScale(1.15)} className={`px-2 py-0.5 rounded cursor-pointer ${zoomScale === 1.15 ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300'}`}>115%</button>
+            <div className="grp">
+              <span className="text-[11px] text-slate-400 px-1">الزوم:</span>
+              <button onClick={() => setZoomScale(0.85)} className={`tt-btn ${zoomScale === 0.85 ? 'active' : ''}`}>85%</button>
+              <button onClick={() => setZoomScale(1.0)} className={`tt-btn ${zoomScale === 1.0 ? 'active' : ''}`}>100%</button>
+              <button onClick={() => setZoomScale(1.15)} className={`tt-btn ${zoomScale === 1.15 ? 'active' : ''}`}>115%</button>
             </div>
 
             {/* Export buttons */}
-            <div className="flex items-center gap-2">
+            <div className="grp">
               <button
                 onClick={handleExportDocx}
                 disabled={exportingDocx || !result}
-                className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+                className="tt-btn flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
                 title="تصدير مستند Word (.docx) منسق"
               >
                 <FileDown className="w-3.5 h-3.5" />
-                <span>Word (.docx)</span>
+                <span>Word</span>
               </button>
               <button
                 onClick={handlePrint}
-                className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1 cursor-pointer"
+                className="tt-btn cursor-pointer"
                 title="طباعة أو حفظ PDF"
               >
                 <Printer className="w-3.5 h-3.5" />

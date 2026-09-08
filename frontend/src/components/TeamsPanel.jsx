@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Users,
   Plus,
@@ -28,10 +28,10 @@ import {
 } from '../services/api';
 
 const ROLE_LABELS = {
-  owner: 'مالك',
-  admin: 'مشرف',
-  editor: 'محرر',
-  viewer: 'مشاهد'
+  owner: 'ظ…ط§ظ„ظƒ',
+  admin: 'ظ…ط´ط±ظپ',
+  editor: 'ظ…ط­ط±ط±',
+  viewer: 'ظ…ط´ط§ظ‡ط¯'
 };
 
 const ROLE_STYLES = {
@@ -96,7 +96,7 @@ export default function TeamsPanel({ onChanged }) {
       const team = await createTeam(newName.trim());
       setNewName('');
       await load();
-      notify(`تم إنشاء فريق "${team.name}" — كود الدعوة: ${team.invite_code}`);
+      notify(`طھظ… ط¥ظ†ط´ط§ط، ظپط±ظٹظ‚ "${team.name}" â€” ظƒظˆط¯ ط§ظ„ط¯ط¹ظˆط©: ${team.invite_code}`);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -113,7 +113,7 @@ export default function TeamsPanel({ onChanged }) {
       setCode('');
       setMode('mine');
       await load();
-      notify(`انضممت إلى فريق "${team.name}" بنجاح`);
+      notify(`ط§ظ†ط¶ظ…ظ…طھ ط¥ظ„ظ‰ ظپط±ظٹظ‚ "${team.name}" ط¨ظ†ط¬ط§ط­`);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -175,15 +175,15 @@ export default function TeamsPanel({ onChanged }) {
   const canShare = (team) => ['owner', 'admin', 'editor'].includes(team.my_role);
 
   return (
-    <div className="glass-card rounded-3xl p-6 border shadow-xl space-y-4">
+    <div className="card p-6 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-700 flex items-center justify-center text-white shadow-lg shadow-violet-500/25">
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-black theme-text-primary">مساحات الفرق</h2>
-            <p className="text-xs theme-text-secondary mt-0.5">شارك مستنداتك مع زملائك بكود دعوة — المشاهد يرى فقط</p>
+            <h2 className="text-xl font-black theme-text-primary">ظ…ط³ط§ط­ط§طھ ط§ظ„ظپط±ظ‚</h2>
+            <p className="text-xs theme-text-secondary mt-0.5">ط´ط§ط±ظƒ ظ…ط³طھظ†ط¯ط§طھظƒ ظ…ط¹ ط²ظ…ظ„ط§ط¦ظƒ ط¨ظƒظˆط¯ ط¯ط¹ظˆط© â€” ط§ظ„ظ…ط´ط§ظ‡ط¯ ظٹط±ظ‰ ظپظ‚ط·</p>
           </div>
         </div>
         <div className="flex items-center gap-1 p-1 rounded-xl theme-card-inner border">
@@ -191,16 +191,16 @@ export default function TeamsPanel({ onChanged }) {
             onClick={() => setMode('mine')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${mode === 'mine' ? 'bg-violet-600 text-white' : 'theme-text-muted'}`}
           >
-            فرقي
+            ظپط±ظ‚ظٹ
           </button>
           <button
             onClick={() => setMode('join')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${mode === 'join' ? 'bg-violet-600 text-white' : 'theme-text-muted'}`}
           >
             <LogIn className="w-3.5 h-3.5" />
-            انضم بكود
+            ط§ظ†ط¶ظ… ط¨ظƒظˆط¯
           </button>
-          <button onClick={load} disabled={loading} className="p-1.5 rounded-lg theme-text-muted hover:text-violet-500 transition" title="تحديث">
+          <button onClick={load} disabled={loading} className="p-1.5 rounded-lg theme-text-muted hover:text-violet-500 transition" title="طھط­ط¯ظٹط«">
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
@@ -224,7 +224,7 @@ export default function TeamsPanel({ onChanged }) {
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
-            placeholder="أدخل كود الدعوة (مثال: KH3QV6)"
+            placeholder="ط£ط¯ط®ظ„ ظƒظˆط¯ ط§ظ„ط¯ط¹ظˆط© (ظ…ط«ط§ظ„: KH3QV6)"
             className="flex-1 px-4 py-2.5 rounded-xl theme-card-inner border text-sm font-mono tracking-widest text-center theme-text-primary outline-none focus:border-violet-500"
             maxLength={12}
           />
@@ -234,7 +234,7 @@ export default function TeamsPanel({ onChanged }) {
             className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-black text-xs shadow-md disabled:opacity-50 transition flex items-center justify-center gap-2"
           >
             <LogIn className="w-4 h-4" />
-            {joining ? 'جاري الانضمام...' : 'انضم للفريق'}
+            {joining ? 'ط¬ط§ط±ظٹ ط§ظ„ط§ظ†ط¶ظ…ط§ظ…...' : 'ط§ظ†ط¶ظ… ظ„ظ„ظپط±ظٹظ‚'}
           </button>
         </div>
       ) : (
@@ -245,7 +245,7 @@ export default function TeamsPanel({ onChanged }) {
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-              placeholder="اسم الفريق الجديد (مثال: فريق مشروع التخرج)"
+              placeholder="ط§ط³ظ… ط§ظ„ظپط±ظٹظ‚ ط§ظ„ط¬ط¯ظٹط¯ (ظ…ط«ط§ظ„: ظپط±ظٹظ‚ ظ…ط´ط±ظˆط¹ ط§ظ„طھط®ط±ط¬)"
               className="flex-1 px-4 py-2.5 rounded-xl theme-card-inner border text-xs theme-text-primary outline-none focus:border-violet-500 font-['Tajawal']"
               maxLength={80}
             />
@@ -255,14 +255,14 @@ export default function TeamsPanel({ onChanged }) {
               className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-black text-xs shadow-md disabled:opacity-50 transition flex items-center justify-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              {creating ? 'جاري الإنشاء...' : 'إنشاء فريق'}
+              {creating ? 'ط¬ط§ط±ظٹ ط§ظ„ط¥ظ†ط´ط§ط،...' : 'ط¥ظ†ط´ط§ط، ظپط±ظٹظ‚'}
             </button>
           </div>
 
           {loading ? (
-            <p className="text-xs theme-text-muted text-center py-6">جاري تحميل فرقك...</p>
+            <p className="text-xs theme-text-muted text-center py-6">ط¬ط§ط±ظٹ طھط­ظ…ظٹظ„ ظپط±ظ‚ظƒ...</p>
           ) : teams.length === 0 ? (
-            <p className="text-xs theme-text-muted text-center py-6">لا تنتمي لأي فريق بعد — أنشئ فريقاً أو انضم بكود دعوة.</p>
+            <p className="text-xs theme-text-muted text-center py-6">ظ„ط§ طھظ†طھظ…ظٹ ظ„ط£ظٹ ظپط±ظٹظ‚ ط¨ط¹ط¯ â€” ط£ظ†ط´ط¦ ظپط±ظٹظ‚ط§ظ‹ ط£ظˆ ط§ظ†ط¶ظ… ط¨ظƒظˆط¯ ط¯ط¹ظˆط©.</p>
           ) : (
             <div className="space-y-3">
               {teams.map((team) => {
@@ -283,7 +283,7 @@ export default function TeamsPanel({ onChanged }) {
                             <RoleBadge role={team.my_role} />
                           </div>
                           <p className="text-[11px] theme-text-muted mt-0.5">
-                            {team.members_count} أعضاء • {team.shares_count} عناصر مشاركة
+                            {team.members_count} ط£ط¹ط¶ط§ط، â€¢ {team.shares_count} ط¹ظ†ط§طµط± ظ…ط´ط§ط±ظƒط©
                           </p>
                         </div>
                       </div>
@@ -291,7 +291,7 @@ export default function TeamsPanel({ onChanged }) {
                         <button
                           onClick={() => copyCode(team.invite_code)}
                           className="px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-bold bg-violet-500/15 text-violet-600 dark:text-violet-300 hover:bg-violet-500/25 transition flex items-center gap-1"
-                          title="نسخ كود الدعوة"
+                          title="ظ†ط³ط® ظƒظˆط¯ ط§ظ„ط¯ط¹ظˆط©"
                         >
                           {copied === team.invite_code ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                           {team.invite_code}
@@ -299,7 +299,7 @@ export default function TeamsPanel({ onChanged }) {
                         <button
                           onClick={() => toggleExpand(team.id)}
                           className="p-1.5 rounded-lg theme-header-btn border transition"
-                          title="التفاصيل والأعضاء"
+                          title="ط§ظ„طھظپط§طµظٹظ„ ظˆط§ظ„ط£ط¹ط¶ط§ط،"
                         >
                           <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                         </button>
@@ -309,7 +309,7 @@ export default function TeamsPanel({ onChanged }) {
                     {isOpen && (
                       <div className="px-4 pb-4 pt-1 border-t border-slate-200 dark:border-slate-800/60 space-y-3">
                         <div>
-                          <p className="text-[11px] font-black theme-text-secondary mb-2">الأعضاء ({members.length})</p>
+                          <p className="text-[11px] font-black theme-text-secondary mb-2">ط§ظ„ط£ط¹ط¶ط§ط، ({members.length})</p>
                           <div className="space-y-1.5">
                             {members.map((m) => (
                               <div key={m.user_id} className="flex items-center justify-between gap-2 text-xs">
@@ -322,18 +322,18 @@ export default function TeamsPanel({ onChanged }) {
                                     <select
                                       value={m.role}
                                       disabled={busy === `role-${m.user_id}`}
-                                      onChange={(e) => doAction(`role-${m.user_id}`, () => setTeamMemberRole(team.id, m.user_id, e.target.value), 'تم تحديث الدور')}
+                                      onChange={(e) => doAction(`role-${m.user_id}`, () => setTeamMemberRole(team.id, m.user_id, e.target.value), 'طھظ… طھط­ط¯ظٹط« ط§ظ„ط¯ظˆط±')}
                                       className="px-1.5 py-1 rounded-lg theme-card-inner border text-[11px] theme-text-primary outline-none"
                                     >
-                                      <option value="admin">مشرف</option>
-                                      <option value="editor">محرر</option>
-                                      <option value="viewer">مشاهد</option>
+                                      <option value="admin">ظ…ط´ط±ظپ</option>
+                                      <option value="editor">ظ…ط­ط±ط±</option>
+                                      <option value="viewer">ظ…ط´ط§ظ‡ط¯</option>
                                     </select>
                                     <button
-                                      onClick={() => { if (window.confirm(`إزالة ${m.name || m.email} من الفريق؟`)) doAction(`rm-${m.user_id}`, () => removeTeamMember(team.id, m.user_id), 'تمت إزالة العضو'); }}
+                                      onClick={() => { if (window.confirm(`ط¥ط²ط§ظ„ط© ${m.name || m.email} ظ…ظ† ط§ظ„ظپط±ظٹظ‚طں`)) doAction(`rm-${m.user_id}`, () => removeTeamMember(team.id, m.user_id), 'طھظ…طھ ط¥ط²ط§ظ„ط© ط§ظ„ط¹ط¶ظˆ'); }}
                                       disabled={busy === `rm-${m.user_id}`}
                                       className="p-1.5 rounded-lg hover:text-rose-500 transition"
-                                      title="إزالة العضو"
+                                      title="ط¥ط²ط§ظ„ط© ط§ظ„ط¹ط¶ظˆ"
                                     >
                                       <UserMinus className="w-3.5 h-3.5" />
                                     </button>
@@ -345,22 +345,22 @@ export default function TeamsPanel({ onChanged }) {
                         </div>
 
                         <div>
-                          <p className="text-[11px] font-black theme-text-secondary mb-2">العناصر المشاركة ({shares.length})</p>
+                          <p className="text-[11px] font-black theme-text-secondary mb-2">ط§ظ„ط¹ظ†ط§طµط± ط§ظ„ظ…ط´ط§ط±ظƒط© ({shares.length})</p>
                           {shares.length === 0 ? (
-                            <p className="text-[11px] theme-text-muted">لا عناصر مشاركة بعد — شارك مستنداً من بطاقته في المكتبة.</p>
+                            <p className="text-[11px] theme-text-muted">ظ„ط§ ط¹ظ†ط§طµط± ظ…ط´ط§ط±ظƒط© ط¨ط¹ط¯ â€” ط´ط§ط±ظƒ ظ…ط³طھظ†ط¯ط§ظ‹ ظ…ظ† ط¨ط·ط§ظ‚طھظ‡ ظپظٹ ط§ظ„ظ…ظƒطھط¨ط©.</p>
                           ) : (
                             <div className="space-y-1.5">
                               {shares.map((s) => (
                                 <div key={s.id} className="flex items-center justify-between gap-2 text-xs">
                                   <span className="theme-text-primary font-medium truncate">
-                                    {s.entity_type === 'document' ? '📄' : '📊'} {s.entity_name || s.entity_id}
+                                    {s.entity_type === 'document' ? 'ًں“„' : 'ًں“ٹ'} {s.entity_name || s.entity_id}
                                   </span>
                                   {canShare(team) && (
                                     <button
-                                      onClick={() => doAction(`un-${s.id}`, () => unshareFromTeam(team.id, s.entity_type, s.entity_id), 'تم إلغاء المشاركة')}
+                                      onClick={() => doAction(`un-${s.id}`, () => unshareFromTeam(team.id, s.entity_type, s.entity_id), 'طھظ… ط¥ظ„ط؛ط§ط، ط§ظ„ظ…ط´ط§ط±ظƒط©')}
                                       disabled={busy === `un-${s.id}`}
                                       className="p-1.5 rounded-lg hover:text-rose-500 transition shrink-0"
-                                      title="إلغاء المشاركة"
+                                      title="ط¥ظ„ط؛ط§ط، ط§ظ„ظ…ط´ط§ط±ظƒط©"
                                     >
                                       <Link2Off className="w-3.5 h-3.5" />
                                     </button>
@@ -373,12 +373,12 @@ export default function TeamsPanel({ onChanged }) {
 
                         {team.my_role === 'owner' && (
                           <button
-                            onClick={() => { if (window.confirm(`حذف فريق "${team.name}" نهائياً؟`)) doAction('del-team', () => deleteTeamApi(team.id), 'تم حذف الفريق'); }}
+                            onClick={() => { if (window.confirm(`ط­ط°ظپ ظپط±ظٹظ‚ "${team.name}" ظ†ظ‡ط§ط¦ظٹط§ظ‹طں`)) doAction('del-team', () => deleteTeamApi(team.id), 'طھظ… ط­ط°ظپ ط§ظ„ظپط±ظٹظ‚'); }}
                             disabled={busy === 'del-team'}
                             className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-rose-500 hover:bg-rose-500/10 transition flex items-center gap-1"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
-                            حذف الفريق نهائياً
+                            ط­ط°ظپ ط§ظ„ظپط±ظٹظ‚ ظ†ظ‡ط§ط¦ظٹط§ظ‹
                           </button>
                         )}
                       </div>

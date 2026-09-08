@@ -8,36 +8,21 @@ import {
   Sparkles, 
   Layers, 
   Download, 
-  Printer, 
   Network, 
   BookMarked, 
-  ArrowRight, 
   RefreshCw, 
-  Check, 
-  Maximize2, 
-  Minimize2,
-  ZoomIn, 
-  ZoomOut, 
   Upload, 
-  KeyRound, 
   Wand2,
-  Play,
-  Sliders,
   BookOpen,
   Scale,
   AlertTriangle,
-  Calculator,
-  Compass,
-  ChevronDown,
-  ChevronUp,
-  RotateCcw,
-  Search,
-  FolderPlus,
-  FolderMinus
+  Calculator
 } from 'lucide-react';
 import { fetchSummary } from '../services/api';
 import ExportModal from './ExportModal';
 import NotebookLMMindMap from './NotebookLMMindMap';
+
+const toAr = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
 
 export default function SummaryView({ 
   activeDoc, 
@@ -319,7 +304,7 @@ export default function SummaryView({
 
   if (!activeDoc) {
     return (
-      <div className="glass-panel rounded-3xl p-16 text-center max-w-2xl mx-auto space-y-6 shadow-2xl">
+      <div className="card p-16 text-center max-w-2xl mx-auto space-y-6">
         <div className="w-16 h-16 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 mx-auto flex items-center justify-center text-teal-400">
           <Upload className="w-8 h-8" />
         </div>
@@ -345,17 +330,15 @@ export default function SummaryView({
   // Launch Studio (when not generated yet)
   if (!summaryData && !loading) {
     return (
-      <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
-        <div className="glass-panel rounded-3xl p-8 border shadow-xl space-y-6">
-          <div className="flex items-start justify-between gap-4">
+      <div className="sum-step" dir="rtl">
+        <div className="card" style={{ padding: 24 }}>
+          <div className="flex items-start justify-between gap-4 mb-5">
             <div className="space-y-1.5">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-500 text-xs font-black">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 <span>استوديو التلخيص ورسم الخرائط الذهنية الأكاديمي</span>
               </div>
-              <h2 className="text-2xl font-black theme-text-primary">
-                توليد ملخص أكاديمي متكامل للمحاضرة
-              </h2>
+              <h2 className="text-2xl font-black theme-text-primary">توليد ملخص أكاديمي متكامل للمحاضرة</h2>
               <p className="text-xs theme-text-secondary">
                 المستند الحالي: <b className="theme-text-primary">{activeDoc.filename}</b> ({activeDoc.pages_count} صفحة • {activeDoc.words_count || 0} كلمة)
               </p>
@@ -369,112 +352,97 @@ export default function SummaryView({
             </button>
           </div>
 
-        <div className="space-y-3">
-          <label className="text-xs font-black theme-text-primary block">
-            1. اختر عمق ومستوى التلخيص المطلوب:
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <span className="lbl">مستوى التفصيل</span>
+          <div className="wz-mode-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10, marginBottom: 22 }}>
             {levels.map((lvl) => {
-              const isSelected = level === lvl.id;
+              const sel = level === lvl.id;
+              const Icon = lvl.id === 'quick' ? FileText : lvl.id === 'full' ? Layers : BookMarked;
               return (
                 <button
                   key={lvl.id}
+                  type="button"
                   onClick={() => setLevel(lvl.id)}
-                  className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between ${
-                    isSelected
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 border-teal-500 shadow-md theme-text-primary ring-2 ring-teal-500/20'
-                      : 'theme-card-inner border hover:border-emerald-400/40'
-                  }`}
+                  className={`radio-card ${sel ? 'sel' : ''}`}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`text-xs font-black ${isSelected ? 'text-teal-600 dark:text-teal-400' : 'theme-text-primary'}`}>
-                      {lvl.label}
-                    </span>
-                    {isSelected && <span className="w-2 h-2 rounded-full bg-teal-500"></span>}
+                  <span className="r-ic"><Icon className="w-5 h-5" /></span>
+                  <div>
+                    <div className="r-title">{lvl.label}</div>
+                    <div className="r-sub">{lvl.desc}</div>
                   </div>
-                  <p className="text-[13px] theme-text-secondary leading-relaxed">
-                    {lvl.desc}
-                  </p>
                 </button>
               );
             })}
           </div>
-        </div>
 
-        {/* Language Selector */}
-        <div className="space-y-3">
-          <label className="text-xs font-black theme-text-primary block">
-            2. اختر لغة صياغة الملخص والشروحات:
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {languages.map((l) => {
-              const isSelected = language === l.id;
-              return (
-                <button
-                  key={l.id}
-                  onClick={() => setLanguage(l.id)}
-                  className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between ${
-                    isSelected
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 border-teal-500 shadow-md theme-text-primary ring-2 ring-teal-500/20'
-                      : 'theme-card-inner border hover:border-emerald-400/40'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`text-xs font-black ${isSelected ? 'text-teal-600 dark:text-teal-400' : 'theme-text-primary'}`}>
-                      {l.label}
-                    </span>
-                    {isSelected && <span className="w-2 h-2 rounded-full bg-teal-500"></span>}
-                  </div>
-                  <p className="text-[13px] theme-text-secondary leading-relaxed">
-                    {l.desc}
-                  </p>
-                </button>
-              );
-            })}
+          <span className="lbl">اللغة</span>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 22 }}>
+            {languages.map((l) => (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => setLanguage(l.id)}
+                className={`pill ${language === l.id ? 'sel' : ''}`}
+              >
+                {l.label}
+              </button>
+            ))}
           </div>
-        </div>
 
-        <div className="p-3.5 rounded-2xl theme-card-inner flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs">
-            <Wand2 className="w-4 h-4 text-teal-500" />
-            <span className="theme-text-muted">قالب البرومبت:</span>
-            <span className="font-bold theme-text-primary">{activePrompt?.title || 'الافتراضي المعتمد'}</span>
-          </div>
+          <span className="lbl">المصدر</span>
           <button
-            onClick={onOpenPromptManager}
-            className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+            type="button"
+            onClick={onOpenUpload}
+            className="field"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', textAlign: 'start' }}
           >
-            اختيار قالب آخر
+            <span style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
+              <FileText className="w-4 h-4" style={{ color: 'var(--info)' }} />
+              {activeDoc.filename}
+            </span>
+            <span style={{ fontSize: 12 }}>تبديل</span>
           </button>
-        </div>
 
-        {error && (
-          <div className="p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center justify-between">
-            <span>❌ {error}</span>
-            <button onClick={() => setError(null)} className="text-slate-400 hover:text-slate-200">إغلاق</button>
+          <div className="p-3.5 rounded-2xl theme-card-inner flex items-center justify-between mt-5">
+            <div className="flex items-center gap-2 text-xs">
+              <Wand2 className="w-4 h-4 text-teal-500" />
+              <span className="theme-text-muted">قالب البرومبت:</span>
+              <span className="font-bold theme-text-primary">{activePrompt?.title || 'الافتراضي المعتمد'}</span>
+            </div>
+            <button
+              onClick={onOpenPromptManager}
+              className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+            >
+              اختيار قالب آخر
+            </button>
           </div>
-        )}
 
-        <div className="pt-2">
-          <button
-            onClick={() => handleGenerateSummary(level, language)}
-            disabled={loading}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-600 hover:scale-[1.01] text-white font-black text-sm flex items-center justify-center gap-3 shadow-xl shadow-emerald-600/25 border border-white/20 transition cursor-pointer disabled:opacity-50"
-          >
-            {loading ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                <span>جاري قراءة وتلخيص المادة وتوليد الخريطة الذهنية...</span>
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4 fill-white text-white" />
-                <span>بدء توليد الملخص والخريطة الذهنية الآن 🚀</span>
-              </>
-            )}
-          </button>
-        </div>
+          {error && (
+            <div className="p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center justify-between mt-4">
+              <span>❌ {error}</span>
+              <button onClick={() => setError(null)} className="text-slate-400 hover:text-slate-200">إغلاق</button>
+            </div>
+          )}
 
+          <div className="mt-6">
+            <button
+              type="button"
+              onClick={() => handleGenerateSummary(level, language)}
+              disabled={loading}
+              className="btn btn-primary w-full"
+            >
+              {loading ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                  <span>جاري قراءة وتلخيص المادة وتوليد الخريطة الذهنية...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 text-white" />
+                  <span>توليد الملخص</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -484,7 +452,7 @@ export default function SummaryView({
     <div className="space-y-6">
       
       {/* View Header Bar */}
-      <div className="glass-panel rounded-2xl border shadow-lg overflow-hidden">
+      <div className="card overflow-hidden">
         <div className="p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5 mb-1">
@@ -522,64 +490,60 @@ export default function SummaryView({
         </div>
 
         {/* Settings Strip - structured control bar */}
-        <div className="px-4 md:px-6 py-3 border-t border-slate-200 dark:border-slate-800 theme-nav flex flex-col lg:flex-row lg:items-center gap-3">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="card sum-controls">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[13px] font-bold theme-text-muted shrink-0">المستوى ▾</span>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-black theme-text-muted shrink-0">مستوى التلخيص:</span>
-              <div className="flex items-center p-1 rounded-xl theme-card-inner border">
-                {levels.map((lvl) => (
-                  <button
-                    key={lvl.id}
-                    onClick={() => {
-                      setLevel(lvl.id);
-                      handleGenerateSummary(lvl.id, language);
-                    }}
-                    disabled={loading}
-                    className={`px-3.5 py-1.5 rounded-lg text-sm font-bold transition ${
-                      level === lvl.id
-                        ? 'bg-emerald-600 text-white shadow-sm'
-                        : 'theme-text-muted hover:theme-text-primary'
-                    }`}
-                  >
-                    {lvl.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-black theme-text-muted shrink-0">اللغة:</span>
-              <div className="flex items-center p-1 rounded-xl theme-card-inner border" title="تغيير لغة التلخيص">
-                {languages.map((l) => (
-                  <button
-                    key={l.id}
-                    onClick={() => {
-                      setLanguage(l.id);
-                      handleGenerateSummary(level, l.id);
-                    }}
-                    disabled={loading}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-bold transition ${
-                      language === l.id
-                        ? 'bg-teal-600 text-white shadow-sm'
-                        : 'theme-text-muted hover:theme-text-primary'
-                    }`}
-                  >
-                    {l.label}
-                  </button>
-                ))}
-              </div>
+              {levels.map((lvl) => (
+                <button
+                  key={lvl.id}
+                  type="button"
+                  onClick={() => { setLevel(lvl.id); handleGenerateSummary(lvl.id, language); }}
+                  disabled={loading}
+                  className={`pill ${level === lvl.id ? 'sel' : ''}`}
+                  style={{ minHeight: 34, fontSize: 13, padding: '0 12px' }}
+                >
+                  {lvl.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div className="lg:mr-auto">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[13px] font-bold theme-text-muted shrink-0">اللغة ▾</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              {languages.map((l) => (
+                <button
+                  key={l.id}
+                  type="button"
+                  onClick={() => { setLanguage(l.id); handleGenerateSummary(level, l.id); }}
+                  disabled={loading}
+                  className={`pill ${language === l.id ? 'sel' : ''}`}
+                  style={{ minHeight: 34, fontSize: 13, padding: '0 12px' }}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginInlineStart: 'auto' }} className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => handleGenerateSummary(level, language)}
               disabled={loading}
-              className="px-4 py-2 rounded-xl theme-header-btn border hover:text-teal-500 transition flex items-center gap-2 text-sm font-bold"
+              className="mt-btn"
               title="إعادة التوليد"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>إعادة التوليد</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsExportModalOpen(true)}
+              className="mt-btn"
+              title="تصدير وطباعة"
+            >
+              <Download className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -587,7 +551,7 @@ export default function SummaryView({
 
       {/* Loading Overlay */}
       {loading && (
-        <div className="glass-panel rounded-3xl p-16 text-center space-y-4 border animate-pulse">
+        <div className="card p-14 text-center animate-pulse">
           <RefreshCw className="w-10 h-10 animate-spin text-teal-400 mx-auto" />
           <h3 className="text-lg font-black theme-text-primary">الذكاء الاصطناعي يحلل المحاضرة بعمق ويستخرج الملخص الأكاديمي...</h3>
           <p className="text-xs theme-text-muted">يتم استخلاص المحاور، والمقارنات، ومصائد الامتحانات، وشجرة المفاهيم</p>
@@ -599,7 +563,7 @@ export default function SummaryView({
         <div className="space-y-6">
           
           {/* Executive Overview Card */}
-          <div className="glass-card rounded-2xl p-6 border space-y-3">
+          <div className="card p-6 space-y-3">
             <h3 className="text-base font-black theme-text-primary flex items-center gap-2">
               <BookMarked className="w-4 h-4 text-teal-500" />
               <span>نظرة عامة جوهرية (Executive Overview)</span>
@@ -610,13 +574,13 @@ export default function SummaryView({
           </div>
 
           {/* Tab Navigation for Deep Academic Sections */}
-          <div className="flex items-center gap-1.5 p-1.5 rounded-2xl theme-nav border overflow-x-auto scrollbar-none">
+          <div className="sum-tabs">
             {[
-              { id: 'pillars', label: 'المحاور الأساسية', icon: Layers, count: summaryData.pillars?.length },
-              { id: 'comparisons', label: 'جداول المقارنة', icon: Scale, count: summaryData.comparisons?.length },
-              { id: 'traps', label: 'مصائد الامتحانات ⚠️', icon: AlertTriangle, count: summaryData.exam_traps?.length },
-              { id: 'rules', label: 'القوانين والمعادلات', icon: Calculator, count: summaryData.formulas_rules?.length },
-              { id: 'definitions', label: 'قاموس المصطلحات', icon: BookOpen, count: summaryData.definitions?.length },
+              { id: 'pillars', label: 'المحاور', icon: Layers, count: summaryData.pillars?.length },
+              { id: 'comparisons', label: 'المقارنات', icon: Scale, count: summaryData.comparisons?.length },
+              { id: 'traps', label: 'المصائد', icon: AlertTriangle, count: summaryData.exam_traps?.length },
+              { id: 'rules', label: 'القوانين', icon: Calculator, count: summaryData.formulas_rules?.length },
+              { id: 'definitions', label: 'المصطلحات', icon: BookOpen, count: summaryData.definitions?.length },
               { id: 'mindmap', label: 'الخريطة الذهنية', icon: Network },
             ].map((tab) => {
               const Icon = tab.icon;
@@ -624,20 +588,18 @@ export default function SummaryView({
               return (
                 <button
                   key={tab.id}
+                  type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
-                    isAct
-                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                      : 'theme-text-secondary hover:bg-white/10'
-                  }`}
+                  className={`sum-tab ${isAct ? 'on' : ''}`}
+                  title={tab.label}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span>{tab.label}</span>
-                  {tab.count !== undefined && tab.count > 0 && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${isAct ? 'bg-white/20 text-white' : 'theme-card-inner text-emerald-400'}`}>
-                      {tab.count}
-                    </span>
-                  )}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, justifyContent: 'center' }}>
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>{tab.label}</span>
+                    {tab.count !== undefined && tab.count > 0 && (
+                      <span style={{ fontSize: 10, opacity: 0.75 }}>{toAr(tab.count)}</span>
+                    )}
+                  </span>
                 </button>
               );
             })}
@@ -651,7 +613,7 @@ export default function SummaryView({
               <div className="space-y-4">
                 {summaryData.pillars && summaryData.pillars.length > 0 ? (
                   summaryData.pillars.map((pillar, idx) => (
-                    <div key={idx} className="glass-card rounded-2xl p-6 border space-y-3">
+                    <div key={idx} className="card p-6 space-y-3">
                       <div className="flex items-center gap-2.5">
                         <span className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center font-black text-base">
                           {idx + 1}
@@ -682,7 +644,7 @@ export default function SummaryView({
                     </div>
                   ))
                 ) : (
-                  <div className="glass-card rounded-2xl p-6 border space-y-3">
+                  <div className="card p-6 space-y-3">
                     <h4 className="text-base font-black theme-text-primary">النقاط المفتاحية المستخلصة:</h4>
                     <div className="space-y-2.5">
                       {summaryData.key_points?.map((kp, idx) => (
@@ -708,7 +670,7 @@ export default function SummaryView({
                 <div className="space-y-6">
                   {compTables.length > 0 ? (
                     compTables.map((tbl, tIdx) => (
-                      <div key={tIdx} className="glass-card rounded-2xl p-6 border space-y-4 shadow-sm animate-fade-in">
+                      <div key={tIdx} className="card p-6 space-y-4 animate-fade-in">
                         <div className="flex items-center justify-between">
                           <h4 className="text-base font-black theme-text-primary flex items-center gap-2 font-['Tajawal']">
                             <Scale className="w-5 h-5 text-teal-400" />
@@ -752,7 +714,7 @@ export default function SummaryView({
                       </div>
                     ))
                   ) : (
-                    <div className="glass-card rounded-2xl p-8 border text-center">
+                    <div className="card p-8 text-center">
                       <p className="text-xs theme-text-muted">لا توجد مقارنات مستخلصة في هذه المحاضرة.</p>
                     </div>
                   )}
@@ -762,7 +724,7 @@ export default function SummaryView({
 
             {/* 3. Exam Traps & Common Pitfalls Tab */}
             {activeTab === 'traps' && (
-              <div className="glass-card rounded-2xl p-6 border space-y-4">
+              <div className="card p-6 space-y-4">
                 <div className="flex items-center gap-2 text-base font-black text-amber-500">
                   <AlertTriangle className="w-5 h-5" />
                   <span>مصائد الامتحانات ونقاط اللبس الشائعة بين الطلاب</span>
@@ -794,7 +756,7 @@ export default function SummaryView({
 
             {/* 4. Formulas & Rules Tab */}
             {activeTab === 'rules' && (
-              <div className="glass-card rounded-2xl p-6 border space-y-4">
+              <div className="card p-6 space-y-4">
                 <h4 className="text-base font-black theme-text-primary flex items-center gap-2">
                   <Calculator className="w-5 h-5 text-emerald-400" />
                   <span>القوانين والمعادلات والخوارزميات</span>
@@ -819,7 +781,7 @@ export default function SummaryView({
 
             {/* 5. Glossary Definitions Tab */}
             {activeTab === 'definitions' && (
-              <div className="glass-card rounded-2xl p-6 border space-y-4">
+              <div className="card p-6 space-y-4">
                 <h4 className="text-base font-black theme-text-primary flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-amber-400" />
                   <span>قاموس المصطلحات والمفاهيم الأكاديمية</span>

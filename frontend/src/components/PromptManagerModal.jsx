@@ -115,12 +115,12 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-4xl glass-panel rounded-3xl p-6 border shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-4xl card p-6 space-y-6 max-h-[90vh] overflow-y-auto">
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 left-5 p-1.5 rounded-xl theme-header-btn border"
+          className="absolute top-5 left-5 iconbtn"
         >
           <X className="w-5 h-5" />
         </button>
@@ -282,7 +282,8 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
               <button
                 onClick={handleGenerateAI}
                 disabled={generatingPrompt || !taskGoal.trim()}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold text-xs shadow-lg shadow-teal-500/20 transition flex items-center justify-center gap-2 disabled:opacity-50"
+                className="btn-primary w-full"
+                style={{ minHeight: 44, fontSize: 12.5 }}
               >
                 {generatingPrompt ? (
                   <>
@@ -364,14 +365,16 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   onClick={() => setMode('list')}
-                  className="px-4 py-2 rounded-xl theme-header-btn border text-xs font-bold font-['Tajawal']"
+                  className="btn-ghost"
+                  style={{ minHeight: 40, fontSize: 12.5, padding: '0 14px' }}
                 >
                   رجوع / إلغاء
                 </button>
                 <button
                   onClick={handleSaveNewPrompt}
                   disabled={!newTitle.trim() || !newSystemPrompt.trim()}
-                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-xs font-bold text-white shadow-md shadow-emerald-600/30 font-['Tajawal']"
+                  className="btn-primary"
+                  style={{ minHeight: 40, fontSize: 12.5, padding: '0 18px' }}
                 >
                   حفظ القالب
                 </button>
@@ -384,7 +387,8 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
         <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl theme-header-btn border text-xs font-bold font-['Tajawal']"
+            className="btn-ghost"
+            style={{ minHeight: 40, fontSize: 12.5, padding: '0 16px' }}
           >
             رجوع / إغلاق
           </button>

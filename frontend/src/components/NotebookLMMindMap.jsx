@@ -5,7 +5,6 @@ import {
   RotateCcw, 
   Maximize2, 
   Minimize2, 
-  Search, 
   FolderPlus, 
   FolderMinus, 
   Download, 
@@ -357,109 +356,88 @@ const [exportOpen, setExportOpen] = useState(false);
     <div className={`space-y-4 ${isFullscreen ? 'fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-2xl p-6 overflow-hidden flex flex-col justify-between' : ''}`}>
       
       {/* Interactive Controls Bar */}
-      <div className="glass-card rounded-2xl p-3.5 border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
+      <div className="card sum-controls" dir="rtl">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 via-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-md">
             <Network className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h4 className="text-sm font-black theme-text-primary">الخريطة الذهنية التفاعلية (Google NotebookLM)</h4>
-              <span className="px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-teal-400 font-bold text-xs">
-                {direction === 'rtl' ? 'اتجاه عربي (يمين ← يسار)' : 'LTR Direction (Left → Right)'}
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="text-sm font-black theme-text-primary">الخريطة الذهنية التفاعلية</h4>
+              <span className="pill" style={{ minHeight: 26, fontSize: 11, padding: '0 10px' }}>
+                {direction === 'rtl' ? 'اتجاه عربي' : 'LTR'}
               </span>
             </div>
             <p className="text-[13px] theme-text-muted">اسحب للتحريك في أي اتجاه، واستخدم العجلة للتكبير، وانقر على الدوائر للطي والفرد</p>
           </div>
         </div>
 
-        {/* Action Toolbar */}
-        <div className="flex items-center gap-2 flex-wrap">
-          
+        <div style={{ marginInlineStart: 'auto' }} className="flex items-center gap-2 flex-wrap">
           {/* Quick Search */}
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 theme-text-muted absolute right-2.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="بحث في المفاهيم..."
-              className="pr-8 pl-3 py-1.5 rounded-xl theme-card-inner border text-sm theme-text-primary placeholder-slate-400 outline-none w-36 sm:w-48 font-['Tajawal']"
-            />
-          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="بحث في المفاهيم..."
+            className="field"
+            style={{ minHeight: 38, maxWidth: 170, fontSize: 13 }}
+          />
 
           {/* Direction Toggle (RTL / LTR) */}
-            <button
-              onClick={toggleDirection}
-              className="px-3 py-1.5 rounded-xl theme-card-inner border text-sm font-bold theme-text-primary hover:border-teal-500 transition flex items-center gap-1.5"
-              title="تبديل اتجاه الشجرة (عربي / إنجليزي)"
-            >
-              <ArrowLeftRight className="w-4 h-4 text-teal-500" />
-              <span>{direction === 'rtl' ? 'RTL' : 'LTR'}</span>
-            </button>
+          <button
+            type="button"
+            onClick={toggleDirection}
+            className="btn-ghost"
+            style={{ minHeight: 38, fontSize: 13 }}
+            title="تبديل اتجاه الشجرة (عربي / إنجليزي)"
+          >
+            <ArrowLeftRight className="w-4 h-4" />
+            <span>{direction === 'rtl' ? 'RTL' : 'LTR'}</span>
+          </button>
 
           {/* Expand / Collapse All */}
-          <div className="flex items-center p-1 rounded-xl theme-card-inner border">
-            <button
-              onClick={handleExpandAll}
-              className="p-1.5 rounded-lg theme-header-btn hover:text-emerald-600 transition"
-              title="توسيع كافة الفروع"
-            >
-              <FolderPlus className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={handleCollapseAll}
-              className="p-1.5 rounded-lg theme-header-btn hover:text-emerald-600 transition"
-              title="طي كافة الفروع"
-            >
-              <FolderMinus className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          <button type="button" onClick={handleExpandAll} className="mt-btn" title="توسيع كافة الفروع">
+            <FolderPlus className="w-4 h-4" />
+          </button>
+          <button type="button" onClick={handleCollapseAll} className="mt-btn" title="طي كافة الفروع">
+            <FolderMinus className="w-4 h-4" />
+          </button>
 
           {/* Zoom Controls */}
-          <div className="flex items-center p-1 rounded-xl theme-card-inner border">
-            <button
-              onClick={() => setZoom((z) => Math.min(2.5, z + 0.15))}
-              className="p-1.5 rounded-lg theme-header-btn hover:text-teal-500 transition"
-              title="تكبير (+)"
-            >
-              <ZoomIn className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-1">
+            <button type="button" onClick={() => setZoom((z) => Math.min(2.5, z + 0.15))} className="mt-btn" title="تكبير (+)">
+              <ZoomIn className="w-4 h-4" />
             </button>
-            <span className="text-xs font-mono font-bold px-2 theme-text-muted">
+            <span className="text-xs font-mono font-bold px-1 theme-text-muted">
               {Math.round(zoom * 100)}%
             </span>
-            <button
-              onClick={() => setZoom((z) => Math.max(0.4, z - 0.15))}
-              className="p-1.5 rounded-lg theme-header-btn hover:text-teal-500 transition"
-              title="تصغير (-)"
-            >
-              <ZoomOut className="w-3.5 h-3.5" />
+            <button type="button" onClick={() => setZoom((z) => Math.max(0.4, z - 0.15))} className="mt-btn" title="تصغير (-)">
+              <ZoomOut className="w-4 h-4" />
             </button>
-            <button
-              onClick={handleResetView}
-              className="p-1.5 rounded-lg theme-header-btn hover:text-teal-500 transition"
-              title="إعادة ضبط الموقع"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
+            <button type="button" onClick={handleResetView} className="mt-btn" title="إعادة ضبط الموقع">
+              <RotateCcw className="w-4 h-4" />
             </button>
           </div>
 
           {/* Export Dropdown */}
           <div className="relative">
             <button
+              type="button"
               onClick={() => setExportOpen((o) => !o)}
-              className="px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-sm font-extrabold shadow-md shadow-emerald-600/25 transition flex items-center gap-2 border border-white/20"
+              className="btn-primary"
+              style={{ minHeight: 38, fontSize: 13, padding: '0 14px' }}
               title="تصدير الخريطة بصيغ متعددة"
             >
-              <Download className="w-4 h-4 text-white" />
+              <Download className="w-4 h-4" />
               <span>تصدير</span>
             </button>
 
             {exportOpen && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setExportOpen(false)} />
-                <div className="absolute z-40 left-0 mt-2 w-56 rounded-2xl glass-panel border shadow-2xl p-2 space-y-1">
+                <div className="absolute z-40 left-0 mt-2 w-56 card p-2 space-y-1" style={{ borderRadius: 16 }}>
                   <button
+                    type="button"
                     onClick={() => { exportInteractiveMindMapHTML(rootNode, defaultTitle || rootNode.label, language); setExportOpen(false); }}
                     className="w-full px-3 py-2.5 rounded-xl hover:bg-white/10 transition flex items-center gap-2.5 text-sm font-bold theme-text-primary"
                   >
@@ -467,6 +445,7 @@ const [exportOpen, setExportOpen] = useState(false);
                     <span>HTML تفاعلي</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => { handleExportPNG(); setExportOpen(false); }}
                     className="w-full px-3 py-2.5 rounded-xl hover:bg-white/10 transition flex items-center gap-2.5 text-sm font-bold theme-text-primary"
                   >
@@ -474,6 +453,7 @@ const [exportOpen, setExportOpen] = useState(false);
                     <span>صورة PNG عالية الدقة</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => { handleExportSVG(); setExportOpen(false); }}
                     className="w-full px-3 py-2.5 rounded-xl hover:bg-white/10 transition flex items-center gap-2.5 text-sm font-bold theme-text-primary"
                   >
@@ -487,8 +467,9 @@ const [exportOpen, setExportOpen] = useState(false);
 
           {/* Fullscreen Toggle */}
           <button
+            type="button"
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="p-2 rounded-xl theme-card-inner border theme-text-primary hover:border-teal-500 transition"
+            className="iconbtn"
             title={isFullscreen ? "تصغير الشاشة" : "عرض ملء الشاشة"}
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}

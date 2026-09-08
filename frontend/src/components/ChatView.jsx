@@ -1,310 +1,30 @@
 ﻿import React, { useState, useRef, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import Prism from 'prismjs';
-import 'prismjs/themes/prism-tomorrow.css';
-import 'prismjs/components/prism-python';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-jsx';
-import 'prismjs/components/prism-typescript';
-import 'prismjs/components/prism-tsx';
-import 'prismjs/components/prism-bash';
-import 'prismjs/components/prism-json';
-import 'prismjs/components/prism-sql';
-import 'prismjs/components/prism-java';
-import 'prismjs/components/prism-c';
-import 'prismjs/components/prism-cpp';
-import 'prismjs/components/prism-csharp';
-import 'prismjs/components/prism-markup';
-import 'prismjs/components/prism-css';
 import { 
-  Send, 
-  Square, 
-  Sparkles, 
-  BookOpen, 
-  AlertCircle, 
-  Check, 
-  Copy, 
   Bot, 
-  User, 
-  FileText, 
-  Upload, 
-  KeyRound,
-  Download,
-  Printer,
-  FileCode,
-  RotateCcw,
-  Edit3,
-  Trash2,
-  Share2,
-  CheckCircle2,
-  ChevronDown,
-  Wand2,
-  Mic,
-  MicOff,
-  Volume2,
-  VolumeX,
-  Paperclip,
-  ThumbsUp,
-  ThumbsDown,
-  ArrowDown,
-  CornerDownLeft,
-  Search,
-  Plus,
-  MessageSquare,
-  MessageSquarePlus,
-  X,
-  Layers,
-  AlertTriangle,
-  Maximize2,
-  Minimize2
+  ChevronDown, 
+  Wand2, 
+  Plus, 
+  MessageSquare, 
+  Maximize2, 
+  Minimize2, 
+  Trash2, 
+  X, 
+  Search, 
+  Edit3, 
+  AlertTriangle 
 } from 'lucide-react';
 import { sendChatMessage, sendChatMessageStream, getApiKey, getSelectedModel, setSelectedModel, getAIProvider, getBaseUrl, fetchAvailableModels, fetchCurrentUser } from '../services/api';
 import ExportModal from './ExportModal';
 import ChatSidebar from './ChatSidebar';
-
-// Arabic Typography, Word Spacing & LaTeX Masking Formatter
-function formatArabicText(text) {
-  if (!text || typeof text !== 'string') return text;
-
-  // 1. Temporarily mask code blocks and LaTeX math ($...$ / $$...$$) to avoid altering math syntax
-  const placeholders = [];
-  const masked = text.replace(/(```[\s\S]*?```|`[^`\n]+`|\$\$[\s\S]*?\$\$|\$[^\$\n]+?\$)/g, (match) => {
-    placeholders.push(match);
-    return `___MATH_BLOCK_${placeholders.length - 1}___`;
-  });
-
-  // 2. Add line breaks after citation blocks when touching new sections/text
-  // E.g. "[المصدر: صفحة 2]حالة تطبيقية" -> "[المصدر: صفحة 2]\n\nحالة تطبيقية"
-  let cleaned = masked.replace(/(\[المصدر:[^\]\n]+\])\s*([^\s\n\]\)])/g, '$1\n\n$2');
-
-  // 3. Add proper line break before sub-questions (e.g. "أ) ", "ب) ", "ج) ", "د) ")
-  cleaned = cleaned.replace(/([^\n])\s*([أ-ي]\))\s*/g, '$1\n$2 ');
-
-  // 4. Bracket spacing: Spacing after closing ] and ) when touching Arabic letters
-  cleaned = cleaned.replace(/([\]\)])([\u0600-\u06FF])/g, '$1 $2');
-  // Spacing before opening [ and ( when touching Arabic letters
-  cleaned = cleaned.replace(/([\u0600-\u06FF])([\[\(])/g, '$1 $2');
-
-  // 5. Punctuation spacing (colon, comma, semicolon, exclamation, question mark)
-  cleaned = cleaned.replace(/([\u0600-\u06FF]):([\u0600-\u06FFa-zA-Z$])/g, '$1: $2');
-  cleaned = cleaned.replace(/([\u0600-\u06FF])([،؛!؟])([\u0600-\u06FFa-zA-Z$])/g, '$1$2 $3');
-
-  // 6. Spacing between Arabic and Latin tokens
-  cleaned = cleaned.replace(/([\u0600-\u06FF])([a-zA-Z])/g, '$1 $2');
-  cleaned = cleaned.replace(/([a-zA-Z])([\u0600-\u06FF])/g, '$1 $2');
-
-  // 7. Fix Arabic prepositions concatenated with definite nouns (e.g. منالجيران -> من الجيران)
-  const prepositions = '(من|في|عن|مع|بين|عند|لدى|نحو|ضد|حول|دون|غير|مثل|كافة|جميع|معظم|أغلب|سائر|حيث|حين|بأن|فإن|ولكن|حتى|إلى|على)';
-  cleaned = cleaned.replace(new RegExp(`\\b${prepositions}(ال[\\u0600-\\u06FF]{2,})\\b`, 'g'), '$1 $2');
-
-  // 8. Fix common Arabic prefix nouns / superlatives + definite nouns (e.g. خطواتالتنبؤ -> خطوات التنبؤ)
-  const prefixes = '(خطوات|مراحل|عناصر|خصائص|مميزات|عيوب|أهداف|نتائج|طرق|أنواع|أشكال|أمثلة|أسباب|حلول|بيانات|تحديد|حساب|استخراج|استخدام|تطبيق|دراسة|تحليل|تقييم|توضيح|شرح|إيجاد|معرفة|فهم|مفهوم|نموذج|خوارزمية|نظام|طريقة|عملية|قيمة|نسبة|معدل|دالة|مصفوفة|متجه|معادلة|فرضية|نظرية|قاعدة|فكرة|مشكلة|نوع|عنصر|خاصية|ميزة|هدف|نتيجة|سبب|حل|بيان|نقطة|نقاط|درجة|مستوى|مجال|قسم|فصل|باب|صفحة|سؤال|إجابة|جواب|أقرب|أبعد|أكبر|أصغر|أفضل|أحسن|أسوأ|أهم|أكثر|أقل|أعلى|أدنى|أول|آخر|أحد|إحدى)';
-  cleaned = cleaned.replace(new RegExp(`\\b${prefixes}(ال[\\u0600-\\u06FF]{2,})\\b`, 'g'), '$1 $2');
-
-  // 9. Restore code and math placeholders
-  placeholders.forEach((orig, i) => {
-    cleaned = cleaned.replace(`___MATH_BLOCK_${i}___`, orig);
-  });
-
-  return cleaned;
-}
-
-// Smart Language Detection Function
-function detectLanguage(rawLang, codeContent) {
-  const normalized = (rawLang || '').trim().toLowerCase();
-  
-  const explicitMap = {
-    py: 'python',
-    python: 'python',
-    js: 'javascript',
-    javascript: 'javascript',
-    ts: 'typescript',
-    typescript: 'typescript',
-    jsx: 'jsx',
-    tsx: 'tsx',
-    sh: 'bash',
-    bash: 'bash',
-    shell: 'bash',
-    zsh: 'bash',
-    sql: 'sql',
-    json: 'json',
-    html: 'markup',
-    markup: 'markup',
-    xml: 'markup',
-    css: 'css',
-    java: 'java',
-    cpp: 'cpp',
-    c: 'c',
-    cs: 'csharp',
-    csharp: 'csharp',
-    text: 'plaintext',
-    txt: 'plaintext',
-    plaintext: 'plaintext',
-    plain: 'plaintext'
-  };
-
-  if (normalized && explicitMap[normalized]) {
-    return explicitMap[normalized];
-  }
-
-  const trimmed = (codeContent || '').trim();
-
-  // If single line or short phrase without syntax keywords (e.g. "train_test_split") -> plaintext
-  if (!trimmed.includes('\n') && !trimmed.includes(';') && !trimmed.includes('import ') && !trimmed.includes('def ') && !trimmed.includes('const ') && !trimmed.includes('SELECT ')) {
-    return 'plaintext';
-  }
-
-  // Check JSON
-  if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-    try {
-      JSON.parse(trimmed);
-      return 'json';
-    } catch (_) {}
-  }
-
-  // Check Python
-  if (
-    /(^|\s)(import\s+[\w.]+|from\s+[\w.]+\s+import|def\s+\w+\s*\(|class\s+\w+|print\s*\(|elif\s+|if\s+__name__\s*==|return\s+|np\.|pd\.|plt\.)/m.test(trimmed)
-  ) {
-    return 'python';
-  }
-
-  // Check JavaScript / TypeScript
-  if (
-    /(^|\s)(const\s+\w+|let\s+\w+|var\s+\w+|function\s*\w*\s*\(|console\.log|export\s+(default|const)|import\s+.*from\s+['"]|=>\s*\{|\basync\s+function)/m.test(trimmed)
-  ) {
-    return 'javascript';
-  }
-
-  // Check SQL
-  if (
-    /\b(SELECT\s+[\s\S]+FROM|INSERT\s+INTO|CREATE\s+TABLE|UPDATE\s+\w+\s+SET|DELETE\s+FROM|WHERE\s+\w+|GROUP\s+BY|ORDER\s+BY)\b/i.test(trimmed)
-  ) {
-    return 'sql';
-  }
-
-  // Check HTML / XML
-  if (/<\/?[a-z][\s\S]*>/i.test(trimmed) && (trimmed.includes('</div>') || trimmed.includes('</span>') || trimmed.includes('<html') || trimmed.includes('<p>'))) {
-    return 'markup';
-  }
-
-  // Check Bash / Shell
-  if (
-    /(^|\s)(npm\s+(run|install|i)|pip\s+install|git\s+(clone|commit|push|pull|status)|docker\s+run|sudo\s+apt|cd\s+[\w/.~]+|chmod\s+\+x)/m.test(trimmed)
-  ) {
-    return 'bash';
-  }
-
-  // Check C / C++ / Java
-  if (
-    /(#include\s+<[\w.]+>|public\s+class\s+\w+|int\s+main\s*\(|std::cout|System\.out\.println)/m.test(trimmed)
-  ) {
-    return 'cpp';
-  }
-
-  return 'plaintext';
-}
-
-const displayBadgeMap = {
-  python: 'PYTHON',
-  javascript: 'JAVASCRIPT',
-  typescript: 'TYPESCRIPT',
-  jsx: 'REACT JSX',
-  tsx: 'REACT TSX',
-  bash: 'BASH / TERMINAL',
-  sql: 'SQL DATABASE',
-  json: 'JSON DATA',
-  markup: 'HTML / XML',
-  css: 'CSS STYLES',
-  java: 'JAVA',
-  cpp: 'C++',
-  c: 'C',
-  csharp: 'C#',
-  plaintext: 'PLAIN TEXT'
-};
-
-// Custom Syntax-Highlighted CodeBlock Component
-function CodeBlock({ node, inline, className, children, ...props }) {
-  const match = /language-(\w+)/.exec(className || '');
-  const rawLang = match ? match[1] : '';
-  const codeContent = String(children).replace(/\n$/, '');
-  const lang = detectLanguage(rawLang, codeContent);
-  const [copied, setCopied] = useState(false);
-
-  if (inline) {
-    return (
-      <code className="px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 font-mono text-xs dir-ltr inline-block" {...props}>
-        {children}
-      </code>
-    );
-  }
-
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(codeContent);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  let highlightedHtml = '';
-  if (lang !== 'plaintext' && Prism.languages[lang]) {
-    try {
-      highlightedHtml = Prism.highlight(codeContent, Prism.languages[lang], lang);
-    } catch (e) {
-      highlightedHtml = '';
-    }
-  }
-
-  const badgeText = displayBadgeMap[lang] || (rawLang ? rawLang.toUpperCase() : 'TEXT');
-
-  return (
-    <div className="my-4 rounded-2xl overflow-hidden border border-slate-700/60 bg-[#1d1f21] font-mono text-xs shadow-2xl dir-ltr text-left">
-      <div className="px-4 py-2.5 bg-[#151718] border-b border-slate-800 flex items-center justify-between text-slate-400 select-none">
-        <div className="flex items-center gap-2.5">
-          <div className="flex gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500/90"></span>
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500/90"></span>
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/90"></span>
-          </div>
-          <span className={`text-[11px] font-black uppercase tracking-wider font-mono ${
-            lang === 'plaintext' ? 'text-slate-400' : 'text-teal-400'
-          }`}>
-            {badgeText}
-          </span>
-        </div>
-        <button
-          onClick={handleCopyCode}
-          className="flex items-center gap-1.5 text-[11px] font-bold text-slate-300 hover:text-white px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition border border-white/10 cursor-pointer"
-          title="نسخ الكود"
-        >
-          {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-          <span>{copied ? 'تم النسخ' : 'نسخ'}</span>
-        </button>
-      </div>
-      <pre className="p-4 overflow-x-auto text-slate-100 leading-relaxed font-mono dir-ltr text-left m-0 bg-transparent">
-        {highlightedHtml ? (
-          <code
-            className={`language-${lang} font-mono`}
-            dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-          />
-        ) : (
-          <code className="font-mono text-slate-200">{codeContent}</code>
-        )}
-      </pre>
-    </div>
-  );
-}
+import ChatMessages from './ChatMessages';
+import ChatComposer from './ChatComposer';
 
 export default function ChatView({ 
   activeDoc, 
   activePrompt,
-  onOpenPromptManager,
-  onSwitchToQuiz, 
-  onSwitchToSummary, 
+  onOpenPromptManager, 
   onOpenUpload, 
-  onOpenApiKey 
+  onCloseActiveDoc 
 }) {
   // Master multi-session state
   const [sessions, setSessions] = useState(() => {
@@ -388,7 +108,6 @@ export default function ChatView({
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
   const [editingMsgId, setEditingMsgId] = useState(null);
-  const [activeExportId, setActiveExportId] = useState(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Sessions Modal & Search state
@@ -415,15 +134,12 @@ export default function ChatView({
   const chatContainerRef = useRef(null);
   const textareaRef = useRef(null);
   const recognitionRef = useRef(null);
-  const exportMenuRef = useRef(null);
-  const modelDropdownRef = useRef(null);
   const latestMessagesRef = useRef(messages);
   const model = getSelectedModel();
   const [chatModel, setChatModel] = useState(model);
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [chatModels, setChatModels] = useState([]);
   const [fetchingChatModels, setFetchingChatModels] = useState(false);
-  const [isQuickPromptsOpen, setIsQuickPromptsOpen] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const streamControllerRef = useRef(null);
 
@@ -671,17 +387,6 @@ export default function ChatView({
       return () => clearTimeout(timer);
     }
   }, [activeDoc?.doc_id]);
-
-  // Click outside export menu
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target)) {
-        setActiveExportId(null);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   // Scroll to + flash + highlight the matched message after it's rendered
   useEffect(() => {
@@ -1040,7 +745,6 @@ export default function ChatView({
       printWin.focus();
       printWin.print();
       printWin.close();
-      setActiveExportId(null);
       return;
     }
 
@@ -1052,7 +756,6 @@ export default function ChatView({
     a.download = fileName;
     a.click();
     URL.revokeObjectURL(url);
-    setActiveExportId(null);
     try {
       const exportsKey = 'eduai_exported_files';
       const existing = JSON.parse(localStorage.getItem(exportsKey)) || [];
@@ -1101,7 +804,7 @@ export default function ChatView({
       
       {/* Right Sidebar - Manus style with options menu */}
       <div className={`flex-col gap-3 h-full ${isChatFullscreen ? 'flex lg:col-span-3 xl:col-span-3 min-h-0' : 'hidden lg:flex lg:col-span-3 xl:col-span-3 min-h-[500px]'}`}>
-        <div className="glass-panel rounded-2xl border flex flex-col h-full overflow-hidden">
+        <div className="card flex flex-col h-full overflow-hidden">
           <ChatSidebar
             sessions={sessions}
             activeSessionId={activeSessionId}
@@ -1198,527 +901,112 @@ export default function ChatView({
           </div>
         </div>
 
-        {/* Messages Stream - Centered reading column */}
+        {/* Messages Stream - centered reading column */}
         <div className="relative flex-1 overflow-hidden">
-        <div ref={chatContainerRef} onScroll={handleScroll} className="h-full overflow-y-auto p-3 md:p-4">
-          <div className="max-w-4xl w-full mx-auto space-y-3">
-          {(messages || []).map((msg, index) => {
-            const isUser = msg.sender === 'user';
-            const isLastAi = !isUser && index === (messages || []).length - 1;
-            const previousUserMsg = isLastAi ? messages[index - 1]?.text : null;
-            const isStreamingPlaceholder = !isUser && loading && !msg.text;
-            const isInterrupted = !isUser && !loading && msg.streaming && !msg.text;
+          <ChatMessages
+            messages={messages}
+            loading={loading}
+            isStreaming={isStreaming}
+            activeDoc={activeDoc}
+            copiedId={copiedId}
+            handleCopy={handleCopy}
+            feedback={feedback}
+            handleFeedback={handleFeedback}
+            speakingMsgId={speakingMsgId}
+            handleSpeak={handleSpeak}
+            handleExportMessage={handleExportMessage}
+            handleEditUserMessage={handleEditUserMessage}
+            handleRegenerate={handleRegenerate}
+            handleDeleteMessage={handleDeleteMessage}
+            handleRegenerateInterrupted={handleRegenerateInterrupted}
+            chatContainerRef={chatContainerRef}
+            messagesEndRef={messagesEndRef}
+            showScrollBottom={showScrollBottom}
+            handleScroll={handleScroll}
+            scrollToBottom={scrollToBottom}
+            quickPrompts={quickPrompts}
+            onQuickPrompt={(q) => handleSend(q)}
+            onStopStreaming={handleStopGeneration}
+          />
 
-            return (
+          {/* Quick Navigation Rail between messages (Manus-style) */}
+          {(messages || []).length >= 2 && (
               <div
-                key={msg.id}
-                data-msg-id={msg.id}
-                className={`flex gap-2.5 max-w-full ${isUser ? 'mr-auto flex-row-reverse justify-start' : 'ml-auto'}`}
+                className="absolute end-0 top-1/2 -translate-y-1/2 flex flex-col items-end pr-1 w-[24px] z-30 cursor-pointer select-none"
+                onMouseEnter={openNav}
+                onMouseLeave={scheduleCloseNav}
               >
-                {/* Avatar - Compact */}
-                <div className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-xs font-bold shadow-xs mt-0.5 ${
-                  isUser 
-                    ? 'bg-gradient-to-br from-slate-700 to-slate-900 text-white' 
-                    : 'bg-gradient-to-br from-emerald-600 to-teal-700 text-white border border-emerald-400/30'
-                }`}>
-                  {isUser ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
-                </div>
-
-                {/* Message Bubble - Compact & Efficient */}
-                <div className={`flex flex-col ${isUser ? 'items-end max-w-[82%]' : 'items-start flex-1 max-w-full'} overflow-hidden`}>
-                  <div className={`rounded-2xl text-[14.5px] leading-relaxed relative group w-full ${
-                    isUser
-                      ? 'px-4 py-2.5 bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 theme-text-primary rounded-tr-none shadow-xs'
-                      : 'px-4 py-3 md:px-5 md:py-3.5 glass-card theme-text-primary rounded-tl-none border shadow-xs'
-                  }`}>
-                    
-                    {/* Out of scope warning */}
-                    {msg.is_out_of_scope && (
-                      <div className="mb-3 px-3 py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-300 text-xs font-bold flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 shrink-0" />
-                        <span>تنبيه: هذا السؤال غير مذكور في الملف المرفوع حالياً.</span>
-                      </div>
-                    )}
-
-                    {/* Streaming placeholder - thinking state in-place */}
-                    {isStreamingPlaceholder ? (
-                      <div className="flex items-center gap-3 py-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce"></span>
-                          <span className="w-2 h-2 rounded-full bg-teal-400 animate-bounce [animation-delay:0.15s]"></span>
-                          <span className="w-2 h-2 rounded-full bg-teal-400 animate-bounce [animation-delay:0.3s]"></span>
-                        </div>
-                        <span className="text-sm font-bold text-emerald-400">
-                          ذكاء يبحث في المستند ويصيغ الإجابة الموثقة...
-                        </span>
-                      </div>
-                    ) : isInterrupted ? (
-                      <div className="flex items-center gap-2.5 py-1 flex-wrap text-sm">
-                        <span className="font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                          <AlertCircle className="w-4 h-4 shrink-0" />
-                          توقف توليد الإجابة قبل اكتمالها.
-                        </span>
-                        {previousUserMsg && (
-                          <button
-                            type="button"
-                            onClick={() => handleRegenerateInterrupted(msg.id, previousUserMsg)}
-                            className="px-2.5 py-1 rounded-lg bg-emerald-600/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold hover:bg-emerald-500/20 transition cursor-pointer"
-                          >
-                            إعادة توليد الإجابة
-                          </button>
-                        )}
-                      </div>
-                    ) : (
-                    <div className="prose prose-slate dark:prose-invert max-w-none font-['Tajawal'] text-[15px] leading-relaxed break-words space-y-2">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm, remarkMath]}
-                        rehypePlugins={[rehypeKatex]}
-                        components={{
-                          code: CodeBlock,
-                          table: ({ node, ...props }) => (
-                            <div className="my-4 overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md">
-                              <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-xs text-right" {...props} />
-                            </div>
-                          ),
-                          thead: ({ node, ...props }) => (
-                            <thead className="bg-slate-100 dark:bg-slate-900 font-bold theme-text-primary" {...props} />
-                          ),
-                          th: ({ node, ...props }) => (
-                            <th className="px-3.5 py-2.5 font-black text-right" {...props} />
-                          ),
-                          td: ({ node, ...props }) => (
-                            <td className="px-3.5 py-2.5 border-t border-slate-200 dark:border-slate-800/60 font-medium" {...props} />
-                          ),
-                          h1: ({ node, ...props }) => (
-                            <h1 className="text-xl font-black theme-text-primary my-3 pb-1 border-b border-slate-200 dark:border-slate-800" {...props} />
-                          ),
-                          h2: ({ node, ...props }) => (
-                            <h2 className="text-lg font-black theme-text-primary my-2.5" {...props} />
-                          ),
-                          h3: ({ node, ...props }) => (
-                            <h3 className="text-base font-extrabold theme-text-primary my-2 text-emerald-600 dark:text-emerald-400" {...props} />
-                          ),
-                          ul: ({ node, ...props }) => (
-                            <ul className="list-disc list-inside my-2 space-y-1" {...props} />
-                          ),
-                          ol: ({ node, ...props }) => (
-                            <ol className="list-decimal list-inside my-2 space-y-1" {...props} />
-                          ),
-                          blockquote: ({ node, ...props }) => (
-                            <blockquote className="border-r-4 border-emerald-500 pr-3 my-3 italic theme-text-secondary bg-emerald-500/5 py-1.5 rounded-l-lg" {...props} />
-                          ),
-                          a: ({ node, ...props }) => (
-                            <a className="text-teal-600 dark:text-teal-400 hover:underline font-bold" target="_blank" rel="noopener noreferrer" {...props} />
-                          )
-                        }}
-                      >
-                        {formatArabicText(msg.text)}
-                      </ReactMarkdown>
-                    </div>
-                    )}
-
-                    {/* Citations Pages Badges */}
-                    {!isStreamingPlaceholder && !isInterrupted && msg.citations && msg.citations.length > 0 && (
-                      <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-bold theme-text-muted flex items-center gap-1">
-                          <BookOpen className="w-3.5 h-3.5 text-emerald-500" /> الصفحات المقتبسة:
-                        </span>
-                        {msg.citations.map((pageNo) => (
-                          <span
-                            key={pageNo}
-                            className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-xs font-bold"
-                          >
-                            صفحة {pageNo}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Per-Message Action Toolbar */}
-                    {!isStreamingPlaceholder && !isInterrupted && (
-                    <div className="mt-3 pt-2.5 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2 text-xs">
-                      <span className="text-xs theme-text-muted font-medium">
-                        {msg.timestamp}
-                      </span>
-
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
-                        
-                        {/* Text to Speech Button for AI Message */}
-                        {!isUser && (
-                          <button
-                            onClick={() => handleSpeak(msg.id, msg.text)}
-                            className={`p-1.5 rounded-lg theme-header-btn border transition flex items-center gap-1 text-xs ${
-                              speakingMsgId === msg.id ? 'text-teal-400 border-teal-400 animate-pulse' : 'hover:text-teal-400'
-                            }`}
-                            title={speakingMsgId === msg.id ? 'إيقاف القراءة الصوتية' : 'استماع صوتي للإجابة'}
-                          >
-                            {speakingMsgId === msg.id ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-teal-400" />}
-                            <span className="hidden sm:inline">{speakingMsgId === msg.id ? 'إيقاف' : 'استماع'}</span>
-                          </button>
-                        )}
-
-                        {/* Thumbs Up / Down Feedback for AI Message */}
-                        {!isUser && (
-                          <div className="flex items-center gap-0.5">
-                            <button
-                              onClick={() => handleFeedback(msg.id, 'up')}
-                              className={`p-1.5 rounded-lg theme-header-btn border transition text-xs ${
-                                feedback[msg.id] === 'up' ? 'text-emerald-500 border-emerald-500 bg-emerald-500/10' : 'hover:text-emerald-400'
-                              }`}
-                              title="إجابة ممتازة ومفيدة"
-                            >
-                              <ThumbsUp className="w-3 h-3" />
-                            </button>
-                            <button
-                              onClick={() => handleFeedback(msg.id, 'down')}
-                              className={`p-1.5 rounded-lg theme-header-btn border transition text-xs ${
-                                feedback[msg.id] === 'down' ? 'text-rose-500 border-rose-500 bg-rose-500/10' : 'hover:text-rose-400'
-                              }`}
-                              title="تحتاج لتحسين أو غير دقيقة"
-                            >
-                              <ThumbsDown className="w-3 h-3" />
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Copy Button */}
-                        <button
-                          onClick={() => handleCopy(msg.id, msg.text)}
-                          className="p-1.5 rounded-lg theme-header-btn border hover:text-emerald-600 dark:hover:text-teal-300 transition flex items-center gap-1 text-[11px]"
-                          title="نسخ نص الرسالة"
-                        >
-                          {copiedId === msg.id ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                          <span className="hidden sm:inline">{copiedId === msg.id ? 'تم النسخ' : 'نسخ'}</span>
-                        </button>
-
-                        {/* Edit Button for User Message */}
-                        {isUser && (
-                          <button
-                            onClick={() => handleEditUserMessage(msg)}
-                            className="p-1.5 rounded-lg theme-header-btn border hover:text-teal-600 dark:hover:text-teal-300 transition flex items-center gap-1 text-[11px]"
-                            title="تعديل السؤال وإعادة الإرسال"
-                          >
-                            <Edit3 className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
-                            <span className="hidden sm:inline">تعديل</span>
-                          </button>
-                        )}
-
-                        {/* Regenerate Button for Last AI Message */}
-                        {!isUser && previousUserMsg && (
-                          <button
-                            onClick={() => handleRegenerate(previousUserMsg)}
-                            disabled={loading}
-                            className="p-1.5 rounded-lg theme-header-btn border hover:text-amber-400 transition flex items-center gap-1 text-[11px] disabled:opacity-50"
-                            title="إعادة توليد الإجابة"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
-                            <span className="hidden sm:inline">إعادة التوليد</span>
-                          </button>
-                        )}
-
-                        {/* Export Dropdown for AI Message */}
-                        {!isUser && (
-                          <div className="relative" ref={exportMenuRef}>
-                            <button
-                              onClick={() => setActiveExportId(activeExportId === msg.id ? null : msg.id)}
-                              className="p-1.5 rounded-lg theme-header-btn border hover:text-teal-400 transition flex items-center gap-1 text-[11px]"
-                              title="تصدير هذه الإجابة كملف"
-                            >
-                              <Download className="w-3.5 h-3.5 text-teal-500" />
-                              <span className="hidden sm:inline">تصدير</span>
-                              <ChevronDown className="w-3 h-3" />
-                            </button>
-
-                            {activeExportId === msg.id && (
-                              <div className="absolute left-0 bottom-full mb-1.5 w-44 glass-panel rounded-2xl p-1.5 shadow-2xl z-30 border theme-nav text-xs font-bold space-y-1 animate-fade-in">
-                                <button
-                                  onClick={() => handleExportMessage(msg, 'md')}
-                                  className="w-full text-right p-2 rounded-xl hover:bg-emerald-600/20 transition flex items-center gap-2 theme-text-primary"
-                                >
-                                  <FileCode className="w-3.5 h-3.5 text-teal-400" />
-                                  <span>ملف Markdown (.md)</span>
-                                </button>
-                                <button
-                                  onClick={() => handleExportMessage(msg, 'txt')}
-                                  className="w-full text-right p-2 rounded-xl hover:bg-emerald-600/20 transition flex items-center gap-2 theme-text-primary"
-                                >
-                                  <FileText className="w-3.5 h-3.5 text-blue-400" />
-                                  <span>مستند نصي (.txt)</span>
-                                </button>
-                                <button
-                                  onClick={() => handleExportMessage(msg, 'html')}
-                                  className="w-full text-right p-2 rounded-xl hover:bg-emerald-600/20 transition flex items-center gap-2 theme-text-primary"
-                                >
-                                  <FileCode className="w-3.5 h-3.5 text-amber-400" />
-                                  <span>صفحة ويب (.html)</span>
-                                </button>
-                                <button
-                                  onClick={() => handleExportMessage(msg, 'print')}
-                                  className="w-full text-right p-2 rounded-xl hover:bg-emerald-600/20 transition flex items-center gap-2 theme-text-primary"
-                                >
-                                  <Printer className="w-3.5 h-3.5 text-emerald-400" />
-                                  <span>طباعة / PDF 📄</span>
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Delete Message Button */}
-                        <button
-                          onClick={() => handleDeleteMessage(msg.id)}
-                          className="p-1.5 rounded-lg theme-header-btn border hover:text-rose-500 hover:border-rose-500/40 hover:bg-rose-500/10 transition flex items-center gap-1 text-[11px]"
-                          title="حذف هذه الرسالة"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-                          <span className="hidden sm:inline">حذف</span>
-                        </button>
-
-                      </div>
-                    </div>
-                    )}
-
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-
-          {/* Streaming indicator is rendered in-place inside the placeholder AI bubble */}
-
-          {/* Floating Scroll to Bottom Button */}
-          {showScrollBottom && (
-            <button
-              onClick={scrollToBottom}
-              aria-label="الانتقال للأسفل"
-              title="الانتقال للأسفل"
-              className="sticky bottom-3 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-emerald-600 text-white shadow-xl flex items-center justify-center border border-white/20 hover:bg-emerald-500 hover:scale-105 transition animate-bounce z-20"
-            >
-              <ArrowDown className="w-5 h-5" />
-            </button>
-          )}
-
-          <div ref={messagesEndRef} />
-          </div>
-        </div>
-
-        {/* Quick Navigation Rail between messages (Manus-style) */}
-        {(messages || []).length >= 2 && (
-            <div
-              className="absolute end-0 top-1/2 -translate-y-1/2 flex flex-col items-end pr-1 w-[24px] z-30 cursor-pointer select-none"
-              onMouseEnter={openNav}
-              onMouseLeave={scheduleCloseNav}
-            >
-              <div className="relative h-[min(50vh,calc(100vh-160px))] w-[12px] flex flex-col justify-between">
-                {(messages || []).map((m, idx) => (
-                  <button
-                    key={`nav-${m.id}`}
-                    onClick={() => scrollToNavMessage(idx)}
-                    className="group/tick flex h-[14px] w-[12px] shrink-0 items-center justify-end cursor-pointer"
-                    title={`${m.sender === 'user' ? 'سؤال' : 'إجابة'}: ${m.text.replace(/\s+/g, ' ').slice(0, 40)}`}
-                  >
-                    <span className={`h-[2px] rounded-[40px] transition-all duration-300 origin-right ${
-                      idx === activeNavIndex
-                        ? 'w-[12px] bg-emerald-500 dark:bg-teal-400'
-                        : 'w-[7px] bg-slate-300 dark:bg-slate-600 group-hover/tick:w-[12px] group-hover/tick:bg-slate-400 dark:group-hover/tick:bg-slate-400'
-                    }`} />
-                  </button>
-                ))}
-                <span
-                  className="pointer-events-none absolute end-0 top-0 h-[4px] w-[16px] rounded-[40px] bg-emerald-500/70 dark:bg-teal-400/70 transition-[top] duration-75"
-                  style={{ top: `${navThumb}%` }}
-                />
-              </div>
-
-              {navOpen && (
-                <div
-                  className="absolute end-8 top-1/2 -translate-y-1/2 w-[240px] max-h-[min(50vh,calc(100vh-160px))] overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/95 shadow-2xl p-1.5 z-40 animate-fade-in"
-                  onMouseEnter={openNav}
-                  onMouseLeave={scheduleCloseNav}
-                >
-                  <div className="text-xs font-black text-slate-400 dark:text-slate-500 px-2 py-1">
-                    التنقّل السريع بين الرسائل ({messages.length})
-                  </div>
-                  {messages.map((m, idx) => (
+                <div className="relative h-[min(50vh,calc(100vh-160px))] w-[12px] flex flex-col justify-between">
+                  {(messages || []).map((m, idx) => (
                     <button
-                      key={`navlist-${m.id}`}
-                      onClick={() => { scrollToNavMessage(idx); setNavOpen(false); }}
-                      className={`w-full text-right px-2.5 py-1.5 rounded-lg text-xs leading-[18px] transition flex items-center gap-1.5 cursor-pointer ${
-                        idx === activeNavIndex
-                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 font-bold'
-                          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                      }`}
+                      key={`nav-${m.id}`}
+                      onClick={() => scrollToNavMessage(idx)}
+                      className="group/tick flex h-[14px] w-[12px] shrink-0 items-center justify-end cursor-pointer"
+                      title={`${m.sender === 'user' ? 'سؤال' : 'إجابة'}: ${m.text.replace(/\s+/g, ' ').slice(0, 40)}`}
                     >
-                      <span className="shrink-0 text-xs opacity-60">{m.sender === 'user' ? '💬' : '🤖'}</span>
-                      <span className="truncate">{m.text.replace(/\s+/g, ' ').slice(0, 44) || '(رسالة فارغة)'}</span>
+                      <span className={`h-[2px] rounded-[40px] transition-all duration-300 origin-right ${
+                        idx === activeNavIndex
+                          ? 'w-[12px] bg-emerald-500 dark:bg-teal-400'
+                          : 'w-[7px] bg-slate-300 dark:bg-slate-600 group-hover/tick:w-[12px] group-hover/tick:bg-slate-400 dark:group-hover/tick:bg-slate-400'
+                      }`} />
                     </button>
                   ))}
+                  <span
+                    className="pointer-events-none absolute end-0 top-0 h-[4px] w-[16px] rounded-[40px] bg-emerald-500/70 dark:bg-teal-400/70 transition-[top] duration-75"
+                    style={{ top: `${navThumb}%` }}
+                  />
                 </div>
-              )}
-            </div>
-          )}
+
+                {navOpen && (
+                  <div
+                    className="absolute end-8 top-1/2 -translate-y-1/2 w-[240px] max-h-[min(50vh,calc(100vh-160px))] overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/95 shadow-2xl p-1.5 z-40 animate-fade-in"
+                    onMouseEnter={openNav}
+                    onMouseLeave={scheduleCloseNav}
+                  >
+                    <div className="text-xs font-black text-slate-400 dark:text-slate-500 px-2 py-1">
+                      التنقّل السريع بين الرسائل ({messages.length})
+                    </div>
+                    {messages.map((m, idx) => (
+                      <button
+                        key={`navlist-${m.id}`}
+                        onClick={() => { scrollToNavMessage(idx); setNavOpen(false); }}
+                        className={`w-full text-right px-2.5 py-1.5 rounded-lg text-xs leading-[18px] transition flex items-center gap-1.5 cursor-pointer ${
+                          idx === activeNavIndex
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 font-bold'
+                            : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        <span className="shrink-0 text-xs opacity-60">{m.sender === 'user' ? '💬' : '🤖'}</span>
+                        <span className="truncate">{m.text.replace(/\s+/g, ' ').slice(0, 44) || '(رسالة فارغة)'}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
         </div>
 
-        {/* Input - Slim Anchored Capsule */}
-        <div className="p-2 md:p-3 border-t border-slate-200 dark:border-slate-800 theme-nav shrink-0">
-          
-          {/* Voice Listening Banner */}
-          {isListening && (
-            <div className="mb-2 px-3.5 py-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center justify-between animate-pulse font-['Tajawal']">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
-                <span>جاري الاستماع لصوتك... تحدث الآن باللغة العربية أو الإنجليزية 🎙️</span>
-              </div>
-              <button 
-                type="button"
-                onClick={toggleListening}
-                className="text-xs bg-rose-500 hover:bg-rose-600 text-white px-2.5 py-1 rounded-lg transition"
-              >
-                إيقاف التسجيل
-              </button>
-            </div>
-          )}
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend();
-            }}
-            className="max-w-4xl mx-auto relative flex flex-col gap-1.5 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700/80 focus-within:border-emerald-500 p-2 transition shadow-md"
-          >
-            {/* Auto-expanding Multiline Textarea */}
-            <textarea
-              ref={textareaRef}
-              rows={1}
-              value={inputValue}
-              onChange={(e) => {
-                setInputValue(e.target.value);
-                e.target.style.height = 'auto';
-                e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              placeholder={
-                editingMsgId 
-                  ? "تعديل السؤال وإعادة إرساله (Enter للإرسال)..." 
-                  : activeDoc 
-                  ? `اسأل أي سؤال حول "${activeDoc.filename}" (Enter للإرسال، Shift+Enter لسطر جديد)...` 
-                  : "اكتب سؤالك الأكاديمي هنا (Enter للإرسال، Shift+Enter لسطر جديد)..."
-              }
-              className="w-full bg-transparent px-2 py-1.5 text-sm theme-text-primary outline-none transition font-['Tajawal'] resize-none leading-relaxed min-h-[32px] max-h-[120px]"
-            />
-
-            {/* Single-Line Action Bar (icons prominent, labels hidden) */}
-            <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 dark:border-slate-800 text-xs font-['Tajawal']">
-              
-              {/* Left Action Shortcuts */}
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={onOpenUpload}
-                  className="px-2 py-1.5 rounded-lg theme-header-btn border hover:text-emerald-400 transition flex items-center gap-1.5 text-xs font-bold cursor-pointer"
-                  title="رفع مستند تعليمي جديد"
-                >
-                  <Paperclip className="w-3.5 h-3.5 text-emerald-500" />
-                  <span className="hidden lg:inline">إرفاق مادة</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={onOpenPromptManager}
-                  className="px-2 py-1.5 rounded-lg theme-header-btn border hover:text-amber-400 transition flex items-center gap-1.5 text-xs font-bold cursor-pointer"
-                  title="استخدام قالب برومبت مخصص"
-                >
-                  <Wand2 className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="hidden lg:inline">{activePrompt ? activePrompt.title : 'البرومبتات'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={toggleListening}
-                  className={`px-2 py-1.5 rounded-lg border transition flex items-center gap-1.5 text-xs font-bold cursor-pointer ${
-                    isListening
-                      ? 'bg-rose-500/20 border-rose-500 text-rose-400 animate-pulse'
-                      : 'theme-header-btn hover:text-teal-400'
-                  }`}
-                  title={isListening ? 'إيقاف التسجيل الصوتي' : 'إدخال صوتي (Voice Input)'}
-                >
-                  {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-                </button>
-
-                {/* Quick Prompts - compact dropdown, no persistent strip */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsQuickPromptsOpen(o => !o)}
-                    className="px-2 py-1.5 rounded-lg theme-header-btn border hover:text-amber-400 transition flex items-center gap-1.5 text-xs font-bold cursor-pointer"
-                    title="اقتراحات سريعة"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                    <span className="hidden lg:inline">سريع</span>
-                  </button>
-                  {isQuickPromptsOpen && (
-                    <div className="absolute bottom-full left-0 mb-2 w-64 theme-bg-card border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl z-50 overflow-hidden font-['Tajawal']">
-                      <div className="p-1.5 space-y-0.5 max-h-72 overflow-y-auto">
-                        {quickPrompts.map((qp, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => {
-                              setIsQuickPromptsOpen(false);
-                              handleSend(qp.query);
-                            }}
-                            className="w-full text-right px-3 py-2 rounded-lg text-xs font-bold theme-text-secondary hover:bg-emerald-500/10 hover:text-emerald-500 transition cursor-pointer flex items-center gap-2"
-                          >
-                            <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                            <span className="leading-snug">{qp.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Send Button */}
-              <div className="flex items-center gap-2">
-                {editingMsgId && (
-                  <button
-                    type="button"
-                    onClick={handleCancelEdit}
-                    className="px-2.5 py-1.5 rounded-lg theme-header-btn border text-xs font-bold hover:text-rose-400 transition cursor-pointer"
-                  >
-                    إلغاء
-                  </button>
-                )}
-                
-                {isStreaming ? (
-                  <button
-                    type="button"
-                    onClick={handleStopGeneration}
-                    title="إيقاف توليد الإجابة"
-                    className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-rose-600 dark:text-rose-400 font-extrabold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer hover:bg-rose-500/10"
-                  >
-                    <Square className="w-3.5 h-3.5 fill-current" />
-                    <span>إيقاف</span>
-                  </button>
-                ) : (
-                <button
-                  type="submit"
-                  disabled={!inputValue.trim() || loading}
-                  className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-40 text-white font-extrabold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>{editingMsgId ? 'حفظ' : 'إرسال'}</span>
-                  <Send className="w-3.5 h-3.5 rotate-180" />
-                </button>
-                )}
-              </div>
-            </div>
-          </form>
+        {/* Composer - Slim Anchored Capsule */}
+        <div className="shrink-0 px-3 md:px-4 pt-1 pb-3 border-t border-border theme-nav">
+          <ChatComposer
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            handleSend={handleSend}
+            loading={loading}
+            isStreaming={isStreaming}
+            handleStopGeneration={handleStopGeneration}
+            activeDoc={activeDoc}
+            onCloseActiveDoc={onCloseActiveDoc}
+            onOpenUpload={onOpenUpload}
+            onOpenPromptManager={onOpenPromptManager}
+            activePrompt={activePrompt}
+            toggleListening={toggleListening}
+            isListening={isListening}
+            editingMsgId={editingMsgId}
+            handleCancelEdit={handleCancelEdit}
+            quickPrompts={quickPrompts}
+            textareaRef={textareaRef}
+          />
         </div>
 
       </div>
@@ -1726,7 +1014,7 @@ export default function ChatView({
       {/* Master Chat Sessions & Fast Full-Text Search Modal (mobile) */}
       {isSessionsModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in text-right font-['Tajawal']" dir="rtl">
-          <div className="relative w-full max-w-2xl glass-panel rounded-3xl p-6 border shadow-2xl space-y-5 max-h-[90vh] flex flex-col">
+          <div className="relative w-full max-w-2xl card p-6 space-y-5 max-h-[90vh] flex flex-col">
             
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10 shrink-0">
@@ -1959,7 +1247,7 @@ export default function ChatView({
       {/* Custom Confirmation Modal (replaces native window.confirm) */}
       {confirmDialog && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in text-right font-['Tajawal']" dir="rtl">
-          <div className="relative w-full max-w-sm glass-panel rounded-3xl p-6 border shadow-2xl space-y-5 animate-fade-in">
+          <div className="relative w-full max-w-sm card p-6 space-y-5 animate-fade-in">
             <div className="w-14 h-14 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center mx-auto">
               <AlertTriangle className="w-7 h-7 text-rose-500" />
             </div>

@@ -117,7 +117,7 @@ export default function AdminSidebar({ activeSection, setActiveSection, stats, o
         <button
           onClick={onRefresh}
           disabled={loading}
-          className="w-full py-2.5 rounded-xl theme-header-btn border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2.5 rounded-xl btn-ghost text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           تحديث البيانات
@@ -125,7 +125,7 @@ export default function AdminSidebar({ activeSection, setActiveSection, stats, o
         <button
           onClick={onSave}
           disabled={saving}
-          className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2.5 rounded-xl btn-primary text-xs font-black transition flex items-center justify-center gap-2 cursor-pointer"
         >
           {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           <span>{saveSuccess ? 'تم الحفظ بنجاح ✓' : 'حفظ التعديلات الشاملة'}</span>
