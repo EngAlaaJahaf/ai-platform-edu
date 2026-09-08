@@ -1,15 +1,12 @@
 import json
-import os
 import re
-import traceback
-import time
-import concurrent.futures
 from contextvars import ContextVar
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
 import httpx
-from openai import OpenAI, RateLimitError
+from backend.config import GEMINI_API_KEY as ENV_GEMINI_KEY
 from backend.database import log_activity
-from backend.config import GEMINI_API_KEY as ENV_GEMINI_KEY, DEFAULT_MODEL as ENV_MODEL
+from openai import OpenAI, RateLimitError
 
 use_base_rules_var = ContextVar("use_base_rules", default=True)
 
@@ -54,7 +51,7 @@ class AIService:
 
         # 2. Remove CJK (Chinese, Japanese, Korean) characters and Asian ideographs
         cleaned = re.sub(r'[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]+', '', cleaned)
-        
+
         # 3. Fix specific corrupted fragments from multilingual model hallucinations
         corruptions = [
             (r'akeship_via', 'البريد الإلكتروني'),
@@ -378,11 +375,11 @@ class AIService:
                     http_options={'timeout': 180.0}
                 )
                 combined_prompt = f"{system_prompt}\n\n{user_prompt}"
-                
+
                 config_kwargs = {"temperature": temperature, "max_output_tokens": 8192}
                 if json_mode:
                     config_kwargs["response_mime_type"] = "application/json"
-                    
+
                 res = client.models.generate_content(
                     model=cand_model,
                     contents=combined_prompt,
@@ -497,10 +494,10 @@ class AIService:
 
     @classmethod
     def validate_connection(
-        cls, 
-        provider: str = "gemini", 
-        api_key: Optional[str] = None, 
-        base_url: Optional[str] = None, 
+        cls,
+        provider: str = "gemini",
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
         model: Optional[str] = None
     ) -> Dict[str, Any]:
         provider = (provider or "gemini").lower()
@@ -537,9 +534,9 @@ class AIService:
 
     @classmethod
     def answer_with_rag(
-        cls, 
-        query: str, 
-        context_chunks: List[Dict[str, Any]], 
+        cls,
+        query: str,
+        context_chunks: List[Dict[str, Any]],
         conversation_history: Optional[List[Dict[str, str]]] = None,
         provider: str = "gemini",
         api_key: Optional[str] = None,
@@ -580,11 +577,11 @@ class AIService:
                 model=model
             )
             is_out_of_scope = bool(re.search(r'\[?\s*⚠️?\s*هذا السؤال خارج نطاق الملف', ans_text))
-            
+
             # Extract specific cited pages from model response text or fall back to context pages
             cited_pages_in_text = [int(p) for p in re.findall(r'صفحة\s*(\d+)', ans_text)]
             final_citations = sorted(list(set(cited_pages_in_text))) if cited_pages_in_text else sorted(list(set([c.get("page_number", 1) for c in context_chunks if c.get("page_number")])))[:5]
-            
+
             return {
                 "answer": cls.sanitize_text(ans_text),
                 "is_out_of_scope": is_out_of_scope,
@@ -601,8 +598,8 @@ class AIService:
 
     @classmethod
     def generate_summary_and_mindmap(
-        cls, 
-        full_text: str, 
+        cls,
+        full_text: str,
         level: str = "full",
         language: str = "ar",
         provider: str = "gemini",
@@ -733,9 +730,9 @@ class AIService:
 
     @classmethod
     def generate_quiz(
-        cls, 
-        full_text: str, 
-        count: int = 5, 
+        cls,
+        full_text: str,
+        count: int = 5,
         difficulty: str = "medium",
         language: str = "bilingual",
         provider: str = "gemini",
@@ -787,7 +784,7 @@ class AIService:
                 "5. بطاقات الاستذكار (flashcards) تحتوي على المصطلح والشرح باللغتين: front_ar, front_en, back_ar, back_en.\n"
                 "أرجع النتيجة بصيغة JSON حصراً بدون أي نصوص إضافية:\n"
             )
-        
+
         system_prompt += (
             "{\n"
             '  "chapter_title": "اسم الفصل أو المحاضرة الأكاديمية",\n'
@@ -848,7 +845,7 @@ class AIService:
                 )
                 raw = re.sub(r'^```json\s*', '', raw.strip())
                 raw = re.sub(r'\s*```$', '', raw)
-                
+
                 parsed = None
                 try:
                     parsed = json.loads(raw)
@@ -880,19 +877,19 @@ class AIService:
             chunk_size = 3500
             chunks = []
             answer_key_context = full_text[-4000:] if len(full_text) > 4000 else full_text
-            
+
             for i in range(0, len(full_text), chunk_size):
                 chunk = full_text[i:i+chunk_size]
                 # Append answer key to chunk to ensure AI has context for correct answers
                 if answer_key_context not in chunk:
                     chunk += f"\n\n--- مفتاح الإجابات للإسترشاد (Answer Key) ---\n{answer_key_context}"
                 chunks.append(chunk)
-                
+
             results = []
             # Sequential extraction to prevent provider rate limits / timeouts
             for chunk in chunks:
                 results.append(process_chunk(chunk))
-                    
+
             final_parsed = {
                 "chapter_title": "الامتحان المستخلص (المجمع)",
                 "difficulty_level": difficulty,
@@ -902,7 +899,7 @@ class AIService:
                 "predicted_score_baseline": 85,
                 "study_tips": ["نصيحة: تمت معالجة هذا المستند الطويل على دفعات لتجنب الأخطاء."]
             }
-            
+
             seen_questions = set()
             for res in results:
                 for q in res.get("questions", []):
@@ -913,10 +910,10 @@ class AIService:
                 final_parsed["flashcards"].extend(res.get("flashcards", []))
                 if res.get("chapter_title") and final_parsed["chapter_title"] == "الامتحان المستخلص (المجمع)":
                     final_parsed["chapter_title"] = res.get("chapter_title")
-                    
+
             for i, q in enumerate(final_parsed["questions"]):
                 q["id"] = i + 1
-                
+
             return cls.sanitize_output(final_parsed)
         else:
             parsed = process_chunk(full_text)
@@ -935,7 +932,7 @@ class AIService:
 
     @classmethod
     def proofread_text(
-        cls, 
+        cls,
         input_text: str,
         provider: str = "gemini",
         api_key: Optional[str] = None,
@@ -1016,7 +1013,7 @@ class AIService:
             raw = re.sub(r'^```json\s*', '', raw.strip())
             raw = re.sub(r'\s*```$', '', raw)
             return json.loads(raw)
-        except Exception as e:
+        except Exception:
             return {
                 "title": f"برومبت مخصص: {task_goal[:30]}",
                 "description": f"قالب مخصص تم إنشاؤه لتصنيف {category}",
@@ -1087,7 +1084,7 @@ class AIService:
                 raise ValueError("مفتاح base مفقود")
             blueprint["base"] = blueprint.get("base") if blueprint.get("base") in ("academic", "dark-tech") else "academic"
             return blueprint
-        except Exception as e:
+        except Exception:
             dark = any(k in (identity_goal + (topic or "")).lower() for k in
                        ["داكن", "تقني", "تكنولوجي", "برمجي", "سايبر", "ذكاء اصطناعي", "dark", "tech", "ai"])
             if dark:
@@ -1122,7 +1119,7 @@ class AIService:
         custom_system_prompt: Optional[str] = None
     ) -> Dict[str, Any]:
         """Translate academic documents with 3 distinct layout modes."""
-        
+
         lang_names = {
             "en": "الإنجليزية (English)",
             "ar": "العربية (Arabic)",
@@ -1167,7 +1164,7 @@ class AIService:
         )
 
         system_prompt = custom_system_prompt or default_system_prompt
-        
+
         # Take first ~7500 chars to avoid token limits on heavy models
         content_sample = full_text[:8000]
         user_prompt = f"المستند المطلوب ترجمته:\n{content_sample}"

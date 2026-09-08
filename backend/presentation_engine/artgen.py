@@ -13,7 +13,13 @@
     setx OPENAI_API_KEY "sk-..."      # على مستوى المستخدم
     setx OPENAI_BASE_URL "..."        # اختياري: مزود متوافق مع OpenAI
 """
-import sys, os, json, base64, io, urllib.request, pathlib
+import base64
+import io
+import json
+import os
+import sys
+import urllib.request
+
 from PIL import Image, ImageDraw
 
 sys.stdout.reconfigure(encoding="utf-8")

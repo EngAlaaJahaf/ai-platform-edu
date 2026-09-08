@@ -10,7 +10,13 @@
 الاستخدام:
     python engine.py deck.json [--out name.pptx] [--only-render]
 """
-import sys, os, json, re, subprocess, shutil, pathlib
+import json
+import os
+import pathlib
+import re
+import shutil
+import subprocess
+import sys
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -193,7 +199,7 @@ table.tbl th,.lbl,.pct,.step .dot,.step .t,.anchor .lab,.anchor .txt,.watermark{
 
 
 def acad_cover(d):
-    illu = "" if d.get("art") else f"""
+    illu = "" if d.get("art") else """
   <svg class="illu" viewBox="0 0 470 400" fill="none" stroke-width="2" stroke-linecap="round"><g class="ig" stroke-width="2">
     <rect x="18" y="250" width="150" height="130" rx="6"/><path d="M18 282l75-52 75 52"/><circle cx="93" cy="254" r="16"/>
     <path d="M52 340v-44h82v44M52 300h16M78 300h16M104 300h16M130 300h8"/>
@@ -586,10 +592,10 @@ def _identity_css_override(identity, base):
     if fh or fb:
         frag = ""
         if fh:
-            frag += f"table.tbl th,.lbl,.pct,.step .dot,.step .t,.anchor .lab,.anchor .txt,.watermark{{font-family:var(--fh)}}"
+            frag += "table.tbl th,.lbl,.pct,.step .dot,.step .t,.anchor .lab,.anchor .txt,.watermark{font-family:var(--fh)}"
         if fb:
-            frag += f".lead,li,.rt p,.stat .l,.note,.team .n,.bigline{{font-family:var(--fb)}}"
-        formed.append(f".slide{{" + f"--fh:'{fh or 'Changa Fe'}','Segoe UI',sans-serif;--fb:'{fb or 'Cairo Fe'}','Segoe UI',sans-serif;" + "}")
+            frag += ".lead,li,.rt p,.stat .l,.note,.team .n,.bigline{font-family:var(--fb)}"
+        formed.append(".slide{" + f"--fh:'{fh or 'Changa Fe'}','Segoe UI',sans-serif;--fb:'{fb or 'Cairo Fe'}','Segoe UI',sans-serif;" + "}")
         formed.append(frag)
     return "\n".join(formed)
 
@@ -613,7 +619,7 @@ def _mix(hex_from, hex_to, t):
     try:
         a = [int(hex_from.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)]
         b = [int(hex_to.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)]
-        c = [round(x + (y - x) * t) for x, y in zip(a, b)]
+        c = [round(x + (y - x) * t) for x, y in zip(a, b, strict=False)]
         return f"#{c[0]:02x}{c[1]:02x}{c[2]:02x}"
     except Exception:
         return hex_from
@@ -660,9 +666,9 @@ def chrome_shot(html_path, png_path):
 
 
 def assemble(deck_name, pngs, out_base):
+    from PIL import Image
     from pptx import Presentation
     from pptx.util import Inches
-    from PIL import Image
     prs = Presentation()
     prs.slide_width, prs.slide_height = Inches(13.333), Inches(7.5)
     imgs = []
