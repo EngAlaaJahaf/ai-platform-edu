@@ -4,6 +4,9 @@ import re
 from typing import Any, Dict
 
 import pandas as pd
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, Side
+from openpyxl.utils import get_column_letter
 
 
 class QuizFormatterService:
@@ -316,20 +319,45 @@ class QuizFormatterService:
         if isinstance(terms_data, list):
             terms_data = {"terms": terms_data}
         terms = terms_data.get("terms", []) if isinstance(terms_data, dict) else []
-        rows = []
+
+        headers = ["#", "المصطلح (إنجليزي)", "الترجمة الأكاديمية (عربي)", "التعريف", "مثال / سياق", "التصنيف"]
+        col_widths = [4.3, 24.1, 22.4, 58.5, 54.2, 10.6]
+        header_font = Font(name="Arial", size=11, bold=True, italic=False)
+        data_font = Font(name="Arial", size=11, bold=False, italic=False)
+        thin = Side(style="thin")
+        header_border = Border(left=thin, right=thin, bottom=thin)
+        header_align = Alignment(horizontal="center", vertical="top")
+        category_align = Alignment(horizontal="center", vertical="center")
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Academic Terms"
+        for col_idx, (header, width) in enumerate(zip(headers, col_widths, strict=False), start=1):
+            ws.column_dimensions[get_column_letter(col_idx)].width = width
+            cell = ws.cell(row=1, column=col_idx, value=header)
+            cell.font = header_font
+            cell.border = header_border
+            cell.alignment = category_align if col_idx == 6 else header_align
+
         for i, t in enumerate(terms, start=1):
             if not isinstance(t, dict):
                 continue
-            rows.append({
-                "#": t.get("id", i),
-                "المصطلح (إنجليزي)": t.get("term_en", ""),
-                "الترجمة الأكاديمية (عربي)": t.get("term_ar", ""),
-                "التعريف": t.get("definition", ""),
-                "مثال / سياق": t.get("example", ""),
-                "التصنيف": t.get("category", "")
-            })
-        df = pd.DataFrame(rows)
+            row_num = i + 1
+            values = [
+                t.get("id", i),
+                t.get("term_en", ""),
+                t.get("term_ar", ""),
+                t.get("definition", ""),
+                t.get("example", ""),
+                t.get("category", "")
+            ]
+            for col_idx, val in enumerate(values, start=1):
+                cell = ws.cell(row=row_num, column=col_idx, value=val)
+                cell.font = data_font
+                if col_idx == 6:  # category column
+                    cell.alignment = category_align
+
         output = io.BytesIO()
-        with pd.ExcelWriter(output, engine="openpyxl") as writer:
-            df.to_excel(writer, index=False, sheet_name="Academic Terms")
+        wb.save(output)
+        wb.close()
         return output.getvalue()
