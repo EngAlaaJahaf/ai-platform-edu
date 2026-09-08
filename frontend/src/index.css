@@ -611,7 +611,7 @@ textarea.field { padding: 10px 14px; min-height: 92px; resize: vertical; }
 .mt-btn:hover { background: var(--card-hover); color: var(--text); }
 .mt-spacer { flex: 1; }
 
-.composer-zone { max-width: 760px; margin: 0 auto; position: sticky; bottom: 18px; margin-top: 26px; }
+.composer-zone { max-width: 1000px; margin: 0 auto; position: sticky; bottom: 18px; margin-top: 26px; }
 .active-doc {
   display: inline-flex;
   align-items: center;
