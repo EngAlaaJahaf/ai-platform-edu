@@ -347,7 +347,8 @@ export default function AppShell({
               <span>المزيد</span>
             </button>
             {isMoreOpen && (
-              <div className="absolute bottom-full left-2 right-2 mb-2 rounded-2xl card p-2 z-50 space-y-1 max-h-[60vh] overflow-y-auto">
+              <div className="fixed bottom-16 inset-x-0 px-3 pb-2 z-[60]">
+                <div className="card p-2 space-y-1 max-h-[60vh] overflow-y-auto">
                 <div className="p-2 text-xs font-bold text-text-faint flex items-center gap-2">
                   <Sparkles className="w-3.5 h-3.5 text-accent" />
                   جميع الأدوات
@@ -376,6 +377,7 @@ export default function AppShell({
                   <CircleUserRound className="w-4 h-4 text-sky-500" />
                   <span>الحساب والتفاصيل</span>
                 </button>
+                </div>
               </div>
             )}
           </div>
