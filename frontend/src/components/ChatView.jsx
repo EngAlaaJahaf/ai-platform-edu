@@ -142,6 +142,7 @@ export default function ChatView({
   const [fetchingChatModels, setFetchingChatModels] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const streamControllerRef = useRef(null);
+  const modelDropdownRef = useRef(null);
 
   useEffect(() => {
     latestMessagesRef.current = messages;

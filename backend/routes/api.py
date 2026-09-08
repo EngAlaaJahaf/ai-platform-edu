@@ -1,5 +1,6 @@
 import io
 import json
+import logging
 import os
 import re
 import shutil
@@ -132,6 +133,24 @@ def _check_rate_limit(key: str, limit: int, window_sec: int = 60):
     if len(RATE_LIMIT_STORE[key]) >= limit:
         raise HTTPException(status_code=429, detail="تم تجاوز الحد المسموح، حاول مرة أخرى بعد قليل (Rate limit)")
     RATE_LIMIT_STORE[key].append(now)
+
+_ai_logger = logging.getLogger("eduai.api")
+
+def _run_ai(call):
+    """Run an AI-service call and convert failures into a clean 4xx response."""
+    try:
+        return call()
+    except HTTPException:
+        raise
+    except Exception as e:
+        _ai_logger.exception("AI service call failed")
+        detail = str(e).strip()
+        if len(detail) > 300:
+            detail = detail[:300] + "..."
+        raise HTTPException(
+            status_code=400,
+            detail=f"تعذر تنفيذ العملية بواسطة خدمة الذكاء الاصطناعي: {detail}"
+        ) from e
 
 class AdminLoginRequest(BaseModel):
     admin_key: str
@@ -419,14 +438,14 @@ def generate_prompt_endpoint(
     x_ai_base_url: Optional[str] = Header(None),
     x_gemini_model: Optional[str] = Header(None)
 ):
-    result = AIService.generate_custom_prompt(
+    result = _run_ai(lambda: AIService.generate_custom_prompt(
         task_goal=req.task_goal,
         category=req.category or "quiz",
         provider=x_ai_provider or "gemini",
         api_key=x_gemini_api_key,
         base_url=x_ai_base_url,
         model=x_gemini_model
-    )
+    ))
     return result
 
 # --- Quiz Export & Import Endpoints ---
@@ -493,7 +512,7 @@ def extract_terms_endpoint(
     if not full_text:
         raise HTTPException(status_code=400, detail="يرجى رفع أو اختيار مادة تعليمية لاستخراج المصطلحات أولاً.")
 
-    terms_data = AIService.extract_terms(
+    terms_data = _run_ai(lambda: AIService.extract_terms(
         full_text=full_text,
         level=req.level or "medium",
         count=req.count or 20,
@@ -503,7 +522,7 @@ def extract_terms_endpoint(
         base_url=x_ai_base_url,
         model=x_gemini_model,
         custom_system_prompt=req.custom_system_prompt
-    )
+    ))
     if doc and doc.get("id"):
         save_document_terms(doc["id"], terms_data)
     try:
@@ -737,8 +756,7 @@ def summarize_doc(
     full_text = doc.get("full_text", "") if doc else ""
     if not full_text:
         raise HTTPException(status_code=400, detail="يرجى رفع أو اختيار مادة تعليمية للتلخيص أولاً.")
-
-    summary_data = AIService.generate_summary_and_mindmap(
+    summary_data = _run_ai(lambda: AIService.generate_summary_and_mindmap(
         full_text=full_text,
         level=req.level or "full",
         language=req.language or "ar",
@@ -747,7 +765,7 @@ def summarize_doc(
         base_url=x_ai_base_url,
         model=x_gemini_model,
         custom_system_prompt=req.custom_system_prompt
-    )
+    ))
     if doc and doc.get("id") and (not x_user_id or user_can_edit_document(x_user_id, doc["id"])):
         save_document_summary(doc["id"], summary_data)
     with suppress(Exception):
@@ -775,8 +793,7 @@ def generate_quiz_endpoint(
     full_text = doc.get("full_text", "") if doc else ""
     if not full_text:
         raise HTTPException(status_code=400, detail="يرجى رفع أو اختيار مادة تعليمية للاختبار أولاً.")
-
-    quiz_data = AIService.generate_quiz(
+    quiz_data = _run_ai(lambda: AIService.generate_quiz(
         full_text=full_text,
         count=req.count or 5,
         difficulty=req.difficulty or "medium",
@@ -787,7 +804,7 @@ def generate_quiz_endpoint(
         model=x_gemini_model,
         custom_system_prompt=req.custom_system_prompt,
         extract_only=req.extract_only
-    )
+    ))
     if doc and doc.get("id") and (not x_user_id or user_can_edit_document(x_user_id, doc["id"])):
         save_document_quiz(doc["id"], quiz_data)
     with suppress(Exception):
@@ -808,15 +825,14 @@ def proofread_endpoint(
 ):
     if not req.text.strip():
         raise HTTPException(status_code=400, detail="النص المدخل فارغ.")
-
-    result = AIService.proofread_text(
+    result = _run_ai(lambda: AIService.proofread_text(
         input_text=req.text,
         provider=x_ai_provider or "gemini",
         api_key=x_gemini_api_key,
         base_url=x_ai_base_url,
         model=x_gemini_model,
         custom_system_prompt=req.custom_system_prompt
-    )
+    ))
     with suppress(Exception):
         import json as _json3
         delta = estimate_tokens(req.text) + estimate_tokens(_json3.dumps(result, ensure_ascii=False))
@@ -849,7 +865,7 @@ def translate_endpoint(
     if not full_text:
         raise HTTPException(status_code=400, detail="يرجى رفع أو اختيار مادة تعليمية تحتوي على نصوص للترجمة أولاً.")
 
-    result = AIService.translate_document(
+    result = _run_ai(lambda: AIService.translate_document(
         full_text=full_text,
         source_lang=req.source_lang or "en",
         target_lang=req.target_lang or "ar",
@@ -859,7 +875,7 @@ def translate_endpoint(
         base_url=x_ai_base_url,
         model=x_gemini_model,
         custom_system_prompt=req.custom_system_prompt
-    )
+    ))
     with suppress(Exception):
         import json as _json4
         delta = estimate_tokens(full_text[:3000]) + estimate_tokens(_json4.dumps(result, ensure_ascii=False))
@@ -1384,14 +1400,14 @@ def template_generate_endpoint(
     """صمّم هوية بصرية عبر AI حسب الوصف/الموضوع ثم احفظها كقالب."""
     user = _get_current_user(x_user_id)
     ai = _pres_headers(x_ai_provider, x_gemini_api_key, x_ai_base_url, x_gemini_model)
-    blueprint = AIService.generate_template_theme(
+    blueprint = _run_ai(lambda: AIService.generate_template_theme(
         identity_goal=req.goal or req.topic or "",
         topic=req.topic,
         provider=ai["provider"],
         api_key=ai["api_key"],
         base_url=ai["base_url"],
         model=ai["model"],
-    )
+    ))
     saved = save_template({
         "title": blueprint.get("name") or "قالب مخصص",
         "description": blueprint.get("description") or "",

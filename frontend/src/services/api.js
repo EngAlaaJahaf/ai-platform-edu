@@ -87,6 +87,15 @@ export function setUserProfile(profile) {
   }
 }
 
+async function errMsg(res, fallback) {
+  try {
+    const data = await res.json();
+    return data.detail || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export async function fetchCurrentUser() {
   const res = await fetch(`${API_BASE}/user/me`, { headers: getHeaders() });
   if (!res.ok) return null;
@@ -342,7 +351,7 @@ export async function sendChatMessage(query, docId = null, history = [], customS
     }),
   });
 
-  if (!res.ok) throw new Error('Chat API error');
+  if (!res.ok) throw new Error(await errMsg(res, 'فشل إرسال السؤال إلى المساعد الذكي'));
   return await res.json();
 }
 
@@ -353,7 +362,7 @@ export async function sendChatMessageStream(query, docId = null, history = [], c
     body: JSON.stringify({ query, doc_id: docId, history, custom_system_prompt: customSystemPrompt }),
     signal,
   });
-  if (!res.ok) throw new Error('Chat stream error');
+  if (!res.ok) throw new Error(await errMsg(res, 'فشل تدفق إجابة المساعد الذكي'));
   if (!res.body) {
     let data;
     try { data = await res.json(); } catch { const txt = await res.text(); data = { answer: txt }; }
@@ -391,7 +400,7 @@ export async function fetchSummary(docId = null, level = 'full', language = 'ar'
     }),
   });
 
-  if (!res.ok) throw new Error('Summarize API error');
+  if (!res.ok) throw new Error(await errMsg(res, 'فشل التلخيص بالذكاء الاصطناعي'));
   return await res.json();
 }
 export async function fetchQuiz(docId = null, count = 5, difficulty = 'medium', language = 'bilingual', customSystemPrompt = null, extractOnly = false) {
@@ -407,7 +416,7 @@ export async function fetchQuiz(docId = null, count = 5, difficulty = 'medium', 
       extract_only: extractOnly
     }),
   });
-  if (!res.ok) throw new Error('فشل توليد الاختبار');
+  if (!res.ok) throw new Error(await errMsg(res, 'فشل توليد الاختبار'));
   return await res.json();
 }
 
@@ -440,7 +449,7 @@ export async function proofreadText(text, customSystemPrompt = null) {
     }),
   });
 
-  if (!res.ok) throw new Error('Proofread API error');
+  if (!res.ok) throw new Error(await errMsg(res, 'فشل التدقيق اللغوي'));
   return await res.json();
 }
 
@@ -458,7 +467,7 @@ export async function translateDocument({ docId = null, text = null, sourceLang 
     }),
   });
 
-  if (!res.ok) throw new Error('فشل استدعاء محرك الترجمة الأكاديمية');
+  if (!res.ok) throw new Error(await errMsg(res, 'فشل استدعاء محرك الترجمة الأكاديمية'));
   return await res.json();
 }
 
@@ -560,7 +569,7 @@ export async function fetchTerms(docId = null, level = 'medium', count = 20, lan
       custom_system_prompt: customSystemPrompt
     }),
   });
-  if (!res.ok) throw new Error('فشل استخراج المصطلحات الأكاديمية');
+  if (!res.ok) throw new Error(await errMsg(res, 'فشل استخراج المصطلحات الأكاديمية'));
   return await res.json();
 }
 
@@ -661,7 +670,7 @@ export async function generatePromptWithAI(taskGoal, category = 'quiz') {
       category
     })
   });
-  if (!res.ok) throw new Error('فشل توليد البرومبت بالذكاء الاصطناعي');
+  if (!res.ok) throw new Error(await errMsg(res, 'فشل توليد البرومبت بالذكاء الاصطناعي'));
   return await res.json();
 }
 
