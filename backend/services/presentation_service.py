@@ -536,6 +536,11 @@ class PresentationService:
                 "message": st("message", f"استثمر في هذا المشروع اليوم — {st('title')}."),
                 "chips": slist("chips") or ["فريق متخصص", "سوق ينتظر", "نموذج مالي"],
             })
+        elif tmpl == "quote":
+            slide.update({
+                "quote": st("quote", "العلم في الصغر كالنقش على الحجر."),
+                "author": st("author", ""),
+            })
         return slide
 
     # ── الرندر ──

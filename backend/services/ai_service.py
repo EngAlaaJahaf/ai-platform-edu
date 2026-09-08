@@ -25,6 +25,39 @@ DEFAULT_FONT_HEADING = "Changa Fe"
 DEFAULT_FONT_BODY = "Cairo Fe"
 
 class AIService:
+    # T3.2 — حدود التقسيم المرحلي للوثائق الطويلة (تلخيص/ترجمة بدل الاقتطاع)
+    CHUNK_CHARS = 6000
+    CHUNK_OVERLAP = 400
+    MAX_SUMMARY_CHUNKS = 6
+    MAX_TRANSLATE_CHUNKS = 6
+
+    @staticmethod
+    def _split_text_chunks(text: str, chunk_chars: int = 6000, overlap: int = 400) -> List[str]:
+        """تقسيم نص طويل إلى مقاطع على حدود الفقرات مع تداخل يحفظ السياق."""
+        text = (text or "").strip()
+        if len(text) <= chunk_chars:
+            return [text] if text else []
+        paras = [p.strip() for p in text.split("\n") if p.strip()]
+        if not paras:
+            paras = [text[i:i + chunk_chars] for i in range(0, len(text), chunk_chars)]
+        chunks, current = [], ""
+        for p in paras:
+            candidate = (current + "\n" + p).strip() if current else p
+            if len(candidate) > chunk_chars and current:
+                chunks.append(current)
+                # تداخل: ذيل المقطع السابق يمهّد للاحق
+                tail = current[-overlap:] if overlap > 0 else ""
+                current = (tail + "\n" + p).strip() if tail else p
+            else:
+                current = candidate
+            # فقرة واحدة أطول من الحد: قصّها قسراً
+            while len(current) > chunk_chars * 2:
+                chunks.append(current[:chunk_chars])
+                current = current[chunk_chars - overlap:]
+        if current.strip():
+            chunks.append(current.strip())
+        return chunks
+
     @staticmethod
     def clean_model_name(model_name: Optional[str]) -> str:
         if not model_name:
@@ -610,30 +643,8 @@ class AIService:
                 "sources": context_chunks[:3]
             }
 
-    @classmethod
-    def generate_summary_and_mindmap(
-        cls, 
-        full_text: str, 
-        level: str = "full",
-        language: str = "ar",
-        provider: str = "gemini",
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
-        model: Optional[str] = None,
-        custom_system_prompt: Optional[str] = None
-    ) -> Dict[str, Any]:
-        if not full_text.strip():
-            return {
-                "title": "لا يوجد مستند مرفوع",
-                "overview": "يرجى رفع ملف المحاضرة أولاً.",
-                "key_points": ["ارفع الملف لبدء التلخيص."],
-                "definitions": [],
-                "comparisons": [],
-                "exam_traps": [],
-                "formulas_rules": [],
-                "mindmap": {"label": "ارفع ملفاً", "children": []}
-            }
-
+    @staticmethod
+    def _summary_system_prompt(level: str, language: str, custom_system_prompt: Optional[str] = None) -> str:
         lang_instruction = {
             "ar": "يجب كتابة كامل محتوى التلخيص (العناوين، النظرة العامة، المحاور والشروحات، المقارنات، ومصائد الامتحانات، وقاموس المصطلحات، وشجرة الخريطة الذهنية) باللغة العربية الفصحى الأكاديمية الواضحة والثرية حتى لو كان المستند الأصلي مكتوباً بالإنجليزية.",
             "en": "All summary sections (Title, Overview, Pillars, Comparisons, Exam Traps, Definitions, Formulas, Mindmap) must be written strictly and entirely in clear academic English.",
@@ -717,6 +728,191 @@ class AIService:
             "}\n\n"
             "قاعدة النقاء اللغوي الأكاديمي الصارم (Strict Language Purity):\n"
             "يُمنع منعاً باتاً ومطلقاً إخراج أي حروف أو رموز آسيوية أو صينية (مثل 电子邮件 أو 软件 أو 善良) أو أي تشوهات دمج الكلمات (مثل searchي أو defacesي) في أي حقل أو في أي عقدة من عقد الخريطة الذهنية. يجب أن تكون كل النصوص إما باللغة العربية الفصحى السليمة أو باللغة الإنجليزية الأكاديمية للمصطلحات اللاتينية فقط."
+        )
+
+        return system_prompt
+
+    @classmethod
+    def _summarize_long(
+        cls,
+        full_text: str,
+        char_limit: int,
+        level: str,
+        language: str,
+        system_prompt: str,
+        provider: str,
+        api_key: Optional[str],
+        base_url: Optional[str],
+        model: Optional[str],
+    ) -> Dict[str, Any]:
+        """T3.2 — تلخيص مرحلي (map-reduce) للوثائق الأطول من حد المستوى بدل اقتطاعها."""
+        all_chunks = cls._split_text_chunks(full_text, chunk_chars=char_limit, overlap=400)
+        truncated = len(all_chunks) > cls.MAX_SUMMARY_CHUNKS
+        chunks = all_chunks[:cls.MAX_SUMMARY_CHUNKS]
+        partials = []
+        for i, ch in enumerate(chunks, 1):
+            try:
+                raw = cls.execute_chat_completion(
+                    system_prompt=(
+                        "أنت مساعد تلخيص أكاديمي. لخص المقطع التالي بإيجاز وأرجع JSON فقط "
+                        "بهذا الشكل: {\"part_overview\": \"فقرة موجزة\", "
+                        "\"key_points\": [\"نقطة\", ...], \"core_terms\": [\"مصطلح\", ...]}. "
+                        f"اللغة المطلوبة: {language}."
+                    ),
+                    user_prompt=f"المقطع {i} من {len(chunks)} من المادة التعليمية:\n{ch}",
+                    provider=provider,
+                    api_key=api_key,
+                    base_url=base_url,
+                    model=model,
+                    json_mode=True,
+                )
+                raw = re.sub(r'^```json\s*', '', raw.strip())
+                raw = re.sub(r'\s*```$', '', raw)
+                try:
+                    part = json.loads(raw)
+                except json.JSONDecodeError:
+                    match = re.search(r'\{[\s\S]*\}', raw)
+                    part = json.loads(match.group(0)) if match else {"part_overview": raw[:1000]}
+                if isinstance(part, dict):
+                    partials.append(part)
+            except Exception:
+                continue
+        if not partials:
+            raise ValueError("تعذر تلخيص المقاطع المرحلية للمستند الطويل.")
+        merged = []
+        for i, p in enumerate(partials, 1):
+            bullets = "\n".join(f"- {b}" for b in (p.get("key_points") or [])[:8])
+            terms = ", ".join((p.get("core_terms") or [])[:10])
+            merged.append(f"=== الجزء {i} ===\n{p.get('part_overview', '')}\n{bullets}\nالمصطلحات: {terms}")
+        user_prompt = (
+            "لديك ملخصات جزئية لمادة تعليمية طويلة. ادمجها في ملخص أكاديمي واحد متكامل "
+            "وفق المخطط المطلوب تماماً، دون تكرار، وبنفس اللغة والمستوى:\n\n" + "\n\n".join(merged)
+        )
+        raw = cls.execute_chat_completion(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            provider=provider,
+            api_key=api_key,
+            base_url=base_url,
+            model=model,
+            json_mode=True,
+        )
+        raw = re.sub(r'^```json\s*', '', raw.strip())
+        raw = re.sub(r'\s*```$', '', raw)
+        parsed_json = json.loads(raw)
+        result = cls.sanitize_output(parsed_json)
+        if isinstance(result, dict):
+            result["based_on_parts"] = len(partials)
+            result["truncated"] = truncated
+        return result
+
+    @classmethod
+    def generate_summary_and_mindmap(
+        cls,
+        full_text: str,
+        level: str = "full",
+        language: str = "ar",
+        provider: str = "gemini",
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        model: Optional[str] = None,
+        custom_system_prompt: Optional[str] = None
+    ) -> Dict[str, Any]:
+        if not full_text.strip():
+            return {
+                "title": "لا يوجد مستند مرفوع",
+                "overview": "يرجى رفع ملف المحاضرة أولاً.",
+                "key_points": ["ارفع الملف لبدء التلخيص."],
+                "definitions": [],
+                "comparisons": [],
+                "exam_traps": [],
+                "formulas_rules": [],
+                "mindmap": {"label": "ارفع ملفاً", "children": []}
+            }
+
+        lang_instruction = {
+            "ar": "┘è╪ش╪ذ ┘â╪ز╪د╪ذ╪ر ┘â╪د┘à┘ ┘à╪ص╪ز┘ê┘ë ╪د┘╪ز┘╪«┘è╪╡ (╪د┘╪╣┘╪د┘ê┘è┘╪î ╪د┘┘╪╕╪▒╪ر ╪د┘╪╣╪د┘à╪ر╪î ╪د┘┘à╪ص╪د┘ê╪▒ ┘ê╪د┘╪┤╪▒┘ê╪ص╪د╪ز╪î ╪د┘┘à┘é╪د╪▒┘╪د╪ز╪î ┘ê┘à╪╡╪د╪خ╪» ╪د┘╪د┘à╪ز╪ص╪د┘╪د╪ز╪î ┘ê┘é╪د┘à┘ê╪│ ╪د┘┘à╪╡╪╖┘╪ص╪د╪ز╪î ┘ê╪┤╪ش╪▒╪ر ╪د┘╪«╪▒┘è╪╖╪ر ╪د┘╪░┘ç┘┘è╪ر) ╪ذ╪د┘┘╪║╪ر ╪د┘╪╣╪▒╪ذ┘è╪ر ╪د┘┘╪╡╪ص┘ë ╪د┘╪ث┘â╪د╪»┘è┘à┘è╪ر ╪د┘┘ê╪د╪╢╪ص╪ر ┘ê╪د┘╪س╪▒┘è╪ر ╪ص╪ز┘ë ┘┘ê ┘â╪د┘ ╪د┘┘à╪│╪ز┘╪» ╪د┘╪ث╪╡┘┘è ┘à┘â╪ز┘ê╪ذ╪د┘ï ╪ذ╪د┘╪ح┘╪ش┘┘è╪▓┘è╪ر.",
+            "en": "All summary sections (Title, Overview, Pillars, Comparisons, Exam Traps, Definitions, Formulas, Mindmap) must be written strictly and entirely in clear academic English.",
+            "bilingual": "┘è╪ش╪ذ ┘â╪ز╪د╪ذ╪ر ╪د┘╪┤╪▒┘ê╪ص╪د╪ز ┘ê╪د┘┘╪╕╪▒╪ر ╪د┘╪╣╪د┘à╪ر ┘ê╪د┘┘à╪ص╪د┘ê╪▒ ╪ذ╪د┘┘╪║╪ر ╪د┘╪╣╪▒╪ذ┘è╪ر ╪د┘┘╪╡╪ص┘ë ╪د┘┘ê╪د╪╢╪ص╪ر ┘à╪╣ ╪ح╪ذ╪▒╪د╪▓ ╪د┘┘à╪╡╪╖┘╪ص╪د╪ز ┘ê╪د┘┘à┘╪د┘ç┘è┘à ╪د┘╪ح┘╪ش┘┘è╪▓┘è╪ر ╪د┘┘à┘é╪د╪ذ┘╪ر ╪ذ╪ش╪د┘╪ذ ┘â┘ ╪ز╪╣╪▒┘è┘ ┘ê┘à╪ص┘ê╪▒ (Bilingual Academic Arabic with English Core Terminology)."
+        }.get(language, "╪د┘┘╪║╪ر ╪د┘╪╣╪▒╪ذ┘è╪ر ╪د┘┘╪╡╪ص┘ë ╪د┘╪ث┘â╪د╪»┘è┘à┘è╪ر.")
+
+        level_instructions = ""
+        if level == "quick":
+            level_instructions = "╪ز┘╪ذ┘è┘ç ┘ç╪د┘à (┘à┘╪«╪╡ ╪│╪▒┘è╪╣): ╪د╪│╪ز╪«╪▒╪ش ┘┘é╪╖ ┘╪╕╪▒╪ر ╪╣╪د┘à╪ر ╪│╪▒┘è╪╣╪ر ┘ê╪ث┘ç┘à ╪د┘┘┘é╪د╪╖ ╪د┘╪ش┘ê┘ç╪▒┘è╪ر (key_points). ╪ذ╪د┘┘╪│╪ذ╪ر ┘┘╪ص┘é┘ê┘ ╪د┘╪ث╪«╪▒┘ë (╪د┘┘à╪ص╪د┘ê╪▒╪î ╪د┘╪ز╪╣╪▒┘è┘╪د╪ز╪î ╪د┘┘à┘é╪د╪▒┘╪د╪ز╪î ┘à╪╡╪د╪خ╪» ╪د┘╪د┘à╪ز╪ص╪د┘╪د╪ز╪î ╪د┘╪«╪▒┘è╪╖╪ر ╪د┘╪░┘ç┘┘è╪ر) ╪د╪ش╪╣┘┘ç╪د ┘à┘ê╪ش╪▓╪ر ┘ê┘à╪ذ╪│╪╖╪ر ╪ش╪»╪د┘ï ┘╪ز╪│╪▒┘è╪╣ ╪د┘╪د╪│╪ز╪ش╪د╪ذ╪ر ┘é╪»╪▒ ╪د┘╪ح┘à┘â╪د┘."
+        elif level == "deep":
+            level_instructions = "╪ز┘╪ذ┘è┘ç ┘ç╪د┘à (┘à┘╪«╪╡ ╪╣┘à┘è┘é ┘ê╪ز┘╪╡┘è┘┘è): ┘é╪»┘à ╪┤╪▒╪ص╪د┘ï ╪╣┘à┘è┘é╪د┘ï ┘ê┘à╪╖┘ê┘╪د┘ï ╪ش╪»╪د┘ï ┘┘┘à╪ص╪د┘ê╪▒ (pillars)╪î ┘à╪╣ ╪ث┘à╪س┘╪ر ╪╣┘à┘┘è╪ر ┘ê╪ز╪╖╪ذ┘è┘é╪د╪ز ┘┘â┘ ┘┘é╪╖╪ر╪î ┘ê╪ز┘ê╪│┘è╪╣ ┘â╪ذ┘è╪▒ ┘┘è ╪د┘┘à┘é╪د╪▒┘╪د╪ز ┘ê╪د┘┘à╪╡╪╖┘╪ص╪د╪ز ┘ê╪┤╪ش╪▒╪ر ╪د┘╪«╪▒┘è╪╖╪ر ╪د┘╪░┘ç┘┘è╪ر ┘╪ز╪┤┘à┘ ┘â┘ ╪د┘╪ز┘╪د╪╡┘è┘ ╪د┘╪»┘é┘è┘é╪ر ┘ê╪د┘┘à╪╣╪د╪»┘╪د╪ز."
+        else:
+            level_instructions = "╪ز┘╪ذ┘è┘ç ┘ç╪د┘à (┘à┘╪«╪╡ ┘à╪ز┘â╪د┘à┘): ╪د╪│╪ز╪«╪▒╪ش ┘à┘╪«╪╡╪د┘ï ┘à╪ز┘ê╪د╪▓┘╪د┘ï ┘ê╪┤╪د┘à┘╪د┘ï ┘è╪ز╪╢┘à┘ ╪د┘┘à╪ص╪د┘ê╪▒ ┘ê╪د┘┘à┘é╪د╪▒┘╪د╪ز ┘ê┘à╪╡╪د╪خ╪» ╪د┘╪د┘à╪ز╪ص╪د┘╪د╪ز ┘ê╪د┘╪ز╪╣╪▒┘è┘╪د╪ز ┘ê╪د┘╪«╪▒┘è╪╖╪ر ╪د┘╪░┘ç┘┘è╪ر ╪ذ╪┤┘â┘ ┘é┘è╪د╪│┘è ┘ê┘à┘┘è╪»."
+
+        system_prompt = custom_system_prompt or (
+            "╪ث┘╪ز ╪ذ╪▒┘ê┘┘è╪│┘ê╪▒ ┘ê╪«╪ذ┘è╪▒ ╪ز┘╪«┘è╪╡ ╪ث┘â╪د╪»┘è┘à┘è ┘à╪╣╪ز┘à╪» ┘╪ث╪▒┘é┘ë ╪د┘╪ش╪د┘à╪╣╪د╪ز ╪د┘╪╣╪د┘┘à┘è╪ر. "
+            f"┘à┘ç┘à╪ز┘â ┘é╪▒╪د╪ة╪ر ╪د┘┘à╪د╪»╪ر ╪د┘╪ز╪╣┘┘è┘à┘è╪ر ┘ê╪د╪│╪ز╪«╪▒╪د╪ش ┘à┘╪«╪╡ ╪ث┘â╪د╪»┘è┘à┘è ╪ذ┘à╪│╪ز┘ê┘ë '{level}'. ╪د┘┘╪║╪ر ╪د┘┘à╪│╪ز┘ç╪»┘╪ر ╪د┘┘à╪╖┘┘ê╪ذ╪ر ┘ç┘è: '{language}'.\n"
+            f"╪ز╪╣┘┘è┘à╪د╪ز ╪د┘┘╪║╪ر ╪د┘╪ح┘╪▓╪د┘à┘è╪ر: {lang_instruction}\n\n"
+            f"{level_instructions}\n\n"
+            "╪ز┘ê╪ش┘è┘ç ╪«╪د╪╡ ┘ê╪ص╪د╪│┘à ╪ذ╪ش╪»╪د┘ê┘ ╪د┘┘à┘é╪د╪▒┘╪ر (comparisons):\n"
+            "╪د╪│╪ز╪«╪▒╪ش ┘â╪د┘╪ر ╪د┘┘à┘é╪د╪▒┘╪د╪ز ┘ê╪د┘┘╪▒┘ê┘é╪د╪ز ┘┘è ╪د┘┘à╪د╪»╪ر ╪د┘╪ز╪╣┘┘è┘à┘è╪ر ╪│┘ê╪د╪ة ┘â╪د┘╪ز ┘à┘é╪د╪▒┘╪ر ╪س┘╪د╪خ┘è╪ر (╪ذ┘è┘ ╪╣┘╪╡╪▒┘è┘)╪î ╪ث┘ê ╪س┘╪د╪س┘è╪ر (┘à╪س┘: ┘à┘é╪د╪▒┘╪ر ╪ذ┘è┘ ╪د┘┘é╪ذ╪╣╪د╪ز ╪د┘╪ذ┘è╪╢╪د╪ة ┘ê╪د┘╪│┘ê╪»╪د╪ة ┘ê╪د┘╪▒┘à╪د╪»┘è╪ر╪î ╪ث┘ê ╪ذ┘è┘ ╪د┘┘┘è╪▒┘ê╪│╪د╪ز ┘ê╪د┘╪»┘è╪»╪د┘ ┘ê╪ث╪ص╪╡┘╪ر ╪╖╪▒┘ê╪د╪»╪ر)╪î ╪ث┘ê ┘à╪ز╪╣╪»╪»╪ر ╪د┘╪ث╪╖╪▒╪د┘ (N-Way Comparison). ┘┘â┘ ╪ش╪»┘ê┘ ┘à┘é╪د╪▒┘╪ر:\n"
+            "1. ╪ص╪»╪» ╪د┘╪╣┘┘ê╪د┘ (title) ╪ذ╪┤┘â┘ ╪»┘é┘è┘é ┘è┘ê╪╢╪ص ┘â┘ ╪د┘╪ث╪╖╪▒╪د┘ ╪د┘┘à┘é╪د╪▒┘╪ر.\n"
+            "2. ╪ص╪»╪» ┘à╪╡┘┘ê┘╪ر ╪د┘╪ث╪╖╪▒╪د┘ (items): ┘à╪╡┘┘ê┘╪ر ╪ز╪ص╪ز┘ê┘è ╪ث╪│┘à╪د╪ة ┘â┘ ╪د┘╪ث╪╖╪▒╪د┘ ╪د┘┘à┘é╪د╪▒┘╪ر ┘â╪د┘à┘╪ر ╪ذ╪د┘╪ز╪│╪د┘ê┘è: ┘à╪س┘╪د┘ï [\"╪د┘┘é╪ذ╪╣╪ر ╪د┘╪ذ┘è╪╢╪د╪ة (White Hat)\", \"╪د┘┘é╪ذ╪╣╪ر ╪د┘╪│┘ê╪»╪د╪ة (Black Hat)\", \"╪د┘┘é╪ذ╪╣╪ر ╪د┘╪▒┘à╪د╪»┘è╪ر (Grey Hat)\"].\n"
+            "3. ┘┘è ┘à╪╡┘┘ê┘╪ر ╪ث┘ê╪ش┘ç ╪د┘┘à┘é╪د╪▒┘╪ر (rows): ┘┘â┘ ┘ê╪ش┘ç (aspect)╪î ╪╢╪╣ ┘à╪╡┘┘ê┘╪ر (values) ╪ذ┘┘╪│ ╪╣╪»╪» ┘ê╪ز╪▒╪ز┘è╪ذ ╪د┘╪ث╪╖╪▒╪د┘ ┘┘è (items)╪î ╪ذ╪ص┘è╪س ┘è╪ص╪╡┘ ┘â┘ ╪╖╪▒┘ ╪╣┘┘ë ╪┤╪▒╪ص┘ç ┘ê╪«╪╡╪د╪خ╪╡┘ç ╪د┘╪»┘é┘è┘é╪ر ╪د┘┘à┘é╪د╪ذ┘╪ر ┘┘ç ╪»┘ê┘ ┘┘é╪╡ ╪ث┘è ╪╖╪▒┘.\n\n"
+            "╪ث╪▒╪ش╪╣ ╪د┘┘╪ز┘è╪ش╪ر ╪ذ╪╡┘è╪║╪ر JSON ╪ص╪╡╪▒╪د┘ï ╪ذ╪»┘ê┘ ╪ث┘è ┘╪╡┘ê╪╡ ╪ث┘ê markdown ╪«╪د╪▒╪ش ┘â╪د╪خ┘ ╪د┘┘ JSON. ┘ç┘è┘â┘ ╪د┘╪د╪│╪ز╪ش╪د╪ذ╪ر ╪د┘┘à╪╖┘┘ê╪ذ:\n"
+            "{\n"
+            '  "title": "╪د┘╪╣┘┘ê╪د┘ ╪د┘╪ث┘â╪د╪»┘è┘à┘è ╪د┘╪»┘é┘è┘é ┘┘┘à╪ص╪د╪╢╪▒╪ر ╪ث┘ê ╪د┘┘╪╡┘ ╪ذ╪د┘┘╪║╪ر ╪د┘┘à╪╖┘┘ê╪ذ╪ر",\n'
+            '  "overview": "┘╪╕╪▒╪ر ╪╣╪د┘à╪ر ┘ê╪┤╪د┘à┘╪ر ╪ز╪┤╪▒╪ص ╪د┘┘┘â╪▒╪ر ╪د┘╪ش┘ê┘ç╪▒┘è╪ر ┘ê╪د┘┘ç╪»┘ ╪د┘╪╣╪د┘à ┘à┘ ╪د┘┘à┘ê╪╢┘ê╪╣ ┘┘è 4-5 ╪ث╪│╪╖╪▒ ╪║┘┘è╪ر ┘ê┘à╪ص┘â┘à╪ر ╪ذ╪د┘┘╪║╪ر ╪د┘┘à╪╖┘┘ê╪ذ╪ر",\n'
+            '  "pillars": [\n'
+            '    {\n'
+            '      "pillar_title": "1ي╕ظâث ╪╣┘┘ê╪د┘ ╪د┘┘à╪ص┘ê╪▒ ╪د┘╪ث┘ê┘",\n'
+            '      "description": "╪┤╪▒╪ص ┘ê╪د┘┘ ┘ê╪ز┘╪╡┘è┘┘è ┘┘┘à╪ص┘ê╪▒ ┘à╪╣ ╪د┘╪ث┘à╪س┘╪ر ╪ح┘ ┘ê╪ش╪»╪ز",\n'
+            '      "sub_points": ["╪ز┘╪╡┘è┘ ┘╪▒╪╣┘è 1", "╪ز┘╪╡┘è┘ ┘╪▒╪╣┘è 2", "╪ز┘╪╡┘è┘ ┘╪▒╪╣┘è 3"]\n'
+            '    }\n'
+            '  ],\n'
+            '  "key_points": ["┘┘é╪╖╪ر ╪ش┘ê┘ç╪▒┘è╪ر 1 ┘à╪│╪ز╪«┘╪╡╪ر", "┘┘é╪╖╪ر ╪ش┘ê┘ç╪▒┘è╪ر 2", "┘┘é╪╖╪ر ╪ش┘ê┘ç╪▒┘è╪ر 3", "┘┘é╪╖╪ر ╪ش┘ê┘ç╪▒┘è╪ر 4", "┘┘é╪╖╪ر ╪ش┘ê┘ç╪▒┘è╪ر 5"],\n'
+            '  "definitions": [\n'
+            '    {"term": "╪د┘┘à╪╡╪╖┘╪ص ╪ذ╪د┘┘╪║╪ر ╪د┘╪ح┘╪ش┘┘è╪▓┘è╪ر / ╪د┘╪╣╪▒╪ذ┘è╪ر", "meaning": "╪د┘╪ز╪╣╪▒┘è┘ ╪د┘╪╣┘┘à┘è ╪د┘╪»┘é┘è┘é ┘ê╪د┘┘ê╪د╪╢╪ص", "example": "┘à╪س╪د┘ ╪ث┘ê ╪│┘è╪د┘é ╪د┘╪د╪│╪ز╪«╪»╪د┘à"}\n'
+            '  ],\n'
+            '  "comparisons": [\n'
+            '    {\n'
+            '      "title": "┘à┘é╪د╪▒┘╪ر ╪ذ┘è┘ ╪د┘┘é╪ذ╪╣╪د╪ز ╪د┘╪ذ┘è╪╢╪د╪ة ┘ê╪د┘╪│┘ê╪»╪د╪ة ┘ê╪د┘╪▒┘à╪د╪»┘è╪ر",\n'
+            '      "items": ["╪د┘┘é╪ذ╪╣╪ر ╪د┘╪ذ┘è╪╢╪د╪ة (White Hat)", "╪د┘┘é╪ذ╪╣╪ر ╪د┘╪│┘ê╪»╪د╪ة (Black Hat)", "╪د┘┘é╪ذ╪╣╪ر ╪د┘╪▒┘à╪د╪»┘è╪ر (Grey Hat)"],\n'
+            '      "rows": [\n'
+            '        {\n'
+            '          "aspect": "╪د┘╪»╪د┘╪╣ ┘ê╪د┘┘ç╪»┘",\n'
+            '          "values": [\n'
+            '            "┘à╪«╪ز╪▒┘é ╪ث╪«┘╪د┘é┘è ┘è╪│╪د╪╣╪» ╪د┘┘à╪ج╪│╪│╪د╪ز ┘┘è ┘╪ص╪╡ ╪د┘╪س╪║╪▒╪د╪ز ┘ê╪ح╪╡┘╪د╪ص┘ç╪د ╪ذ╪┤┘â┘ ┘é╪د┘┘ê┘┘è.",\n'
+            '            "┘à╪«╪ز╪▒┘é ╪«╪ذ┘è╪س ┘è╪│╪╣┘ë ┘╪ح╪ص╪»╪د╪س ╪╢╪▒╪▒ ╪ث┘ê ╪│╪▒┘é╪ر ╪ذ┘è╪د┘╪د╪ز ┘╪ز╪ص┘é┘è┘é ┘à┘â╪د╪│╪ذ ╪║┘è╪▒ ┘à╪┤╪▒┘ê╪╣╪ر.",\n'
+            '            "┘à╪«╪ز╪▒┘é ┘ê╪│╪╖ ┘è╪«╪ز╪▒┘é ╪ذ╪»┘ê┘ ╪ح╪░┘ ┘à╪│╪ذ┘é ┘┘â┘ ╪ذ╪»┘ê┘ ┘┘è╪ر ╪ز╪«╪▒┘è╪ذ┘è╪ر╪î ┘ê┘è╪╖╪د┘╪ذ ╪ذ┘à┘â╪د┘╪ث╪ر."\n'
+            '          ]\n'
+            '        }\n'
+            '      ]\n'
+            '    }\n'
+            '  ],\n'
+            '  "exam_traps": [\n'
+            '    {"trap": "╪د┘╪«╪╖╪ث ╪د┘╪┤╪د╪خ╪╣ ╪ث┘ê ╪د┘┘╪« ╪د┘╪د┘à╪ز╪ص╪د┘┘è", "correct_concept": "╪د┘┘à┘┘ç┘ê┘à ╪د┘╪╡╪ص┘è╪ص ╪د┘┘ê╪د╪ش╪ذ ╪ص┘╪╕┘ç"}\n'
+            '  ],\n'
+            '  "formulas_rules": [\n'
+            '    {"name": "╪د╪│┘à ╪د┘┘é╪د┘┘ê┘ / ╪د┘┘é╪د╪╣╪»╪ر / ╪د┘╪«┘ê╪د╪▒╪▓┘à┘è╪ر", "rule": "╪د┘╪╡┘è╪║╪ر ╪ث┘ê ╪د┘┘é╪د╪╣╪»╪ر ╪د┘╪▒┘è╪د╪╢┘è╪ر/╪د┘╪ذ╪▒┘à╪ش┘è╪ر", "explanation": "╪ز┘╪│┘è╪▒ ╪د┘┘à╪╣╪د┘à┘╪د╪ز"}\n'
+            '  ],\n'
+            '  "mindmap": {\n'
+            '     "label": "╪د┘┘à┘┘ç┘ê┘à ╪د┘┘à╪▒┘â╪▓┘è ┘┘┘à╪ص╪د╪╢╪▒╪ر",\n'
+            '     "children": [\n'
+            '        {\n'
+            '           "label": "╪د┘┘à╪ص┘ê╪▒ 1",\n'
+            '           "children": [\n'
+            '              {"label": "╪د┘┘à┘┘ç┘ê┘à ╪د┘┘╪▒╪╣┘è 1.1"},\n'
+            '              {"label": "╪د┘┘à┘┘ç┘ê┘à ╪د┘┘╪▒╪╣┘è 1.2"}\n'
+            '           ]\n'
+            '        },\n'
+            '        {\n'
+            '           "label": "╪د┘┘à╪ص┘ê╪▒ 2",\n'
+            '           "children": [\n'
+            '              {"label": "╪د┘┘à┘┘ç┘ê┘à ╪د┘┘╪▒╪╣┘è 2.1"},\n'
+            '              {"label": "╪د┘┘à┘┘ç┘ê┘à ╪د┘┘╪▒╪╣┘è 2.2"}\n'
+            '           ]\n'
+            '        }\n'
+            '     ]\n'
+            '  }\n'
+            "}\n\n"
+            "┘é╪د╪╣╪»╪ر ╪د┘┘┘é╪د╪ة ╪د┘┘╪║┘ê┘è ╪د┘╪ث┘â╪د╪»┘è┘à┘è ╪د┘╪╡╪د╪▒┘à (Strict Language Purity):\n"
+            "┘è┘┘à┘╪╣ ┘à┘╪╣╪د┘ï ╪ذ╪د╪ز╪د┘ï ┘ê┘à╪╖┘┘é╪د┘ï ╪ح╪«╪▒╪د╪ش ╪ث┘è ╪ص╪▒┘ê┘ ╪ث┘ê ╪▒┘à┘ê╪▓ ╪ت╪│┘è┘ê┘è╪ر ╪ث┘ê ╪╡┘è┘┘è╪ر (┘à╪س┘ ق¤╡فصلé«غ╗╢ ╪ث┘ê ك╜»غ╗╢ ╪ث┘ê فûكë») ╪ث┘ê ╪ث┘è ╪ز╪┤┘ê┘ç╪د╪ز ╪»┘à╪ش ╪د┘┘â┘┘à╪د╪ز (┘à╪س┘ search┘è ╪ث┘ê defaces┘è) ┘┘è ╪ث┘è ╪ص┘é┘ ╪ث┘ê ┘┘è ╪ث┘è ╪╣┘é╪»╪ر ┘à┘ ╪╣┘é╪» ╪د┘╪«╪▒┘è╪╖╪ر ╪د┘╪░┘ç┘┘è╪ر. ┘è╪ش╪ذ ╪ث┘ ╪ز┘â┘ê┘ ┘â┘ ╪د┘┘╪╡┘ê╪╡ ╪ح┘à╪د ╪ذ╪د┘┘╪║╪ر ╪د┘╪╣╪▒╪ذ┘è╪ر ╪د┘┘╪╡╪ص┘ë ╪د┘╪│┘┘è┘à╪ر ╪ث┘ê ╪ذ╪د┘┘╪║╪ر ╪د┘╪ح┘╪ش┘┘è╪▓┘è╪ر ╪د┘╪ث┘â╪د╪»┘è┘à┘è╪ر ┘┘┘à╪╡╪╖┘╪ص╪د╪ز ╪د┘┘╪د╪ز┘è┘┘è╪ر ┘┘é╪╖."
         )
 
         char_limit = 8000 if level == "quick" else (16000 if level == "deep" else 12000)
@@ -1203,6 +1399,48 @@ class AIService:
             if n.lower() == f.lower():
                 return f
         return default
+
+    @classmethod
+    def _translate_single(
+        cls,
+        system_prompt: str,
+        content: str,
+        source_lang: str,
+        target_lang: str,
+        mode: str,
+        provider: str,
+        api_key: Optional[str],
+        base_url: Optional[str],
+        model: Optional[str],
+    ) -> Dict[str, Any]:
+        """ترجمة مقطع واحد عبر النموذج (JSON). تُستخدم للممر المفرد والمرحلي."""
+        user_prompt = f"المستند المطلوب ترجمته:\n{content}"
+        raw = cls.execute_chat_completion(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            provider=provider,
+            api_key=api_key,
+            base_url=base_url,
+            model=model,
+            json_mode=True
+        )
+        raw = re.sub(r'^```json\s*', '', raw.strip())
+        raw = re.sub(r'\s*```$', '', raw)
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            # Try locating the outermost JSON object if model included extraneous text
+            match = re.search(r'\{[\s\S]*\}', raw)
+            if match:
+                data = json.loads(match.group(0))
+            else:
+                raise
+        if not isinstance(data, dict):
+            data = {"full_translated_text": str(data)}
+        data["source_lang"] = source_lang
+        data["target_lang"] = target_lang
+        data["mode"] = mode
+        return data
 
     @classmethod
     def translate_document(

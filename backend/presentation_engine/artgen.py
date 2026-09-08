@@ -6,7 +6,7 @@
   ويُستبدل لاحقاً تلقائياً بالصور الحقيقية عند توفر المفتاح (إعادة تشغيل نفس الأمر).
 
 الاستخدام:
-    python artgen.py              # تلقائي: حقيقي إن وُجد مفتاح، وإلا احتياطي
+    python artgen.py              # تلقائي: حقيقي إن وُجد مفتاح، وإلا احتياطي (لوحة academic في art/)
     python artgen.py --real       # فرض الاستدعاء الحقيقي
     python artgen.py --id myid --palette 'bg=#F8F7F2,teal=#20B2AA,navy=#0F2D4A,gray=#5A6E7F'
                                   # خلفيات بألوان هوية معيّنة → art/identities/myid/
@@ -16,6 +16,8 @@
     setx OPENAI_API_KEY "sk-..."      # على مستوى المستخدم
     setx OPENAI_BASE_URL "..."        # اختياري: مزود متوافق مع OpenAI
 """
+# T3.2: see module docstring — --palette/--colors/--outdir tint backgrounds
+# with the active visual identity instead of the fixed academic palette.
 import sys, os, json, base64, io, urllib.request, pathlib
 from PIL import Image, ImageDraw
 
@@ -139,6 +141,10 @@ def parse_palette(s):
 
 
 def main():
+    if "--list-palettes" in sys.argv:
+        for name, pal in PALETTES.items():
+            print(f" {name}: bg={pal['bg']} primary={pal['primary']} secondary={pal['secondary']} gray={pal['gray']}")
+        return
     real = "--real" in sys.argv
     ident = ""
     if "--id" in sys.argv:
