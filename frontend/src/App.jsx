@@ -182,20 +182,30 @@ export default function App() {
   };
 
   const handleSelectPrompt = (systemPrompt, title) => {
+    const value = systemPrompt ? { prompt: systemPrompt, title } : null;
     if (promptCategory === 'quiz') {
-      setActiveQuizPrompt({ prompt: systemPrompt, title });
+      setActiveQuizPrompt(value);
     } else if (promptCategory === 'summary') {
-      setActiveSummaryPrompt({ prompt: systemPrompt, title });
+      setActiveSummaryPrompt(value);
     } else if (promptCategory === 'chat') {
-      setActiveChatPrompt({ prompt: systemPrompt, title });
+      setActiveChatPrompt(value);
     } else if (promptCategory === 'translate') {
-      setActiveTranslatePrompt({ prompt: systemPrompt, title });
+      setActiveTranslatePrompt(value);
     } else if (promptCategory === 'terms') {
-      setActiveTermsPrompt({ prompt: systemPrompt, title });
+      setActiveTermsPrompt(value);
     } else if (promptCategory === 'proofread') {
-      setActiveProofreadPrompt({ prompt: systemPrompt, title });
+      setActiveProofreadPrompt(value);
     }
   };
+
+  const activePromptForCategory =
+    promptCategory === 'quiz' ? activeQuizPrompt
+    : promptCategory === 'summary' ? activeSummaryPrompt
+    : promptCategory === 'chat' ? activeChatPrompt
+    : promptCategory === 'translate' ? activeTranslatePrompt
+    : promptCategory === 'terms' ? activeTermsPrompt
+    : promptCategory === 'proofread' ? activeProofreadPrompt
+    : null;
 
   if (!user) {
     return (
@@ -394,7 +404,8 @@ export default function App() {
       <PromptManagerModal
         isOpen={isPromptOpen}
         onClose={() => setIsPromptOpen(false)}
-        activeCategory={promptCategory}
+        initialCategory={promptCategory}
+        activePrompt={activePromptForCategory}
         onSelectPrompt={handleSelectPrompt}
       />
     </>

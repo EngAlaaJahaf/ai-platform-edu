@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { fetchPrompts, createPrompt, generateCustomPrompt, deletePrompt } from '../services/api';
 
-export default function PromptManagerModal({ isOpen, onClose, initialCategory = 'quiz', onSelectPrompt }) {
+export default function PromptManagerModal({ isOpen, onClose, initialCategory = 'quiz', activePrompt = null, onSelectPrompt }) {
   const [activeTab, setActiveTab] = useState(initialCategory);
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -200,10 +200,12 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
                 <span>جاري تحميل قوالب البرومبت...</span>
               </div>
             ) : prompts.length > 0 ? (
-              prompts.map((p) => (
+              prompts.map((p) => {
+                const isActive = !!activePrompt?.prompt && activePrompt.prompt === p.system_prompt;
+                return (
                 <div
                   key={p.id}
-                  className="p-4 rounded-2xl theme-card-inner border hover:border-emerald-500/40 transition space-y-2 flex flex-col justify-between"
+                  className={`p-4 rounded-2xl theme-card-inner border transition space-y-2 flex flex-col justify-between ${isActive ? 'border-emerald-500/60' : 'hover:border-emerald-500/40'}`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -224,13 +226,22 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
                       {onSelectPrompt && (
                         <button
                           onClick={() => {
-                            onSelectPrompt(p.system_prompt, p.title);
-                            onClose();
+                            if (isActive) {
+                              onSelectPrompt(null, null);
+                            } else {
+                              onSelectPrompt(p.system_prompt, p.title);
+                              onClose();
+                            }
                           }}
-                          className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-600 dark:text-emerald-300 font-bold text-xs flex items-center gap-1 transition"
+                          title={isActive ? 'انقر لإلغاء استخدام هذا القالب' : 'استخدام هذا القالب'}
+                          className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1 transition border cursor-pointer ${
+                            isActive
+                              ? 'bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-600/25 hover:bg-emerald-500'
+                              : 'bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-500/40 text-emerald-600 dark:text-emerald-300'
+                          }`}
                         >
-                          <BookmarkCheck className="w-3.5 h-3.5" />
-                          <span>استخدام</span>
+                          {isActive ? <Check className="w-3.5 h-3.5" /> : <BookmarkCheck className="w-3.5 h-3.5" />}
+                          <span>{isActive ? 'مُستخدَم' : 'استخدام'}</span>
                         </button>
                       )}
 
@@ -250,7 +261,8 @@ export default function PromptManagerModal({ isOpen, onClose, initialCategory = 
                     {p.system_prompt}
                   </div>
                 </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-center py-12 text-xs theme-text-muted">
                 لا توجد قوالب مخصصة في هذا القسم. اضغط على «توليد برومبت بالذكاء الاصطناعي» لإنشاء قالب مخصص لمادتك.
