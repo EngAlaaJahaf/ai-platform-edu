@@ -10,7 +10,8 @@ import {
   BookOpen,
   FileSpreadsheet,
   Presentation,
-  FileCode
+  FileCode,
+  ClipboardPaste
 } from 'lucide-react';
 import { uploadDocumentFile } from '../services/api';
 
@@ -19,7 +20,19 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess }) {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
+  const [mode, setMode] = useState('file'); // 'file' | 'paste'
+  const [pastedText, setPastedText] = useState('');
+  const [pastedTitle, setPastedTitle] = useState('');
+  const [isPastedFile, setIsPastedFile] = useState(false);
   const fileInputRef = useRef(null);
+
+  const handleClose = () => {
+    setMode('file');
+    setPastedText('');
+    setPastedTitle('');
+    setError(null);
+    onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -60,14 +73,34 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess }) {
     e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setIsPastedFile(false);
       validateAndSetFile(e.dataTransfer.files[0]);
     }
   };
 
   const handleChange = (e) => {
     if (e.target.files && e.target.files[0]) {
+      setIsPastedFile(false);
       validateAndSetFile(e.target.files[0]);
     }
+  };
+
+  const handleConfirmPaste = () => {
+    const text = pastedText.trim();
+    if (!text) {
+      setError('الصق نصاً أولاً قبل الاعتماد. الحقل فارغ حالياً.');
+      return;
+    }
+    const cleanTitle = (pastedTitle.trim() || 'محتوى ملصق')
+      .replace(/[\\/:*?"<>|]/g, '')
+      .slice(0, 60) || 'محتوى ملصق';
+    const pastedFile = new File([text], `${cleanTitle}.txt`, { type: 'text/plain;charset=utf-8' });
+    setError(null);
+    setIsPastedFile(true);
+    validateAndSetFile(pastedFile);
+    setMode('file');
+    setPastedText('');
+    setPastedTitle('');
   };
 
   const handleUpload = async () => {
@@ -80,7 +113,7 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess }) {
       const result = await uploadDocumentFile(file);
       if (result.success) {
         onUploadSuccess(result);
-        onClose();
+        handleClose();
       }
     } catch (err) {
       setError(err.message || 'حدث خطأ أثناء معالجة وقراءة المستند');
@@ -104,7 +137,7 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess }) {
         
         {/* Close Button */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-5 left-5 iconbtn"
         >
           <X className="w-5 h-5" />
@@ -130,7 +163,72 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess }) {
           <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">Excel / CSV</span>
         </div>
 
-        {/* Upload Dropzone */}
+        {/* Source Mode Toggle */}
+        <div className="flex items-center gap-1.5 theme-nav p-1 rounded-2xl border">
+          <button
+            type="button"
+            onClick={() => setMode('file')}
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              mode === 'file'
+                ? 'bg-emerald-600 text-white shadow-md'
+                : 'theme-text-secondary hover:bg-white/10'
+            }`}
+          >
+            <UploadCloud className="w-3.5 h-3.5" />
+            <span>رفع ملف</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('paste')}
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              mode === 'paste'
+                ? 'bg-emerald-600 text-white shadow-md'
+                : 'theme-text-secondary hover:bg-white/10'
+            }`}
+          >
+            <ClipboardPaste className="w-3.5 h-3.5" />
+            <span>لصق نص</span>
+          </button>
+        </div>
+
+        {mode === 'paste' ? (
+          <div className="rounded-2xl theme-card-inner border p-4 space-y-3">
+            <div>
+              <label className="text-[11px] font-bold theme-text-primary block mb-1">عنوان المحتوى (اختياري):</label>
+              <input
+                type="text"
+                value={pastedTitle}
+                onChange={(e) => setPastedTitle(e.target.value)}
+                placeholder="مثال: ملخص الفصل الرابع"
+                className="w-full theme-card-inner border rounded-xl px-3.5 py-2 text-xs theme-text-primary outline-none focus:border-emerald-500 transition"
+              />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[11px] font-bold theme-text-primary">الصق النص هنا:</label>
+                <span className="text-[10px] theme-text-muted font-mono">{pastedText.trim().length.toLocaleString()} حرف</span>
+              </div>
+              <textarea
+                value={pastedText}
+                onChange={(e) => setPastedText(e.target.value)}
+                placeholder="الصق محتوى المحاضرة أو المادة التعليمية هنا، وسيُعامل مثل أي ملف نصي..."
+                dir="auto"
+                className="w-full h-44 theme-card-inner border rounded-xl p-3 text-xs theme-text-primary outline-none leading-relaxed resize-y focus:border-emerald-500 transition"
+              />
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={handleConfirmPaste}
+                disabled={!pastedText.trim()}
+                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>اعتماد النص كملف</span>
+              </button>
+            </div>
+          </div>
+        ) : (
         <div
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -162,9 +260,16 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess }) {
                 <p className="text-sm font-extrabold theme-text-primary max-w-[280px] truncate">{file.name}</p>
                 <p className="text-xs theme-text-secondary">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
               </div>
-              <span className="text-[11px] font-bold text-teal-600 dark:text-teal-300 bg-teal-500/10 px-3 py-1 rounded-full inline-block">
-                جاهز للمعالجة والاستخراج
-              </span>
+              <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                <span className="text-[11px] font-bold text-teal-600 dark:text-teal-300 bg-teal-500/10 px-3 py-1 rounded-full inline-block">
+                  جاهز للمعالجة والاستخراج
+                </span>
+                {isPastedFile && (
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full inline-block">
+                    من نص ملصق
+                  </span>
+                )}
+              </div>
             </div>
           ) : (
             <>
@@ -178,6 +283,7 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess }) {
             </>
           )}
         </div>
+        )}
 
         {/* Error Feedback */}
         {error && (
@@ -190,7 +296,7 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess }) {
         {/* Modal Actions */}
         <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             disabled={uploading}
             className="btn-ghost"
             style={{ minHeight: 42, fontSize: 12.5, padding: '0 16px' }}
